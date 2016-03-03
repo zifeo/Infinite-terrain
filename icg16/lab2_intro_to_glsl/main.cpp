@@ -7,62 +7,24 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include “triangle/triangle.h”
 
-// vertex position of the triangle
-const GLfloat vpoint[] = {-1.0f, -1.0f, 0.0f,
-                          1.0f, -1.0f, 0.0f,
-                          0.0f,  1.0f, 0.0f,};
+#include "triangle/triangle.h"
+#include "quad/quad.h"
+
 Triangle triangle;
+Quad quad;
 
 void Init() {
     // sets background color
     glClearColor(0.937, 0.937, 0.937 /*gray*/, 1.0 /*solid*/);
-
-    // compile the shaders
-    GLuint program_id = icg_helper::LoadShaders("triangle_vshader.glsl",
-                                                "triangle_fshader.glsl");
-    if(!program_id) {
-        exit(EXIT_FAILURE);
-    }
-
-    glUseProgram(program_id);
-    
-    // Vertex Array
-    GLuint vertex_array_id;
-    glGenVertexArrays(1, &vertex_array_id);
-    glBindVertexArray(vertex_array_id);
-    
-    // Vertex Buffer
-    GLuint vertex_buffer;
-    glGenBuffers(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vpoint), vpoint, GL_STATIC_DRAW);
-
-    // position attribute, fetch Attribute ID for Vertex Positions
-    GLuint position = glGetAttribLocation(program_id, "vpoint");
-    glEnableVertexAttribArray(position); // enable it
-    glVertexAttribPointer(position, 3, GL_FLOAT, DONT_NORMALIZE,
-                          ZERO_STRIDE, ZERO_BUFFER_OFFSET);
-
-    const float alpha = M_PI_4;
-    const float tx = 0.5;
-    const float ty = 0.5;
-    const float sx = 0.25;
-    const float sy = 0.25;
-    glm::mat4 I = glm::mat4(1.0f);
-    glm::mat4 T = glm::translate(I, glm::vec3(tx, ty, 0));
-    glm::mat4 S = glm::scale(T, glm::vec3(sx, sy, 0));
-    glm::mat4 R = glm::rotate(S, alpha, glm::vec3(0, 0, 1));
-    GLuint M_id = glGetUniformLocation(program_id, "M");
-    glUniformMatrix4fv(M_id, 1, GL_FALSE, glm::value_ptr(R));
     triangle.Init();
+    quad.Init();
 }
 
 void Display() {
     glClear(GL_COLOR_BUFFER_BIT);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
     triangle.Draw();
+    quad.Draw();
 }
 
 void ErrorCallback(int error, const char* description) {
@@ -127,6 +89,7 @@ int main(int argc, char *argv[]) {
     }
 
     triangle.Cleanup();
+    quad.Cleanup();
 
     // close OpenGL window and terminate GLFW
     glfwDestroyWindow(window);
