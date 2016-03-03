@@ -5,9 +5,6 @@
 // contains helper functions such as shader compiler
 #include "icg_helper.h"
 
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 // vertex position of the triangle
 const GLfloat triangle_vertex_positions[] = {-1.0f, -1.0f, 0.0f,
                                              1.0f, -1.0f, 0.0f,
@@ -48,17 +45,6 @@ void Init() {
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glVertexAttribPointer(vertex_point_id, 3, GL_FLOAT, DONT_NORMALIZE,
                           ZERO_STRIDE, ZERO_BUFFER_OFFSET);
-    const float alpha = M_PI_4;
-    const float tx = 0.5;
-    const float ty = 0.5;
-    const float sx = 0.25;
-    const float sy = 0.25;
-    glm::mat4 I = glm::mat4(1.0f);
-    glm::mat4 T = glm::translate(I, glm::vec3(tx, ty, 0));
-    glm::mat4 S = glm::scale(T, glm::vec3(sx, sy, 0));
-    glm::mat4 R = glm::rotate(S, alpha, glm::vec3(0, 0, 1));
-    GLuint M_id = glGetUniformLocation(program_id, "M");
-    glUniformMatrix4fv(M_id, 1, GL_FALSE, glm::value_ptr(R));
 }
 
 void Display() {

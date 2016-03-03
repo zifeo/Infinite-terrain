@@ -1,8 +1,8 @@
 #version 330
 
-
-out vec3 color; // output color
+in vec3 fcolor;
+out vec3 color;
 
 void main() {
-    color = vec3(1.0, 0.0, 0.0); // color is red for every fragment
+    color = fcolor;
 }
