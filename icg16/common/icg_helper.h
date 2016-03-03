@@ -25,6 +25,9 @@
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 
+// custom imports
+#include <glm/gtc/type_ptr.hpp>
+
 // these namespaces assumed by default
 using namespace std;
 
