@@ -7,18 +7,61 @@
 
 #include "quad/quad.h"
 
-// Quad stuff1;
-// ...
+Quad sun;
+Quad earth;
+Quad moon;
+float speed = 0.5;
 
 void Init() {
     // sets background color
     glClearColor(1.0,1.0,1.0 /*white*/, 1.0 /*solid*/);
+
+    sun.Init("sun.tga");
+    earth.Init("earth.tga");
+    moon.Init("moon.tga");
     // {stuff}.Init(...);
 }
 
 void Display() {
     glClear(GL_COLOR_BUFFER_BIT);
-    float time_s = glfwGetTime();
+
+    float time_s = glfwGetTime() * speed;
+
+    const float alphaSun = time_s * 0.5;
+    const float txSun = 0.5;
+    const float tySun = 0;
+    const float sxSun = 0.2;
+    const float sySun = 0.2;
+    glm::mat4 ISun = glm::mat4(1.0f);
+    glm::mat4 TSun = glm::translate(ISun, glm::vec3(txSun, tySun, 0));
+    glm::mat4 SSun = glm::scale(TSun, glm::vec3(sxSun, sySun, 0));
+    glm::mat4 RSun = glm::rotate(SSun, alphaSun, glm::vec3(0, 0, 1));
+    glm::mat4 modelSun = RSun;
+    sun.Draw(modelSun);
+
+    const float alphaEarth = time_s;
+    const float txEarth = (txSun * 2) * cos(time_s);
+    const float tyEarth = 0.5 * sin(time_s);
+    const float sxEarth = 0.1;
+    const float syEarth = 0.1;
+    glm::mat4 IEarth = glm::mat4(1.0f);
+    glm::mat4 TEarth = glm::translate(IEarth, glm::vec3(txEarth, tyEarth, 0));
+    glm::mat4 SEarth = glm::scale(TEarth, glm::vec3(sxEarth, syEarth, 0));
+    glm::mat4 REarth = glm::rotate(SEarth, alphaEarth, glm::vec3(0, 0, 1));
+    glm::mat4 modelEarth = REarth;
+    earth.Draw(modelEarth);
+
+    const float alphaMoon = time_s;
+    const float txMoon = txEarth + 0.2 * cos(time_s * 4);
+    const float tyMoon = tyEarth + 0.2 * sin(time_s * 4);
+    const float sxMoon = 0.05;
+    const float syMoon = 0.05;
+    glm::mat4 IMoon = glm::mat4(1.0f);
+    glm::mat4 TMoon = glm::translate(IMoon, glm::vec3(txMoon, tyMoon, 0));
+    glm::mat4 SMoon = glm::scale(TMoon, glm::vec3(sxMoon, syMoon, 0));
+    glm::mat4 RMoon = glm::rotate(SMoon, alphaMoon, glm::vec3(0, 0, 1));
+    glm::mat4 modelMoon = RMoon;
+    moon.Draw(modelMoon);
 
     // compute the transformation matrices
     // {stuff}.Draw({stuff}_modelmatrix);
@@ -84,7 +127,9 @@ int main(int argc, char *argv[]) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
+    sun.Cleanup();
+    earth.Cleanup();
+    moon.Cleanup();
     // {stuff}.Cleanup()
 
     // close OpenGL window and terminate GLFW
