@@ -25,8 +25,8 @@ void Display() {
 
     //Fermat's spiral
     /*for (int i = 0; i < N; i++) {
-        float theta = i * 137.508;
-        float r = 0.003 * sqrt(theta);
+        float theta = i * 137.508f;
+        float r = 0.003f * sqrt(theta);
 
         const float alpha = 0;
         const float tx = r * cos(theta);
@@ -36,23 +36,23 @@ void Display() {
         glm::mat4 I = glm::mat4(1.0f);
         glm::mat4 T = glm::translate(I, glm::vec3(tx, ty, 0));
         glm::mat4 S = glm::scale(T, glm::vec3(sx, sy, 0));
-        glm::mat4 R = glm::rotate(S, -theta, glm::vec3(0, 0, 1));
+        glm::mat4 R = glm::rotate(S, theta, glm::vec3(0, 0, 1));
         glm::mat4 model = R;
         triangle.Draw(model);
     }*/
-    for (int i = 0; i < 100; i++) {
-        float theta = i * 16 / 180.0 * 3.1415926535;
-        float r = 0.009 * i;
+    for (int i = 0; i < 55; i++) {
+        float theta = i * 20 / 180.0 * M_PI;
+        float r = 0.007 * i;
 
         const float alpha = 0;
         const float tx = r * cos(theta);
         const float ty = r * sin(theta);
-        const float sx = 0.05 * r;
-        const float sy = 0.05 * r;
+        const float sx = 0.006 + 0.1 * r;
+        const float sy = 0.006 + 0.1 * r;
         glm::mat4 I = glm::mat4(1.0f);
         glm::mat4 T = glm::translate(I, glm::vec3(tx, ty, 0));
         glm::mat4 S = glm::scale(T, glm::vec3(sx, sy, 0));
-        glm::mat4 R = glm::rotate(S, -theta, glm::vec3(0, 0, 1));
+        glm::mat4 R = glm::rotate(S, theta, glm::vec3(0, 0, 1));
         glm::mat4 model = R;
         triangle.Draw(model);
     }

@@ -10,7 +10,7 @@
 Quad sun;
 Quad earth;
 Quad moon;
-float speed = 0.5;
+const float speed = 0.5;
 
 void Init() {
     // sets background color
@@ -19,7 +19,6 @@ void Init() {
     sun.Init("sun.tga");
     earth.Init("earth.tga");
     moon.Init("moon.tga");
-    // {stuff}.Init(...);
 }
 
 void Display() {
@@ -40,7 +39,7 @@ void Display() {
     sun.Draw(modelSun);
 
     const float alphaEarth = time_s;
-    const float txEarth = (txSun * 2) * cos(time_s);
+    const float txEarth = (txSun * 2) * -cos(time_s);
     const float tyEarth = 0.5 * sin(time_s);
     const float sxEarth = 0.1;
     const float syEarth = 0.1;
