@@ -11,6 +11,8 @@
 #define RACKET_LENGTH 0.2
 #define RACKET_POSITION_Y -0.6
 #define BLOCK_LENGTH 0.03
+#define BALL_SIZE 0.05
+#define BALL_SPEED 0.012;
 
 Quad ball;
 Quad racket;
@@ -51,23 +53,38 @@ void Movements() {
 
         cout << ballPosition[0];
 
-        ballSpeed[0] = ((rand() % 2)*2 - 1) * 0.00015;
-        ballSpeed[1] = 0.00015;
+        ballSpeed[0] = ((rand() % 2)*2 - 1) * BALL_SPEED;
+        ballSpeed[1] = BALL_SPEED;
 
         racketPosition = 0;
 
         isGameOver = false;
     }
 
-    if (ballPosition[0] > 1-BLOCK_LENGTH || ballPosition[0] < -1+BLOCK_LENGTH) {
+    if (ballPosition[0] < -1 + (BLOCK_LENGTH + BALL_SIZE)|| ballPosition[0] > 1 - (BLOCK_LENGTH + BALL_SIZE)) {
         ballSpeed[0] = -ballSpeed[0];
     }
 
-    if (ballPosition[1] > 1-BLOCK_LENGTH|| (ballPosition[1] < RACKET_POSITION_Y+BLOCK_LENGTH && ballPosition[1] > RACKET_POSITION_Y && ballPosition[0] > racketPosition - RACKET_LENGTH && ballPosition[0] < racketPosition + RACKET_LENGTH)) {
-        ballSpeed[1] = -ballSpeed[1];
-    }
+    if (ballPosition[1] > 1 - (BLOCK_LENGTH + BALL_SIZE) ||
+            (ballPosition[1] < RACKET_POSITION_Y + BLOCK_LENGTH + BALL_SIZE &&
+            ballPosition[1] > RACKET_POSITION_Y + BLOCK_LENGTH + BALL_SIZE - 0.010&&
+            ballPosition[0] > racketPosition - RACKET_LENGTH &&
+            ballPosition[0] < racketPosition + RACKET_LENGTH)) {
 
-    if (ballPosition[1] < RACKET_POSITION_Y && !isGameOver) {
+        ballSpeed[1] = -ballSpeed[1];
+
+        if (ballPosition[1] <  RACKET_POSITION_Y + BLOCK_LENGTH + BALL_SIZE ) {
+            ballPosition[1] = RACKET_POSITION_Y + BLOCK_LENGTH + BALL_SIZE;
+        }
+    } else if (ballPosition[1] < RACKET_POSITION_Y + BLOCK_LENGTH + BALL_SIZE &&
+               ballPosition[1] > RACKET_POSITION_Y - BLOCK_LENGTH &&
+               ballPosition[0] > racketPosition - RACKET_LENGTH &&
+               ballPosition[0] < racketPosition + RACKET_LENGTH) {
+
+        ballSpeed[1] = -ballSpeed[1];
+        ballSpeed[0] = -ballSpeed[0];
+
+    } else if (ballPosition[1] < RACKET_POSITION_Y - BLOCK_LENGTH && !isGameOver) {
         isGameOver = true;
         timeGameOver = glfwGetTime();
     }
@@ -81,8 +98,8 @@ void Display() {
 
     const float txBall = ballPosition[0];
     const float tyBall = ballPosition[1];
-    const float sxBall = 0.05;
-    const float syBall = 0.05;
+    const float sxBall = BALL_SIZE;
+    const float syBall = BALL_SIZE;
     glm::mat4 IBall = glm::mat4(1.0f);
     glm::mat4 TBall = glm::translate(IBall, glm::vec3(txBall, tyBall, 0));
     glm::mat4 SBall = glm::scale(TBall, glm::vec3(sxBall, syBall, 0));
