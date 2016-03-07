@@ -72,7 +72,7 @@ class Triangle {
             glUniformMatrix4fv(MVP_id_, ONE, GL_FALSE, glm::value_ptr(MVP));
             
             // draw
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
 
             glBindVertexArray(0);
             glUseProgram(0);
