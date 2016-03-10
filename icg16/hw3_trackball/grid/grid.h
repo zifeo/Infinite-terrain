@@ -42,14 +42,12 @@ class Grid {
                     for (int j = 0; j <= grid_dim; j++) {
                         vertices.push_back((i-half) / half);
                         vertices.push_back((j-half) / half);
-                        cout << (i-half) / half << " " << (j-half) / half << " " << (vertices.size()/2)-1 << "\n";
                     }
                 }
 
                 for (int i = 0; i < grid_dim; i++) {
                     for (int j = 0; j < grid_dim; j++) {
                         int ind = (grid_dim + 1) * i + j;
-                        cout << ind << "\n";
                         indices.push_back(0 + ind);
                         indices.push_back(1 + ind);
                         indices.push_back(grid_dim + 1 + ind);
@@ -66,18 +64,18 @@ class Grid {
                 // reach from [-1, -1] to [1, 1].
 
                 // vertex position of the triangles.
-//                vertices.push_back(-1.0f); vertices.push_back( 1.0f);
-//                vertices.push_back( 1.0f); vertices.push_back( 1.0f);
-//                vertices.push_back( 1.0f); vertices.push_back(-1.0f);
-//                vertices.push_back(-1.0f); vertices.push_back(-1.0f);
+                /*vertices.push_back(-1.0f); vertices.push_back( 1.0f);
+                vertices.push_back( 1.0f); vertices.push_back( 1.0f);
+                vertices.push_back( 1.0f); vertices.push_back(-1.0f);
+                vertices.push_back(-1.0f); vertices.push_back(-1.0f);*/
 
                 // and indices.
-//                indices.push_back(0);
-//                indices.push_back(1);
-//                indices.push_back(3);
-//                indices.push_back(2);
-//                indices.push_back(1);
-//                indices.push_back(3);
+                /*indices.push_back(0);
+                indices.push_back(1);
+                indices.push_back(3);
+                indices.push_back(2);
+                indices.push_back(1);
+                indices.push_back(3);*/
 
                 num_indices_ = indices.size();
 
