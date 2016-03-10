@@ -36,21 +36,48 @@ class Grid {
                 // always two subsequent entries in 'vertices' form a 2D vertex position.
                 int grid_dim = 100;
 
+                float half = grid_dim / 2.0;
+
+                for (int i = 0; i <= grid_dim; i++) {
+                    for (int j = 0; j <= grid_dim; j++) {
+                        vertices.push_back((i-half) / half);
+                        vertices.push_back((j-half) / half);
+                        cout << (i-half) / half << " " << (j-half) / half << " " << (vertices.size()/2)-1 << "\n";
+                    }
+                }
+
+                for (int i = 0; i < grid_dim; i++) {
+                    for (int j = 0; j < grid_dim; j++) {
+                        int ind = (grid_dim + 1) * i + j;
+                        cout << ind << "\n";
+                        indices.push_back(0 + ind);
+                        indices.push_back(1 + ind);
+                        indices.push_back(grid_dim + 1 + ind);
+
+                        indices.push_back(1 + ind);
+                        indices.push_back(grid_dim + 1 + ind);
+                        indices.push_back(grid_dim + 2 + ind);
+                    }
+                }
+
+
                 // the given code below are the vertices for a simple quad.
                 // your grid should have the same dimension as that quad, i.e.,
                 // reach from [-1, -1] to [1, 1].
 
                 // vertex position of the triangles.
-                vertices.push_back(-1.0f); vertices.push_back( 1.0f);
-                vertices.push_back( 1.0f); vertices.push_back( 1.0f);
-                vertices.push_back( 1.0f); vertices.push_back(-1.0f);
-                vertices.push_back(-1.0f); vertices.push_back(-1.0f);
+//                vertices.push_back(-1.0f); vertices.push_back( 1.0f);
+//                vertices.push_back( 1.0f); vertices.push_back( 1.0f);
+//                vertices.push_back( 1.0f); vertices.push_back(-1.0f);
+//                vertices.push_back(-1.0f); vertices.push_back(-1.0f);
 
                 // and indices.
-                indices.push_back(0);
-                indices.push_back(1);
-                indices.push_back(3);
-                indices.push_back(2);
+//                indices.push_back(0);
+//                indices.push_back(1);
+//                indices.push_back(3);
+//                indices.push_back(2);
+//                indices.push_back(1);
+//                indices.push_back(3);
 
                 num_indices_ = indices.size();
 
@@ -147,10 +174,10 @@ class Grid {
             // draw
             // TODO 5: for debugging it can be helpful to draw only the wireframe.
             // You can do that by uncommenting the next line.
-            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             // TODO 5: depending on how you set up your vertex index buffer, you
             // might have to change GL_TRIANGLE_STRIP to GL_TRIANGLES.
-            glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, num_indices_, GL_UNSIGNED_INT, 0);
 
             glBindVertexArray(0);
             glUseProgram(0);
