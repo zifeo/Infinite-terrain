@@ -4,6 +4,8 @@ project(icg16)
 # load the common ICG configuration
 include(common/icg_settings.cmake)
 
+#add_subdirectory(TEMPLATE2D)
+
 # week 1
 #add_subdirectory(lab1_helloworld)
 
@@ -14,4 +16,5 @@ include(common/icg_settings.cmake)
 #add_subdirectory(hw2p3_planets)
 
 # week 3
-add_subdirectory(lab3_opengl3d)
+#add_subdirectory(lab3_opengl3d)
+add_subdirectory(hw3_trackball)

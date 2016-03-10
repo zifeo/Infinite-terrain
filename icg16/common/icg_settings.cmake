@@ -72,6 +72,9 @@ include_directories(${GLM_INCLUDE_DIRS})
 if(NOT GLM_FOUND)
     message(ERROR " GLM not found!")
 endif() 
+# force glm to use radians (older versions were using degrees and this can lead
+# to problems if an older glm version is already installed).
+add_definitions(-DGLM_FORCE_RADIANS)
 
 # Common headers/libraries for all the exercises
 include_directories(${CMAKE_CURRENT_LIST_DIR})
