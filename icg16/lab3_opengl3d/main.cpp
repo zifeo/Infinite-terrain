@@ -42,8 +42,10 @@ mat4 LookAt(vec3 eye, vec3 center, vec3 up) {
     // TODO 3: Create an view matrix that transforms a vector from world space into
     // the camera coordinate system. The camera is located at 'eye' and looks
     // 'center'.
-    mat4 look_at = mat4(1.0f);
-    return look_at;
+    vec3 view = normalize(center - eye);
+    vec3 right = cross(view, up);
+    mat4 look_at = mat4(vec4(right, 0), vec4(up, 0), - vec4(view, 0), vec4(0, 0, 0, 1));
+    return inverse(look_at);
 }
 
 void Init() {
@@ -58,8 +60,8 @@ void Init() {
 
     // TODO 3: Complete the LookAt function and use it here.
     view_matrix = mat4(1.0f);
-    //view_matrix = LookAt(vec3(2.0f, 2.0f, 4.0f), vec3(0.0f, 0.0f, 0.0f),
-    //                     vec3(0.0f, 1.0f, 0.0f));
+    view_matrix = LookAt(vec3(2.0f, 2.0f, 4.0f), vec3(0.0f, 0.0f, 0.0f),
+                         vec3(0.0f, 1.0f, 0.0f));
 
     quad_model_matrix = translate(mat4(1.0f), vec3(0.0f, -0.25f, 0.0f));
     quad_model_matrix = rotate(quad_model_matrix, (float)M_PI * 0.5f,
@@ -74,7 +76,9 @@ void Display() {
     mat4 cube_scale = scale(mat4(1.0f), vec3(0.25f));
     // TODO 5: Animate the cube so that it rotates around its Z axis.
     // For that you have to change the 'cube_model_matrix'.
-    mat4 cube_model_matrix = cube_scale;
+    mat4 cube_model_matrix = rotate(cube_scale, (float) glfwGetTime(), vec3(0, 1, 0));
+    cube_model_matrix = translate(cube_model_matrix, vec3(2, 0, 0));
+    cube_model_matrix = rotate(cube_model_matrix, (float) glfwGetTime(), vec3(0, 1, 0));
 
     cube.Draw(cube_model_matrix, view_matrix, projection_matrix);
 
@@ -91,7 +95,7 @@ void SetupProjection(GLFWwindow* window, int width, int height) {
     cout << "Window has been resized to " << window_width << "x"
          << window_height << "." << endl;
     // TODO 1: Reset the OpenGL framebuffer size.
-    // glViewport(...);
+    glViewport(0, 0, width, height);
 
     // TODO 2: Set up an orthographic projection matrix.
     // The projection should depend on the aspect ratio (window_width / window_height).
@@ -99,7 +103,20 @@ void SetupProjection(GLFWwindow* window, int width, int height) {
     // the given aspect ratio.
     // It might be useful to create a OrthographicProjection function that
     // such a projection matrix.
+    float top = 1;
+    float bottom = - top;
+    float right = width * 1.0f / height * (top - bottom) / 2;
+    float left = - right;
+    float near = - 4;
+    float far = - near;
+
     projection_matrix = mat4(1.0f);
+    projection_matrix[0][0] = 2.0f / (right - left);
+    projection_matrix[1][1] = 2.0f / (top - bottom);
+    projection_matrix[2][2] = - 2.0f / (far - near);
+    projection_matrix[3][0] = - (left + right) / (right - left);
+    projection_matrix[3][1] = - (top + bottom) / (top - bottom);
+    projection_matrix[3][2] = - (far + near) / (far - near);
     //projection_matrix = OrthographicProjection(...)
 }
 

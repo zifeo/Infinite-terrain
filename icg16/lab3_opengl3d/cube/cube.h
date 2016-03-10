@@ -51,7 +51,20 @@ class Cube {
             // index buffer
             // TODO 4: Fill in the indices of all the remaining triangles
             const GLuint index[] = {0, 1, 2,  // front face triangle 1
-                                    0, 2, 3}; // front face triangle 2
+                                    0, 2, 3,
+                                    0, 3, 7,
+                                    7, 0, 4,
+                                    7, 6, 4,
+                                    6, 4, 5,
+                                    0, 4, 5,
+                                    0, 1, 5,
+                                    2, 6, 5,
+                                    5, 1, 2,
+                                    3, 2, 7,
+                                    7, 6, 2
+
+
+            }; // front face triangle 2
 
             num_indices_ = sizeof(index) / sizeof(GLuint);
 
