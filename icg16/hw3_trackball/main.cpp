@@ -52,7 +52,7 @@ mat4 PerspectiveProjection(float fovy, float aspect, float near, float far) {
     assert(far >= 0);
     float top = tan(radians(fovy / 2)) * near;
     float bottom = -top;
-    float left = top * aspect;
+    float left = bottom * aspect;
     float right = -left;
     mat4 projection = mat4(0.0f);
     projection[0][0] = 2.0f * near / (right - left);
@@ -109,10 +109,10 @@ void Init() {
     // looks straight down the -z axis. Otherwise the trackball's rotation gets
     // applied in a rotated coordinate frame.
     // uncomment lower line to achieve this.
-    view_matrix = LookAt(vec3(2.0f, 2.0f, 4.0f),
-                         vec3(0.0f, 0.0f, 0.0f),
-                         vec3(0.0f, 1.0f, 0.0f));
-    // view_matrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, -4.0f));
+    //view_matrix = LookAt(vec3(2.0f, 2.0f, 4.0f),
+    //                     vec3(0.0f, 0.0f, 0.0f),
+    //                     vec3(0.0f, 1.0f, 0.0f));
+    view_matrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, -4.0f));
 
     trackball_matrix = IDENTITY_MATRIX;
 
@@ -170,7 +170,7 @@ void MousePos(GLFWwindow* window, double x, double y) {
         // TODO 3: Calculate 'trackball_matrix' given the return value of
         // trackball.Drag(...) and the value stored in 'old_trackball_matrix'.
         // See also the mouse_button(...) function.
-        // trackball_matrix = ...
+        trackball_matrix = trackball.Drag(p.x, p.y) * old_trackball_matrix;
     }
 
     // zoom
@@ -179,7 +179,8 @@ void MousePos(GLFWwindow* window, double x, double y) {
         // moving the mouse cursor up and down (along the screen's y axis)
         // should zoom out and it. For that you have to update the current
         // 'view_matrix' with a translation along the z axis.
-        // view_matrix = ...
+        vec2 p = TransformScreenCoords(window, x, y);
+        view_matrix = translate(view_matrix, vec3(0, 0, p.y));
     }
 }
 

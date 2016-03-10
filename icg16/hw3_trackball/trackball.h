@@ -25,7 +25,6 @@ public:
       vec3 current_pos = vec3(x, y, 0.0f);
       ProjectOntoSurface(current_pos);
 
-      mat4 rotation = IDENTITY_MATRIX;
       // TODO 3: Calculate the rotation given the projections of the anocher
       // point and the current position. The rotation axis is given by the cross
       // product of the two projected points, and the angle between them can be
@@ -33,7 +32,10 @@ public:
       // you might want to scale the rotation magnitude by a scalar factor.
       // p.s. No need for using complicated quaternions as suggested inthe wiki
       // article.
-      return rotation;
+        vec3 axis = cross(anchor_pos_, current_pos);
+        //float theta = acos(dot(anchor_pos_, current_pos)) / 2;
+        float theta = length(axis);
+        return rotate(mat4(1.0f), theta, axis);
     }
 
 private:
@@ -44,6 +46,10 @@ private:
     // The trackball radius is given by 'radius_'.
     void ProjectOntoSurface(vec3& p) const {
       // TODO 2: Implement this function. Read above link for details.
+        assert(p.z == 0.0f);
+        float len = length(p);
+        float r2 = radius_ * radius_;
+        p.z = len <= r2 / 2 ? sqrt(r2 - len) : r2 / 2 / sqrt(len);
     }
 
     float radius_;
