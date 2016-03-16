@@ -17,6 +17,7 @@ Grid grid;
 
 int window_width = 800;
 int window_height = 600;
+float save_y = 0;
 
 using namespace glm;
 
@@ -162,6 +163,13 @@ void MouseButton(GLFWwindow* window, int button, int action, int mod) {
         old_trackball_matrix = trackball_matrix;
         // Store the current state of the model matrix.
     }
+
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+        double x_i, y_i;
+        glfwGetCursorPos(window, &x_i, &y_i);
+        vec2 p = TransformScreenCoords(window, x_i, y_i);
+        save_y = p.y;
+    }
 }
 
 void MousePos(GLFWwindow* window, double x, double y) {
@@ -180,7 +188,8 @@ void MousePos(GLFWwindow* window, double x, double y) {
         // should zoom out and it. For that you have to update the current
         // 'view_matrix' with a translation along the z axis.
         vec2 p = TransformScreenCoords(window, x, y);
-        view_matrix = translate(view_matrix, vec3(0, 0, p.y));
+        view_matrix = translate(view_matrix, vec3(0, 0, 2*(p.y - save_y)));
+        save_y = p.y;
     }
 }
 
