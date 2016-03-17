@@ -17,4 +17,7 @@ include(common/icg_settings.cmake)
 
 # week 3
 #add_subdirectory(lab3_opengl3d)
-add_subdirectory(hw3_trackball)
+#add_subdirectory(hw3_trackball)
+
+# week 4
+add_subdirectory(hw4_shading)
