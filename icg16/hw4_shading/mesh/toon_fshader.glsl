@@ -14,8 +14,6 @@ in vec3 light_dir;
 in vec3 view_dir;
 
 void main() {
-    color = vec3(0.0,0.0,0.0);
-
     ///>>>>>>>>>> TODO >>>>>>>>>>>
     /// TODO 2.2: Toon shading.
     vec3 petit_n = dot(light_dir, normal_mv) * normal_mv;

@@ -13,18 +13,6 @@ in vec3 light_dir;
 in vec3 view_dir;
 
 void main() {
-    color = vec3(0.0, 0.0, 0.0);
-
-    const vec3 COLORS[6] = vec3[](
-        vec3(1.0,0.0,0.0),
-        vec3(0.0,1.0,0.0),
-        vec3(0.0,0.0,1.0),
-        vec3(1.0,1.0,0.0),
-        vec3(0.0,1.0,1.0),
-        vec3(1.0,0.0,1.0));
-    int index = int( mod(gl_PrimitiveID,6) );
-    color = COLORS[index];
-
     //>>>>>>>>>> TODO >>>>>>>>>>>
     // TODO 3.2: Artistic shading.
     vec3 petit_n = dot(light_dir, normal_mv) * normal_mv;
