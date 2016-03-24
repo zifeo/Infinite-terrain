@@ -61,14 +61,14 @@ void Display() {
     
     // render to FB
     framebuffer.Bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    cube.Draw(VP);
-    quad.Draw(VP);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        cube.Draw(VP);
+        quad.Draw(VP);
     framebuffer.Unbind();
 
     framebuffer2.Bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    screenquad.Draw(PASS::FIRST); // first pass
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        screenquad.Draw(PASS::FIRST); // first pass
     framebuffer2.Unbind();
 
     // render to Window
