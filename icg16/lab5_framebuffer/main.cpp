@@ -26,6 +26,9 @@ mat4 projection_matrix;
 mat4 view_matrix;
 mat4 cube_model_matrix;
 
+FrameBuffer framebuffer;
+ScreenQuad screenquad;
+
 void Init(GLFWwindow* window) {
     glClearColor(1.0, 1.0, 1.0 /*white*/, 1.0 /*solid*/);
     glEnable(GL_DEPTH_TEST);
@@ -48,16 +51,23 @@ void Init(GLFWwindow* window) {
 
     // TODO: initialize framebuffer (see slides)
     // TODO: initialize fullscreen quad (see slides)
+    GLuint framebuffer_texture_id = framebuffer.Init(window_width, window_height);
+    screenquad.Init(window_width, window_height, framebuffer_texture_id);
 }
 
 void Display() {
     // TODO: wrap these calls so they render to a texture (see slides)
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    cube.Draw(cube_model_matrix, view_matrix, projection_matrix);
-    quad.Draw(IDENTITY_MATRIX, view_matrix, projection_matrix);
-    
+    framebuffer.Bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        cube.Draw(cube_model_matrix, view_matrix, projection_matrix);
+        quad.Draw(IDENTITY_MATRIX, view_matrix, projection_matrix);
+    framebuffer.Unbind();
+
     // TODO: use the fullscreen quad to draw the framebuffer texture to screen
     //       (see slides)
+    glViewport(0, 0, window_width, window_height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    screenquad.Draw();
 }
 
 // gets called when the windows/framebuffer is resized.
@@ -72,6 +82,10 @@ void ResizeCallback(GLFWwindow* window, int width, int height) {
 
     // TODO : when the window is resized, the framebuffer and the fullscreen quad
     //        sizes should be updated accordingly
+    screenquad.UpdateSize(width, height);
+    framebuffer.Cleanup();
+    GLuint framebuffer_texture_id = framebuffer.Init(window_width, window_height);
+    screenquad.Init(window_width, window_height, framebuffer_texture_id);
 }
 
 void ErrorCallback(int error, const char* description) {
@@ -143,6 +157,8 @@ int main(int argc, char *argv[]) {
     quad.Cleanup();
     cube.Cleanup();
     // TODO: clean framebuffer and screenquad
+    framebuffer.Cleanup();
+    screenquad.Cleanup();
 
     // close OpenGL window and terminate GLFW
     glfwDestroyWindow(window);
