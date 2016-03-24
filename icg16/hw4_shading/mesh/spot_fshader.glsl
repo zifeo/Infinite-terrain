@@ -34,10 +34,10 @@ void main() {
     vec3 r_dir = normalize(2 * proj - light_dir);
 
     float nl = dot(normal_mv, light_dir);
-    nl = nl >= 0 ? nl : 0;
+    nl = max(nl, 0);
 
     float rv = dot(r_dir, view_dir);
-    rv = rv >= 0 ? rv : 0;
+    rv = max(rv, 0);
 
     float spot_effect = spot_effect_not_pow >= spot_cos_cutoff ? pow(spot_effect_not_pow, spot_exp) : 0;
 

@@ -22,9 +22,9 @@ void main() {
     vec3 r = normalize((petit_n - light_dir) + petit_n);
 
     float nl = dot(normal_mv, light_dir);
-    nl = nl < 0 ? 0 : nl;
+    nl = max(nl, 0);
     float rv = dot(r, view_dir);
-    rv = rv < 0 ? 0 : rv;
+    rv = max(rv, 0);
     /// 1) compute ambient term.
     vec3 amb = ka * La;
     /// 2) compute diffuse term using the texture sampler tex.

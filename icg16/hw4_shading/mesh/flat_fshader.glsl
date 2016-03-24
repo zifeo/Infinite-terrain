@@ -39,9 +39,9 @@ void main() {
     vec3 r = normalize((petit_n - light_dir) + petit_n);
 
     float nl = dot(normal_mv, light_dir);
-    nl = nl < 0 ? 0 : nl;
+    nl = max(nl, 0);
     float rv = dot(r, view_dir);
-    rv = rv < 0 ? 0 : rv;
+    rv = max(rv, 0);
     color = ka * La + kd * nl * Ld + ks * pow(rv, alpha) * Ls;
     ///<<<<<<<<<< TODO <<<<<<<<<<<
 }
