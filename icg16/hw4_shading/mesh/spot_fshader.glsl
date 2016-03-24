@@ -39,7 +39,11 @@ void main() {
     float rv = dot(r_dir, view_dir);
     rv = max(rv, 0);
 
-    float spot_effect = spot_effect_not_pow >= spot_cos_cutoff ? pow(spot_effect_not_pow, spot_exp) : 0;
+    float spot_effect = 0;
+    if (spot_effect_not_pow >= spot_cos_cutoff)
+        spot_effect = pow(spot_effect_not_pow, spot_exp);
+    else
+        spot_effect = 0;
 
     color = ka * La + (kd * nl * Ld + ks * pow(rv, alpha) * Ls) * spot_effect;
 }
