@@ -48,7 +48,7 @@ void main() {
     vec3 tot_image = vec3(0);
     for(int i = -size/2; i <= size/2; i++){
         for(int j = -size/2; j <= size/2; j++){
-            float dist = sqrt(pow(5, 2) + pow(j, 2));
+            float dist = pow(i, 2) + pow(j, 2);
             float weight = exp(-dist/(2 * sigma * sigma)); // gaussian
             tot_image += weight * texture(tex, uv + vec2(i/tex_width,j/tex_height)).rgb;
             tot_weight += weight;
