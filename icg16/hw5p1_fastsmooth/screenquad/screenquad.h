@@ -43,7 +43,7 @@ class ScreenQuad {
                 exit(EXIT_FAILURE);
             }
 
-            program_id_ = slow_program_id_;
+            program_id_ = fast_program_id_;
 
             glUseProgram(program_id_);
 

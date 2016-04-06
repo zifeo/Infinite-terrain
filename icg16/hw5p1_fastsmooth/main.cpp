@@ -48,6 +48,7 @@ void Init(GLFWwindow* window) {
 
     screenquad.Init(window_width, window_height, fb_tex, fb_tex2);
     screenquad.toggleBlurSpeed(fast);
+
 }
 
 void Display() {
