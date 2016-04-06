@@ -12,6 +12,8 @@ class ScreenQuad {
     private:
         GLuint vertex_array_id_;        // vertex array object
         GLuint program_id_;             // GLSL shader program ID
+        GLuint fast_program_id_;        // GLSL fast shader program ID
+        GLuint slow_program_id_;        // GLSL slow shader program ID
         GLuint vertex_buffer_object_;   // memory buffer
         GLuint texture_1_id_;           // texture ID 1
         GLuint texture_2_id_;           // texture ID 2
@@ -29,11 +31,19 @@ class ScreenQuad {
             this->screenquad_height_ = height;
 
             // compile the shaders
-            program_id_ = icg_helper::LoadShaders("screenquad_vshader.glsl",
+            fast_program_id_ = icg_helper::LoadShaders("screenquad_vshader.glsl",
                                                   "screenquad_fshader.glsl");
-            if(!program_id_) {
+            if(!fast_program_id_) {
                 exit(EXIT_FAILURE);
             }
+
+            slow_program_id_ = icg_helper::LoadShaders("screenquad_vshader.glsl",
+                                                  "screenquad_slow_fshader.glsl");
+            if(!slow_program_id_) {
+                exit(EXIT_FAILURE);
+            }
+
+            program_id_ = slow_program_id_;
 
             glUseProgram(program_id_);
 
@@ -107,6 +117,11 @@ class ScreenQuad {
             glDeleteVertexArrays(1, &vertex_array_id_);
             glDeleteTextures(1, &texture_1_id_);
             glDeleteTextures(1, &texture_2_id_);
+        }
+
+        void toggleBlurSpeed(bool fast) {
+            program_id_ = fast ? fast_program_id_ : slow_program_id_;
+            std::cout << "fast mode : " << (fast ? "on" : "off") << std::endl;
         }
 
         void UpdateSize(int screenquad_width, int screenquad_height) {

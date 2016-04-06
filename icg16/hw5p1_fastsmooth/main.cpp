@@ -25,6 +25,7 @@ mat4 projection_matrix;
 FrameBuffer framebuffer;
 FrameBuffer framebuffer2;
 ScreenQuad screenquad;
+bool fast = false;
 
 void Init(GLFWwindow* window) {
     glClearColor(1.0, 1.0, 1.0 /*white*/, 1.0 /*solid*/);
@@ -46,6 +47,7 @@ void Init(GLFWwindow* window) {
     GLuint fb_tex2 = framebuffer2.Init(window_width, window_height);
 
     screenquad.Init(window_width, window_height, fb_tex, fb_tex2);
+    screenquad.toggleBlurSpeed(fast);
 }
 
 void Display() {
@@ -66,10 +68,12 @@ void Display() {
         quad.Draw(VP);
     framebuffer.Unbind();
 
-    framebuffer2.Bind();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        screenquad.Draw(PASS::FIRST); // first pass
-    framebuffer2.Unbind();
+    if (fast) {
+        framebuffer2.Bind();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            screenquad.Draw(PASS::FIRST); // first pass
+        framebuffer2.Unbind();
+    }
 
     // render to Window
     glViewport(0, 0, window_width, window_height);
@@ -106,6 +110,14 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         return;
     }
     switch(key) {
+        case '1':
+            fast = false;
+            screenquad.toggleBlurSpeed(fast);
+            break;
+        case '2':
+            fast = true;
+            screenquad.toggleBlurSpeed(fast);
+            break;
         case 'Q':
             screenquad.UpdateStandardDeviation(0.75);
             break;
