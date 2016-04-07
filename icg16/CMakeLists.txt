@@ -25,4 +25,5 @@ include(common/icg_settings.cmake)
 add_subdirectory(hw5p1_fastsmooth)
 add_subdirectory(hw5p2_mirrorfloor)
 add_subdirectory(hw5p3_motionblur)
+add_subdirectory(hw5p4_bonus)
 
