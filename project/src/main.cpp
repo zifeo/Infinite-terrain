@@ -9,6 +9,7 @@
 
 #include "floor/floor.h"
 #include "cube/cube.h"
+#include "perlinTex/perlinTex.h"
 
 int window_width = 1280;
 int window_height = 720;
@@ -16,6 +17,7 @@ int window_height = 720;
 FrameBuffer framebuffer;
 Cube cube;
 Floor shinyfloor;
+PerlinTex perlinTex;
 
 using namespace glm;
 
@@ -29,17 +31,20 @@ void Init(GLFWwindow* window) {
     float ratio = window_width / (float) window_height;
     projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
 
-    cube.Init();
+    /*cube.Init();
     // TODO: initialize framebuffer
     GLuint framebuffer_texture_id = framebuffer.Init(window_width, window_height);
     // TODO: initialize shinyfloor with the FB texture
-    shinyfloor.Init(framebuffer_texture_id);
+    shinyfloor.Init(framebuffer_texture_id);*/
+
+    perlinTex.Init();
 }
 
 void Display() {
     glViewport(0,0,window_width,window_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    /*
     vec3 cam_pos(2.0f, 2.0f, -2.0f);
     vec3 cam_look(0.0f, 0.0f, 0.0f);
     vec3 cam_up(0.0f, 0.0f, -1.0f);
@@ -63,6 +68,9 @@ void Display() {
     
     shinyfloor.Draw(view_projection);
     cube.Draw(view_projection);
+     */
+
+    perlinTex.Draw();
 }
 
 // Gets called when the windows/framebuffer is resized.
