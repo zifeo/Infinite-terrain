@@ -12,7 +12,8 @@ copy_files_once(${TEXTURES})
 # you build (ie, you want the shaders there)
 file(GLOB SHADERS
   cube/*.glsl
-  floor/*.glsl)
+  floor/*.glsl
+  perlinTex/*.glsl)
 deploy_shaders_to_build_dir(${SHADERS})
 
 add_executable(${EXERCISENAME} ${SOURCES} ${HEADERS} ${SHADERS})
