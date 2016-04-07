@@ -1,27 +1,3 @@
-# Locate the GLFW library (version 3.0)
-# This module defines the following variables:
-# GLFW_LIBRARIES, the name of the library;
-# GLFW_INCLUDE_DIRS, where to find GLFW include files.
-# GLFW_FOUND, true if library path was resolved
-#
-# Usage example to compile an "executable" target to the glfw library:
-#
-# FIND_PACKAGE (GLFW REQUIRED)
-# INCLUDE_DIRECTORIES (${GLFW_INCLUDE_DIRS})
-# ADD_EXECUTABLE (executable ${YOUR_EXECUTABLE_SRCS})
-# TARGET_LINK_LIBRARIES (executable ${GLFW_LIBRARIES})
-#
-# TODO:
-# Lookup for windows
-# Allow the user to select to link to a shared library or to a static library.
-#
-# SEE:
-# - https://raw.github.com/progschj/OpenGL-Examples/master/cmake_modules/FindGLFW.cmake
-#
-
-# We only officially support visual studio 2015's compiler but if you already
-# have an older version of visual studio you can change the following LIBPATH
-# to match your version of visual studio (2015, 2013, 2012, 2010)
 IF (WIN32)
     IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
         SET( BITS "64")
