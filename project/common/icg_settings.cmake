@@ -1,20 +1,18 @@
-# Build configuration file for "Introduction to Computer Graphics"
-# Copyright (C) 2016 - LGG EPFL
-#
-# To understand its content:
-#   http://www.cmake.org/cmake/help/syntax.html
-#   http://www.cmake.org/Wiki/CMake_Useful_Variables
-#
 
-# This is how you show a status message in the build system
-message(STATUS "Intro to Graphics - Loading Common Configuration")
-
-# Tell CMake he'll be able to include ".cmake" configurations
-# files in the folder where the current file is located
+# Other configurations
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 
 # Enable C++11
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wfloat-equal")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wstrict-prototypes")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wwrite-strings")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcast-qual")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-default")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunreachable-code")
 
 # CMake extension to load GLFW3
 find_package(GLFW3 REQUIRED)
@@ -71,11 +69,9 @@ find_package(GLM REQUIRED)
 include_directories(${GLM_INCLUDE_DIRS})
 if(NOT GLM_FOUND)
     message(ERROR " GLM not found!")
-endif() 
-# force glm to use radians (older versions were using degrees and this can lead
-# to problems if an older glm version is already installed).
+endif()
 add_definitions(-DGLM_FORCE_RADIANS)
 
-# Common headers/libraries for all the exercises
+# Common headers/libraries
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 SET(COMMON_LIBS ${OPENGL_LIBRARIES} ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES})
