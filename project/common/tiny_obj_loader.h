@@ -40,9 +40,9 @@
 #ifndef TINY_OBJ_LOADER_H
 #define TINY_OBJ_LOADER_H
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 namespace tinyobj {
 
@@ -151,18 +151,18 @@ void LoadMtl(std::map<std::string, int> &material_map, // [output]
 }
 
 #ifdef TINYOBJLOADER_IMPLEMENTATION
-#include <cstdlib>
-#include <cstring>
 #include <cassert>
+#include <cctype>
 #include <cmath>
 #include <cstddef>
-#include <cctype>
+#include <cstdlib>
+#include <cstring>
 
+#include <fstream>
+#include <map>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <map>
-#include <fstream>
-#include <sstream>
 
 #include "tiny_obj_loader.h"
 
@@ -518,7 +518,7 @@ static bool exportFaceGroupToShape(
     const std::vector<float> &in_positions,
     const std::vector<float> &in_normals,
     const std::vector<float> &in_texcoords,
-    const std::vector<std::vector<vertex_index> > &faceGroup,
+    const std::vector<std::vector<vertex_index>> &faceGroup,
     std::vector<tag_t> &tags, const int material_id, const std::string &name,
     bool clearCache, bool triangulate) {
   if (faceGroup.empty()) {
@@ -870,7 +870,7 @@ bool LoadObj(std::vector<shape_t> &shapes,       // [output]
   std::vector<float> vn;
   std::vector<float> vt;
   std::vector<tag_t> tags;
-  std::vector<std::vector<vertex_index> > faceGroup;
+  std::vector<std::vector<vertex_index>> faceGroup;
   std::string name;
 
   // material
