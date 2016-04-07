@@ -58,10 +58,10 @@ void Display() {
     cube.Draw(view_projection);
     framebuffer.Unbind();
 
-    cam_pos = vec3(0.0f, 0.5f, 3.0f);
-    cam_look = vec3(0.0f, 0.0f, 0.0f);
-    float angle = -2*glfwGetTime();
-    cam_up = vec3(0.0f, 1.0f, 0.0f);
+    float angle = -glfwGetTime()*1.1;
+    cam_pos = vec3(sin(angle) / 2.0f, cos(angle) / 2.0f, 1.4f);
+    cam_look = vec3(sin(angle) / 2.0f, cos(angle) / 2.0f, 0.0f);
+    cam_up = vec3(1.0f, 0.0f, 0.0f);
     view = lookAt(cam_pos, cam_look, cam_up);
     view_projection = projection_matrix * view;
 
