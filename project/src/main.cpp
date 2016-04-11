@@ -13,11 +13,26 @@
 
 int window_width = 1280;
 int window_height = 720;
+int nbFrames = 0;
+float lastTime = 0;
 
-FrameBuffer framebuffer;
+
 Cube cube;
 Floor shinyfloor;
+
+// Perlin parameters
 PerlinTex perlinTex;
+FrameBuffer perlinFramebuffer;
+int octave = 4;
+float lac = 0.9;
+float H = 0.3;
+// Perlin parameters are ready to be used for normal and projection
+bool perlin_ready = false;
+
+// Normal texture
+NormalTex normalTex;
+FrameBuffer normalBuffer;
+
 
 using namespace glm;
 
@@ -36,6 +51,8 @@ void Init(GLFWwindow* window) {
     GLuint framebuffer_texture_id = framebuffer.Init(window_width, window_height);
     // TODO: initialize shinyfloor with the FB texture
     shinyfloor.Init(framebuffer_texture_id);*/
+
+
 
     perlinTex.Init();
 }
@@ -70,7 +87,28 @@ void Display() {
     cube.Draw(view_projection);
      */
 
-    perlinTex.Draw();
+    if (perlin_ready) {
+        perlinFramebuffer.Bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    perlinTex.Draw(octave, lac, H);
+    if (perlin_ready) {
+        perlinFramebuffer.Unbind();
+    }
+
+    if (perlin_ready) {
+
+    }
+
+    // Measure speed
+    double currentTime = glfwGetTime();
+    nbFrames++;
+    if ( currentTime - lastTime >= 1.0 || lastTime == 0 ){ // If last prinf() was more than 1 sec ago
+        // printf and reset timer
+        printf("%d frame\n", nbFrames);
+        nbFrames = 0;
+        lastTime += 1.0;
+    }
 }
 
 // Gets called when the windows/framebuffer is resized.
@@ -79,8 +117,8 @@ void resize_callback(GLFWwindow* window, int width, int height) {
     float ratio = window_width / (float) window_height;
     projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
     glViewport(0, 0, window_width, window_height);
-    framebuffer.Cleanup();
-    framebuffer.Init(window_width, window_height);
+    perlinFramebuffer.Cleanup();
+    perlinFramebuffer.Init(window_width, window_height);
 }
 
 void ErrorCallback(int error, const char* description) {
@@ -90,6 +128,25 @@ void ErrorCallback(int error, const char* description) {
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
+    } else if (key >= GLFW_KEY_1 && key <= GLFW_KEY_9 && action == GLFW_PRESS) {
+        octave = key - GLFW_KEY_0;
+        cout << "nbr octave : " << octave << endl;
+    } else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+        H += 0.01;
+        H = H > 1 ? 1 : H;
+        cout << "new H" << H << endl;
+    } else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+        H -= 0.01;
+        H = H < 0 ? 0 : H;
+        cout << "new H" << H << endl;
+    } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+        lac += 0.05;
+        lac = lac > 10 ? 1 : lac;
+        cout << "new lac" << lac << endl;
+    } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+        lac -= 0.05;
+        lac = lac < 0 ? 0 : lac;
+        cout << "new lac" << lac << endl;
     }
 }
 

@@ -9,6 +9,6 @@ mat4 S(float s) {
 }
 
 void main() {
-    gl_Position = S(0.8) * vec4(vpoint, 1.0);
+    gl_Position = S(1) * vec4(vpoint, 1.0);
     tpoint = vtexcoord;
 }
