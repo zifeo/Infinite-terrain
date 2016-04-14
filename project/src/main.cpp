@@ -13,7 +13,7 @@
 #include "perlinTex/perlinTex.h"
 #include "normalTex/normalTex.h"
 
-#define CHUNKS 10
+#define CHUNKS 4
 
 int window_width = 1280;
 int window_height = 720;
@@ -30,8 +30,8 @@ float lac = 2;
 float H = 1.25;
 // Perlin parameters are ready to be used for normal and projection
 bool perlin_ready = false;
-FrameBuffer texs[CHUNKS];
-GLuint perlinBuffer_tex_id[CHUNKS];
+FrameBuffer texs[CHUNKS*CHUNKS];
+GLuint perlinBuffer_tex_id[CHUNKS*CHUNKS];
 
 // Normal texture
 NormalTex normalTex;
@@ -71,11 +71,13 @@ void Init(GLFWwindow* window) {
 
 void frameBufferInit() {
     for (int i = 0; i < CHUNKS; i++) {
-        perlinBuffer_tex_id[i] = texs[i].Init(tex_width, tex_height, true);
-        texs[i].Bind();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        perlinTex.Draw(octave, lac, H, i, 0);
-        texs[i].Unbind();
+        for (int j = 0; j < CHUNKS; j++) {
+            perlinBuffer_tex_id[i*CHUNKS + j] = texs[i*CHUNKS + j].Init(tex_width, tex_height, true);
+            texs[i*CHUNKS + j].Bind();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            perlinTex.Draw(octave, lac, H, i - CHUNKS/2, j - CHUNKS/2);
+            texs[i*CHUNKS + j].Unbind();
+        }
     }
 }
 
@@ -89,8 +91,11 @@ void Display() {
         glViewport(0,0,window_width,window_height);
 
         for (int i = 0; i < CHUNKS; i++) {
-            mat4 model = quad_model_matrix * translate(IDENTITY_MATRIX, vec3(i*2,0,0));
-            grid.Draw(perlinBuffer_tex_id[i], currentTime, trackball_matrix * model, view_matrix, projection_matrix);
+            for (int j = 0; j < CHUNKS; j++) {
+                mat4 model = quad_model_matrix * translate(IDENTITY_MATRIX, vec3((i - CHUNKS/2) * 2 , 0, -(j - CHUNKS/2) * 2));
+                grid.Draw(perlinBuffer_tex_id[i*CHUNKS + j], currentTime, trackball_matrix * model, view_matrix,
+                          projection_matrix);
+            }
         }
     } else {
         perlinTex.Draw(octave, lac, H, 0, 0);
