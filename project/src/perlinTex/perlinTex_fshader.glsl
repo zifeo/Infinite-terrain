@@ -1,20 +1,14 @@
 #version 330 core
 
-
 #define RANDNBR 256
-#define SIZE coef * RANDNBR
-#define MAXOCTAVE 4
 
 out vec3 color;
 in vec2 tpoint;
 uniform sampler1D gradientMap;
 uniform int Perm[RANDNBR];
+uniform int octaves;
 uniform float lac;
 uniform float H;
-uniform int octave;
-
-vec2 tpoint_1 = tpoint;
-
 
 float perl_mix(float x, float y, float a) {
     return (1-a)*x + a*y;
@@ -28,10 +22,10 @@ float smoothInt(float t) {
     return t * t * t * (t * (t * 6 - 15) + 10); // reduces the number of multiplications
 }
 
-float perlin() {
+float perlin(vec2 point) {
 
     float size = RANDNBR;
-    vec2 tpoint_sized = tpoint_1*size;
+    vec2 tpoint_sized = point;
     vec2 tpoint_cell = (tpoint_sized - floor(tpoint_sized));
     vec2 tpoint_floor = floor(tpoint_sized);
 
@@ -59,23 +53,27 @@ float perlin() {
     return perl_mix(st, uv, smoothInt(tpoint_cell.y));
 }
 
-float noiseBFM(float H, float lacunarity, int octaves) {
+float noiseBFM(vec2 point, float H, float lacunarity, int octave) {
     float value = 0.0;
     float max = 0.0;
+    float freq = 1.0;
+
      /* inner loop of fractal construction */
-    for (int i = 0; i < octaves; i++) {
-        max += pow(lacunarity, -H*i);
-        value += perlin() * pow(lacunarity, -H*i);
-        tpoint_1 *= lacunarity;
+    for (int i = 0; i < octave; i++) {
+        max += pow(freq, -H);
+        value += (perlin(point) + 1)/2 * pow(freq, -H);
+        freq *= lacunarity;
+        point *= lacunarity;
     }
 
-    return value / max;
+    return value/max;
 }
 
 void main() {
 
-    float noise = (noiseBFM(H, lac, octave) + 1)/2;
+    float noise = noiseBFM(tpoint, H, lac, octaves);
 
-    color = vec3(tpoint, noise);
+    color = vec3(noise);
+    //color = vec3(tpoint.x);
 }
 
