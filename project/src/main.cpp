@@ -1,31 +1,32 @@
 // glew must be before glfw
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 // contains helper functions such as shader compiler
 #include "icg_helper.h"
 
 #include "framebuffer.h"
+#include "trackball.h"
 
-#include "floor/floor.h"
-#include "cube/cube.h"
+#include "grid/grid.h"
 #include "perlinTex/perlinTex.h"
+#include "normalTex/normalTex.h"
 
 int window_width = 1280;
 int window_height = 720;
+int tex_width = 1024;
+int tex_height = 1024;
 int nbFrames = 0;
 float lastTime = 0;
-
-
-Cube cube;
-Floor shinyfloor;
+float save_y = 0;
 
 // Perlin parameters
 PerlinTex perlinTex;
 FrameBuffer perlinFramebuffer;
-int octave = 4;
-float lac = 0.9;
-float H = 0.3;
+int octave = 1;
+float lac = 2;
+float H = 1.25;
 // Perlin parameters are ready to be used for normal and projection
 bool perlin_ready = false;
 
@@ -33,75 +34,58 @@ bool perlin_ready = false;
 NormalTex normalTex;
 FrameBuffer normalBuffer;
 
+// Final grid vue
+Grid grid;
+
+// Trackball
+// Helper matrices
+mat4 projection_matrix;
+mat4 view_matrix;
+mat4 trackball_matrix;
+mat4 old_trackball_matrix;
+mat4 quad_model_matrix;
+
+Trackball trackball;
 
 using namespace glm;
-
-mat4 projection_matrix;
 
 void Init(GLFWwindow* window) {
     glClearColor(1.0, 1.0, 1.0 /*white*/, 1.0 /*solid*/);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
 
-    float ratio = window_width / (float) window_height;
-    projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
-
-    /*cube.Init();
-    // TODO: initialize framebuffer
-    GLuint framebuffer_texture_id = framebuffer.Init(window_width, window_height);
-    // TODO: initialize shinyfloor with the FB texture
-    shinyfloor.Init(framebuffer_texture_id);*/
+    // Trackball matrices initial setup
+    quad_model_matrix = IDENTITY_MATRIX;
+    trackball_matrix = IDENTITY_MATRIX;
 
 
-
+    // All texture, vues and framebuffer init
     perlinTex.Init();
+    GLuint perlinBuffer_tex_id = perlinFramebuffer.Init(tex_width, tex_height, true);
+    grid.Init(perlinBuffer_tex_id);
+
 }
 
 void Display() {
+    double currentTime = glfwGetTime();
     glViewport(0,0,window_width,window_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    /*
-    vec3 cam_pos(2.0f, 2.0f, -2.0f);
-    vec3 cam_look(0.0f, 0.0f, 0.0f);
-    vec3 cam_up(0.0f, 0.0f, -1.0f);
-    mat4 view = lookAt(cam_pos, cam_look, cam_up);
-    mat4 view_projection = projection_matrix * view;
-
-    // TODO: mirror the camera position
-    // TODO: create new VP for mirrored camera
-    // TODO: render the cube using the mirrored camera
-    // HINT: this render will be done in the framebuffer texture (remember bind/unbind)
-
-    framebuffer.Bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    cube.Draw(view_projection);
-    framebuffer.Unbind();
-
-    cam_pos = vec3(2.0f, 2.0f, 2.0f);
-    cam_up = vec3(0.0f, 0.0f, 1.0f);
-    view = lookAt(cam_pos, cam_look, cam_up);
-    view_projection = projection_matrix * view;
-    
-    shinyfloor.Draw(view_projection);
-    cube.Draw(view_projection);
-     */
-
     if (perlin_ready) {
+
         perlinFramebuffer.Bind();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-    perlinTex.Draw(octave, lac, H);
-    if (perlin_ready) {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            perlinTex.Draw(octave, lac, H);
         perlinFramebuffer.Unbind();
-    }
 
-    if (perlin_ready) {
-
+        glViewport(0,0,window_width,window_height);
+        
+        grid.Draw(currentTime, trackball_matrix * quad_model_matrix, view_matrix, projection_matrix);
+    } else {
+        perlinTex.Draw(octave, lac, H);
     }
 
     // Measure speed
-    double currentTime = glfwGetTime();
     nbFrames++;
     if ( currentTime - lastTime >= 1.0 || lastTime == 0 ){ // If last prinf() was more than 1 sec ago
         // printf and reset timer
@@ -111,14 +95,65 @@ void Display() {
     }
 }
 
+// transforms glfw screen coordinates into normalized OpenGL coordinates.
+vec2 TransformScreenCoords(GLFWwindow* window, int x, int y) {
+    // the framebuffer and the window doesn't necessarily have the same size
+    // i.e. hidpi screens. so we need to get the correct one
+    int width;
+    int height;
+    glfwGetWindowSize(window, &width, &height);
+    return vec2(2.0f * (float)x / width - 1.0f,
+                1.0f - 2.0f * (float)y / height);
+}
+
+void MouseButton(GLFWwindow* window, int button, int action, int mod) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        double x_i, y_i;
+        glfwGetCursorPos(window, &x_i, &y_i);
+        vec2 p = TransformScreenCoords(window, x_i, y_i);
+        trackball.BeingDrag(p.x, p.y);
+        old_trackball_matrix = trackball_matrix;
+        // Store the current state of the model matrix.
+    }
+
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+        double x_i, y_i;
+        glfwGetCursorPos(window, &x_i, &y_i);
+        vec2 p = TransformScreenCoords(window, x_i, y_i);
+        save_y = p.y;
+    }
+}
+
+void MousePos(GLFWwindow* window, double x, double y) {
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        vec2 p = TransformScreenCoords(window, x, y);
+        // TODO 3: Calculate 'trackball_matrix' given the return value of
+        // trackball.Drag(...) and the value stored in 'old_trackball_matrix'.
+        // See also the mouse_button(...) function.
+        trackball_matrix = trackball.Drag(p.x, p.y) * old_trackball_matrix;
+    }
+
+    // zoom
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        // TODO 4: Implement zooming. When the right mouse button is pressed,
+        // moving the mouse cursor up and down (along the screen's y axis)
+        // should zoom out and it. For that you have to update the current
+        // 'view_matrix' with a translation along the z axis.
+        vec2 p = TransformScreenCoords(window, x, y);
+        view_matrix = translate(view_matrix, vec3(0, 0, 2*(p.y - save_y)));
+        save_y = p.y;
+    }
+}
+
 // Gets called when the windows/framebuffer is resized.
 void resize_callback(GLFWwindow* window, int width, int height) {
     glfwGetFramebufferSize(window, &window_width, &window_height);
+
     float ratio = window_width / (float) window_height;
     projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
     glViewport(0, 0, window_width, window_height);
     perlinFramebuffer.Cleanup();
-    perlinFramebuffer.Init(window_width, window_height);
+    perlinFramebuffer.Init(window_width, window_height, true);
 }
 
 void ErrorCallback(int error, const char* description) {
@@ -133,20 +168,22 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         cout << "nbr octave : " << octave << endl;
     } else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
         H += 0.01;
-        H = H > 1 ? 1 : H;
+        H = H > 2 ? 2 : H;
         cout << "new H" << H << endl;
     } else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
         H -= 0.01;
-        H = H < 0 ? 0 : H;
+        H = H < -2 ? -2 : H;
         cout << "new H" << H << endl;
     } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-        lac += 0.05;
-        lac = lac > 10 ? 1 : lac;
+        lac += 0.01;
+        lac = lac > 10 ? 10 : lac;
         cout << "new lac" << lac << endl;
     } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
         lac -= 0.05;
         lac = lac < 0 ? 0 : lac;
         cout << "new lac" << lac << endl;
+    } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+        perlin_ready = !perlin_ready;
     }
 }
 
@@ -156,7 +193,6 @@ int main(int argc, char *argv[]) {
         fprintf( stderr, "Failed to initialize GLFW\n" );
         return EXIT_FAILURE;
     }
-
     glfwSetErrorCallback(ErrorCallback);
 
     /// Hint GLFW that we would like an OpenGL 3 context (at least)
@@ -183,6 +219,10 @@ int main(int argc, char *argv[]) {
 
     glfwSetFramebufferSizeCallback(window, resize_callback);
 
+    // set the mouse press and position callback
+    glfwSetMouseButtonCallback(window, MouseButton);
+    glfwSetCursorPosCallback(window, MousePos);
+
     /// GLEW Initialization (must have a context)
     glewExperimental = GL_TRUE; ///<
     if( glewInit() != GLEW_NO_ERROR ){
@@ -194,12 +234,24 @@ int main(int argc, char *argv[]) {
     Init(window);
     KeyCallback(window, GLFW_KEY_KP_1, 0, 0, 0);
 
+    // update the window size with the framebuffer size (on hidpi screens the
+    // framebuffer is bigger)
+    glfwGetFramebufferSize(window, &window_width, &window_height);
+    resize_callback(window, window_width, window_height);
+
     /// Render loop & keyboard input
     while(!glfwWindowShouldClose(window)){
         Display();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    grid.Cleanup();
+    normalTex.Cleanup();
+    perlinTex.Cleanup();
+    normalBuffer.Cleanup();
+    perlinFramebuffer.Cleanup();
+
     /// Close OpenGL window and terminate GLFW
     glfwDestroyWindow(window);
     glfwTerminate();
