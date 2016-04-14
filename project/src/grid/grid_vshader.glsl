@@ -1,5 +1,7 @@
 #version 330
 
+#define SKIRT 0.001
+
 in vec2 position;
 
 out vec2 uv;
@@ -22,6 +24,9 @@ void main() {
     colorHeight = texture(tex1D, height).rgb;
 
     vec3 pos_3d = vec3(position.x, height*2 - 1, -position.y);
+
+    if (position.x < -1.0f + SKIRT || position.x > 1.0f - SKIRT || position.y < -1.0f + SKIRT || position.y > 1.0f - SKIRT)
+        pos_3d = vec3(pos_3d.x, pos_3d.y-0.2, pos_3d.z);
 
     vec4 vpoint_mv = MV * vec4(pos_3d, 1.0);
     gl_Position = MVP * vec4(pos_3d, 1.0);
