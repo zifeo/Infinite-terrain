@@ -9,6 +9,8 @@ uniform int Perm[RANDNBR];
 uniform int octaves;
 uniform float lac;
 uniform float H;
+uniform int X;
+uniform int Y;
 
 float perl_mix(float x, float y, float a) {
     return (1-a)*x + a*y;
@@ -71,7 +73,7 @@ float noiseBFM(vec2 point, float H, float lacunarity, int octave) {
 
 void main() {
 
-    float noise = noiseBFM(tpoint, H, lac, octaves);
+    float noise = noiseBFM((tpoint + vec2(X, Y)*2), H, lac, octaves);
 
     color = vec3(noise);
     //color = vec3(tpoint.x);

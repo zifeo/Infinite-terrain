@@ -84,7 +84,7 @@ class PerlinTex {
 
                 glGenTextures(1, &texture_id_);
                 glBindTexture(GL_TEXTURE_1D, texture_id_);
-                glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, gradientNbr, 0, GL_RGB, GL_FLOAT, gradients);
+                glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB32F, gradientNbr, 0, GL_RGB, GL_FLOAT, gradients);
                 glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -112,13 +112,15 @@ class PerlinTex {
         glDeleteTextures(1, &texture_id_);
     }
 
-    void Draw(int octave, float lac, float H) {
+    void Draw(int octave, float lac, float H, int X, int Y) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
         glUniform1i(glGetUniformLocation(program_id_, "octaves"), octave);
         glUniform1f(glGetUniformLocation(program_id_, "lac"), lac);
         glUniform1f(glGetUniformLocation(program_id_, "H"), H);
+        glUniform1i(glGetUniformLocation(program_id_, "X"), X);
+        glUniform1i(glGetUniformLocation(program_id_, "Y"), Y);
 
         // bind textures
         glActiveTexture(GL_TEXTURE0);
