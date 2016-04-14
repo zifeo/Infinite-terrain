@@ -168,7 +168,7 @@ private:
     GLuint P_id_;
 
 public:
-    void Init(GLuint tex_input) {
+    void Init() {
         // compile the shaders.
         program_id_ = icg_helper::LoadShaders("grid_vshader.glsl",
                                               "grid_fshader.glsl");
@@ -236,8 +236,6 @@ public:
         }
 
         {
-            texture_id_ = tex_input;
-
             GLuint tex_normal_id = glGetUniformLocation(program_id_, "tex");
             glUniform1i(tex_normal_id, 0 /*GL_TEXTURE0*/);
 
@@ -289,7 +287,7 @@ public:
         glDeleteTextures(1, &texture_id_);
     }
 
-    void Draw(float time, const glm::mat4 &model = IDENTITY_MATRIX,
+    void Draw(GLint texture_id, float time, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX,
               const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
@@ -300,7 +298,7 @@ public:
 
         // bind textures
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture_id_);
+        glBindTexture(GL_TEXTURE_2D, texture_id);
 
         // bind textures
         glActiveTexture(GL_TEXTURE1);

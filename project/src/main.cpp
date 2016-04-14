@@ -13,6 +13,8 @@
 #include "perlinTex/perlinTex.h"
 #include "normalTex/normalTex.h"
 
+#define CHUNKS 10
+
 int window_width = 1280;
 int window_height = 720;
 int tex_width = 1024;
@@ -23,12 +25,13 @@ float save_y = 0;
 
 // Perlin parameters
 PerlinTex perlinTex;
-FrameBuffer perlinFramebuffer;
-int octave = 1;
+int octave = 9;
 float lac = 2;
 float H = 1.25;
 // Perlin parameters are ready to be used for normal and projection
 bool perlin_ready = false;
+FrameBuffer texs[CHUNKS];
+GLuint perlinBuffer_tex_id[CHUNKS];
 
 // Normal texture
 NormalTex normalTex;
@@ -61,9 +64,19 @@ void Init(GLFWwindow* window) {
 
     // All texture, vues and framebuffer init
     perlinTex.Init();
-    GLuint perlinBuffer_tex_id = perlinFramebuffer.Init(tex_width, tex_height, true);
-    grid.Init(perlinBuffer_tex_id);
 
+    grid.Init();
+
+}
+
+void frameBufferInit() {
+    for (int i = 0; i < CHUNKS; i++) {
+        perlinBuffer_tex_id[i] = texs[i].Init(tex_width, tex_height, true);
+        texs[i].Bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        perlinTex.Draw(octave, lac, H, i, 0);
+        texs[i].Unbind();
+    }
 }
 
 void Display() {
@@ -73,16 +86,14 @@ void Display() {
 
     if (perlin_ready) {
 
-        perlinFramebuffer.Bind();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            perlinTex.Draw(octave, lac, H);
-        perlinFramebuffer.Unbind();
-
         glViewport(0,0,window_width,window_height);
-        
-        grid.Draw(currentTime, trackball_matrix * quad_model_matrix, view_matrix, projection_matrix);
+
+        for (int i = 0; i < CHUNKS; i++) {
+            mat4 model = quad_model_matrix * translate(IDENTITY_MATRIX, vec3(i*2,0,0));
+            grid.Draw(perlinBuffer_tex_id[i], currentTime, trackball_matrix * model, view_matrix, projection_matrix);
+        }
     } else {
-        perlinTex.Draw(octave, lac, H);
+        perlinTex.Draw(octave, lac, H, 0, 0);
     }
 
     // Measure speed
@@ -152,8 +163,6 @@ void resize_callback(GLFWwindow* window, int width, int height) {
     float ratio = window_width / (float) window_height;
     projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
     glViewport(0, 0, window_width, window_height);
-    perlinFramebuffer.Cleanup();
-    perlinFramebuffer.Init(window_width, window_height, true);
 }
 
 void ErrorCallback(int error, const char* description) {
@@ -239,6 +248,8 @@ int main(int argc, char *argv[]) {
     glfwGetFramebufferSize(window, &window_width, &window_height);
     resize_callback(window, window_width, window_height);
 
+    frameBufferInit();
+
     /// Render loop & keyboard input
     while(!glfwWindowShouldClose(window)){
         Display();
@@ -250,7 +261,10 @@ int main(int argc, char *argv[]) {
     normalTex.Cleanup();
     perlinTex.Cleanup();
     normalBuffer.Cleanup();
-    perlinFramebuffer.Cleanup();
+
+    for (int i = 0; i < CHUNKS; i++) {
+        texs[i].Cleanup();
+    }
 
     /// Close OpenGL window and terminate GLFW
     glfwDestroyWindow(window);
