@@ -14,6 +14,7 @@
 #include "normalTex/normalTex.h"
 
 #define CHUNKS 4
+#define DELTA 0.01
 
 int window_width = 1280;
 int window_height = 720;
@@ -92,7 +93,7 @@ void Display() {
 
         for (int i = 0; i < CHUNKS; i++) {
             for (int j = 0; j < CHUNKS; j++) {
-                mat4 model = quad_model_matrix * translate(IDENTITY_MATRIX, vec3((i - CHUNKS/2) * 2 , 0, -(j - CHUNKS/2) * 2));
+                mat4 model = quad_model_matrix * translate(IDENTITY_MATRIX, vec3((i - CHUNKS/2) * 2 - DELTA * i, 0, -((j - CHUNKS/2) * 2 - DELTA * j)));
                 grid.Draw(perlinBuffer_tex_id[i*CHUNKS + j], currentTime, trackball_matrix * model, view_matrix,
                           projection_matrix);
             }
@@ -105,7 +106,7 @@ void Display() {
     nbFrames++;
     if ( currentTime - lastTime >= 1.0 || lastTime == 0 ){ // If last prinf() was more than 1 sec ago
         // printf and reset timer
-        printf("%d frame\n", nbFrames);
+        cout << nbFrames << " frames" << endl;
         nbFrames = 0;
         lastTime += 1.0;
     }
