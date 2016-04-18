@@ -19,9 +19,10 @@
 #define CHUNKS 2
 #define DELTA 0.01
 #define MAX_DIST 4294967296
-#define VIEW_DIST 2 //in chunk
+#define VIEW_DIST 3 //in chunk
 
-#define CAMERA_SPEED 0.01
+#define CAMERA_SPEED 0.04
+#define MOUSE_SENSIBILTY 0.01
 
 #ifndef M_PI
 #define M_PI 3.14159268
@@ -37,10 +38,8 @@ int tex_height = 1024;
 int nbFrames = 0;
 float lastTime = 0;
 float save_y = 0;
-bool shouldChangeMousePos = true;
 
-vec3 camPos = vec3(1);
-vec3 centerPos = vec3(0);
+vec3 camPos = vec3(1, 1, 1);
 
 float phi = 2.0f;
 float theta = 0.0f;
@@ -58,9 +57,11 @@ bool perlin_ready = false;
 typedef struct {
     FrameBuffer tex;
     GLuint perlinBuffer_tex_id;
+    int x;
+    int y;
 } ChunkTex;
 
-std::map <uint64_t, ChunkTex> chunkMap;
+std::map <long long, ChunkTex> chunkMap;
 
 // Normal texture
 NormalTex normalTex;
@@ -105,27 +106,31 @@ void Init(GLFWwindow* window) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 }
 
+long long getKey(int i, int j) {
+    return ((i+1000)%1000) * 1000 + (j+1000)%1000;
+}
+
 void initChunk(int i, int j) {
     ChunkTex chunk;
+    chunk.x = i;
+    chunk.y = j;
     chunk.perlinBuffer_tex_id = chunk.tex.Init(tex_width, tex_height, true);
     chunk.tex.Bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     perlinTex.Draw(octave, lac, H, i - CHUNKS/2, j - CHUNKS/2);
     chunk.tex.Unbind();
-    chunkMap.insert(std::pair<uint64_t, ChunkTex>(i * MAX_DIST + j, chunk));
+    chunkMap.insert(std::pair<long long, ChunkTex>(getKey(i, j), chunk));
 }
 
 void frameBufferInit() {
     for (int i = 0; i < CHUNKS; i++) {
         for (int j = 0; j < CHUNKS; j++) {
-            initChunk(i, j);
+            //initChunk(i, j);
         }
     }
 }
 
 void Display() {
-    shouldChangeMousePos = true;
-
     double currentTime = glfwGetTime();
     glViewport(0,0,window_width,window_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -141,11 +146,11 @@ void Display() {
     if (perlin_ready) {
 
         glViewport(0,0,window_width,window_height);
-        for (std::map<uint64_t, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); it++) {
-            int i = it->first / MAX_DIST;
-            int j = it->first % MAX_DIST;
+        for (std::map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); it++) {
+            int i = it->second.x;
+            int j = it->second.y;
             mat4 model = quad_model_matrix * translate(IDENTITY_MATRIX, vec3((i - CHUNKS/2) * 2 - DELTA * i, 0, -((j - CHUNKS/2) * 2 - DELTA * j)));
-            grid.Draw(it->second.perlinBuffer_tex_id, currentTime, trackball_matrix * model, view_matrix, projection_matrix);
+            grid.Draw(it->second.perlinBuffer_tex_id, currentTime, model, view_matrix, projection_matrix);
         }
     } else {
         perlinTex.Draw(octave, lac, H, 0, 0);
@@ -175,33 +180,44 @@ void Display() {
     }
 
     //Do we need to add chunks ?
-    //cout << camPos[0] / 2.0 << " and " << camPos[1] / 2.0 << endl;
+    float camX = camPos.x > 0 ? (camPos.x + 1) / 2 : (camPos.x + 1) / 2 - 1;
+    float camY = camPos.z > 0 ? (camPos.z + 1) / 2 : (camPos.z + 1) / 2 - 1;
+    //cout << "-------------------------" << endl;
+    //cout << camX << " and " << camY << endl;
     for (int dx = -VIEW_DIST; dx <=VIEW_DIST; dx++) {
         for (int dy = -VIEW_DIST; dy <=VIEW_DIST; dy++) {
-            int i = camPos.x / 2.0 + dx;
-            int j = camPos.z / 2.0 + dy;
+            float i = camX + dx + 1;
+            float j = -camY + dy + 1;
+
+             //cout << i << " - " << j << endl;
+
+            float fdx = dx + (camPos.x + 1) / 2 - (int) ((camPos.x + 1) / 2);
+            float fdy = dy + (camPos.z + 1) / 2 - (int) ((camPos.z + 1) / 2);
 
             if (dx*dx + dy*dy <= VIEW_DIST*VIEW_DIST) {
-                std::map<uint64_t, ChunkTex>::iterator it = chunkMap.find(i * MAX_DIST + j);
+                std::map<long long, ChunkTex>::iterator it = chunkMap.find(getKey(i, j));
                 if(it == chunkMap.end()) { // no element at this position
                     initChunk(i, j);
+                    cout << "Added chunk " << i << "-" << j << endl;
                 }
             }
         }
     }
+    //cout << "-------------------------" << endl;
 
     //Do we need to remove chunks ?
-    std::vector<uint64_t> toBeRemoved;
-    for (std::map<uint64_t, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); it++) {
-        int i = it->first / MAX_DIST;
-        int j = it->first % MAX_DIST;
+    std::vector<long long> toBeRemoved;
+    for (std::map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); it++) {
+        int i = it->second.x;
+        int j = it->second.y;
 
-        int dx = camPos.x / 2.0 - i;
-        int dy = camPos.y / 2.0 - j;
+        float dx = -camX - 1 + i;
+        float dy = camY - 1 + j;
 
-        if (dx*dx + dy*dy > VIEW_DIST*VIEW_DIST) {
+        if (dx*dx + dy*dy > VIEW_DIST*VIEW_DIST*1.1) {
             it->second.tex.Cleanup();
             toBeRemoved.push_back(it->first);
+            cout << "Removed chunk " << i << "-" << j << endl;
         }
     }
 
@@ -261,15 +277,12 @@ void MousePos(GLFWwindow* window, double x, double y) {
 
 
     int diffy=y-window_height/2;
-    phi += diffy * 0.01;
+    phi += diffy * MOUSE_SENSIBILTY;
     phi = phi > 9 * M_PI/10 ? 9 * M_PI/10 : phi;
     phi = phi < M_PI/10 ? M_PI/10 : phi;
 
     int diffx=x-window_width/2;
-    theta += diffx * 0.01;
-
-    cout << phi << endl;
-    shouldChangeMousePos = false;
+    theta += diffx * MOUSE_SENSIBILTY;
 
     if (x != window_width/2 || y != window_height/2)
         glfwSetCursorPos(window, window_width/2, window_height/2);
@@ -393,7 +406,7 @@ int main(int argc, char *argv[]) {
     perlinTex.Cleanup();
     normalBuffer.Cleanup();
 
-    for (std::map<uint64_t, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); it++) {
+    for (std::map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); it++) {
         it->second.tex.Cleanup();
     }
 
