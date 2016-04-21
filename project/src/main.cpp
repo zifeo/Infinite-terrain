@@ -7,7 +7,6 @@
 #include "icg_helper.h"
 
 #include "framebuffer.h"
-#include "trackball.h"
 
 #include "grid/grid.h"
 #include "perlinTex/perlinTex.h"
@@ -27,6 +26,8 @@
 #ifndef M_PI
 #define M_PI 3.14159268
 #endif
+
+using namespace glm;
 
 bool arrows_down[4];
 enum {UP, DOWN, RIGHT, LEFT};
@@ -74,13 +75,7 @@ Grid grid;
 // Helper matrices
 mat4 projection_matrix;
 mat4 view_matrix;
-mat4 trackball_matrix;
-mat4 old_trackball_matrix;
 mat4 quad_model_matrix;
-
-Trackball trackball;
-
-using namespace glm;
 
 vec3 vecFromRot(float p, float t) {
     return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t));
@@ -91,18 +86,13 @@ void Init(GLFWwindow* window) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
 
-    // Trackball matrices initial setup
-    quad_model_matrix = IDENTITY_MATRIX;
-    trackball_matrix = IDENTITY_MATRIX;
-
-
     // All texture, vues and framebuffer init
     perlinTex.Init();
 
     grid.Init();
 
     arrows_down[0] = arrows_down[1] = arrows_down[2] = arrows_down[3] = false;
-
+    //resize_callback(window, window_width, window_height);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 }
 
@@ -237,60 +227,36 @@ vec2 TransformScreenCoords(GLFWwindow* window, int x, int y) {
                 1.0f - 2.0f * (float)y / height);
 }
 
-void MouseButton(GLFWwindow* window, int button, int action, int mod) {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        double x_i, y_i;
-        glfwGetCursorPos(window, &x_i, &y_i);
-        vec2 p = TransformScreenCoords(window, x_i, y_i);
-        trackball.BeingDrag(p.x, p.y);
-        old_trackball_matrix = trackball_matrix;
-        // Store the current state of the model matrix.
-    }
-
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-        double x_i, y_i;
-        glfwGetCursorPos(window, &x_i, &y_i);
-        vec2 p = TransformScreenCoords(window, x_i, y_i);
-        save_y = p.y;
-    }
-}
-
 void MousePos(GLFWwindow* window, double x, double y) {
-    /*if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-        vec2 p = TransformScreenCoords(window, x, y);
-        // TODO 3: Calculate 'trackball_matrix' given the return value of
-        // trackball.Drag(...) and the value stored in 'old_trackball_matrix'.
-        // See also the mouse_button(...) function.
-        trackball_matrix = trackball.Drag(p.x, p.y) * old_trackball_matrix;
-    }
+    //if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 
-    // zoom
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-        // TODO 4: Implement zooming. When the right mouse button is pressed,
-        // moving the mouse cursor up and down (along the screen's y axis)
-        // should zoom out and it. For that you have to update the current
-        // 'view_matrix' with a translation along the z axis.
-        vec2 p = TransformScreenCoords(window, x, y);
-        view_matrix = translate(view_matrix, vec3(0, 0, 2*(p.y - save_y)));
-        save_y = p.y;
-    }*/
+        int scaleFactor = 2;
+        //glfwGetFramebufferSize(window, &window_width, &window_height);
+        //glfwGetWindowSize(window, &window_width, &window_height);
 
+        int diffy = (int) y - window_height/scaleFactor;
+        int diffx = (int) x - window_width/scaleFactor;
+        cout << diffx << ":" << diffy << endl;
 
-    int diffy=y-window_height/2;
-    phi += diffy * MOUSE_SENSIBILTY;
-    phi = phi > 9 * M_PI/10 ? 9 * M_PI/10 : phi;
-    phi = phi < M_PI/10 ? M_PI/10 : phi;
+        phi += diffy * MOUSE_SENSIBILTY;
+        phi = clamp(phi, (float) M_PI/10 , 9 * (float) M_PI/10);
+        theta += diffx * MOUSE_SENSIBILTY;
 
-    int diffx=x-window_width/2;
-    theta += diffx * MOUSE_SENSIBILTY;
+        if (x != window_width / scaleFactor || y != window_height / scaleFactor) {
+            glfwSetCursorPos(window, window_width / scaleFactor, window_height / scaleFactor);
+        }
 
-    if (x != window_width/2 || y != window_height/2)
-        glfwSetCursorPos(window, window_width/2, window_height/2);
+        //cout << window_height / scaleFactor << "x" << window_width / scaleFactor << endl;
+        //cout << window_height << "x" << window_width << endl;
+        cout << x << ":" << y << endl;
+    //}
 }
 
 // Gets called when the windows/framebuffer is resized.
 void resize_callback(GLFWwindow* window, int width, int height) {
-    glfwGetFramebufferSize(window, &window_width, &window_height);
+    window_width = width;
+    window_height = height;
+    cout << "=>" << window_height << "x" << window_width << endl;
 
     float ratio = window_width / (float) window_height;
     projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
@@ -370,10 +336,9 @@ int main(int argc, char *argv[]) {
     /// Set the callback for escape key
     glfwSetKeyCallback(window, KeyCallback);
 
-    glfwSetFramebufferSizeCallback(window, resize_callback);
+    glfwSetWindowSizeCallback(window, resize_callback);
 
     // set the mouse press and position callback
-    glfwSetMouseButtonCallback(window, MouseButton);
     glfwSetCursorPosCallback(window, MousePos);
 
     /// GLEW Initialization (must have a context)
