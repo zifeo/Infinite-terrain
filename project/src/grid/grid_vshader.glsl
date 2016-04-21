@@ -25,8 +25,8 @@ void main() {
 
     vec3 pos_3d = vec3(position.x, height * 2 - 1, -position.y);
 
-    if (position.x < -1.0f + SKIRT || position.x > 1.0f - SKIRT ||
-        position.y < -1.0f + SKIRT || position.y > 1.0f - SKIRT)
+    if (position.x < -1.0f + SKIRT || position.x > 1.0f - SKIRT || position.y < -1.0f + SKIRT ||
+        position.y > 1.0f - SKIRT)
         pos_3d = vec3(pos_3d.x, pos_3d.y - 0.2, pos_3d.z);
 
     vec4 vpoint_mv = MV * vec4(pos_3d, 1.0);
