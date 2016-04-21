@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-clang-format -i src/**.h src/**.cpp src/**.glsl
+clang-format -i $(find src -name '*.h') $(find src -name '*cpp') $(find src -name '*.glsl')
