@@ -1,4 +1,5 @@
 #pragma once
+
 #include "icg_helper.h"
 
 class FrameBuffer {
@@ -21,8 +22,7 @@ class FrameBuffer {
 
     void Unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
-    int Init(int image_width, int image_height,
-             bool use_interpolation = false) {
+    int Init(int image_width, int image_height, bool use_interpolation = false) {
         this->width_ = image_width;
         this->height_ = image_height;
 
@@ -34,22 +34,17 @@ class FrameBuffer {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
             if (use_interpolation) {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                                GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                                GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             } else {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                                GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                                GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             }
 
             // create texture for the color attachment
             // see Table.2 on
             // khronos.org/opengles/sdk/docs/man3/docbook4/xhtml/glTexImage2D.xml
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width_, height_, 0, GL_RED,
-                         GL_FLOAT, NULL);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width_, height_, 0, GL_RED, GL_FLOAT, NULL);
             // how to load from buffer
         }
 
@@ -57,8 +52,7 @@ class FrameBuffer {
         {
             glGenRenderbuffers(1, &depth_render_buffer_id_);
             glBindRenderbuffer(GL_RENDERBUFFER, depth_render_buffer_id_);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width_,
-                                  height_);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width_, height_);
             glBindRenderbuffer(GL_RENDERBUFFER, 0);
         }
 
@@ -66,14 +60,12 @@ class FrameBuffer {
         {
             glGenFramebuffers(1, &framebuffer_object_id_);
             glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_object_id_);
-            glFramebufferTexture2D(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 /*location = 0*/,
-                GL_TEXTURE_2D, color_texture_id_, 0 /*level*/);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                      GL_RENDERBUFFER, depth_render_buffer_id_);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 /*location = 0*/,
+                                   GL_TEXTURE_2D, color_texture_id_, 0 /*level*/);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
+                                      depth_render_buffer_id_);
 
-            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) !=
-                GL_FRAMEBUFFER_COMPLETE) {
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
                 cerr << "!!!ERROR: Framebuffer not OK :(" << endl;
             }
             glBindFramebuffer(GL_FRAMEBUFFER, 0); // avoid pollution

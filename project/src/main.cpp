@@ -7,7 +7,6 @@
 #include "icg_helper.h"
 
 #include "framebuffer.h"
-
 #include "grid/grid.h"
 #include "normalTex/normalTex.h"
 #include "perlinTex/perlinTex.h"
@@ -29,7 +28,7 @@
 
 using namespace glm;
 
-bool arrows_down[4];
+bool arrows_down[4] = {false, false, false, false};
 enum { UP, DOWN, RIGHT, LEFT };
 
 int window_width = 1280;
@@ -38,20 +37,18 @@ int tex_width = 1024;
 int tex_height = 1024;
 int nbFrames = 0;
 float lastTime = 0;
-float save_y = 0;
 
 vec3 camPos = vec3(1, 1, 1);
 
 float phi = 2.0f;
 float theta = 0.0f;
 
-float lastX = 0.0f, lastY = 0.0f;
-
 // Perlin parameters
 PerlinTex perlinTex;
 int octave = 9;
 float lac = 2;
 float H = 1.25;
+
 // Perlin parameters are ready to be used for normal and projection
 bool perlin_ready = false;
 
@@ -71,15 +68,11 @@ FrameBuffer normalBuffer;
 // Final grid vue
 Grid grid;
 
-// Trackball
-// Helper matrices
 mat4 projection_matrix;
 mat4 view_matrix;
-mat4 quad_model_matrix;
+mat4 model_matrix;
 
-vec3 vecFromRot(float p, float t) {
-    return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t));
-}
+vec3 vecFromRot(float p, float t) { return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t)); }
 
 void Init(GLFWwindow *window) {
     glClearColor(1.0, 1.0, 1.0 /*white*/, 1.0 /*solid*/);
@@ -88,17 +81,12 @@ void Init(GLFWwindow *window) {
 
     // All texture, vues and framebuffer init
     perlinTex.Init();
-
     grid.Init();
-
-    arrows_down[0] = arrows_down[1] = arrows_down[2] = arrows_down[3] = false;
     // resize_callback(window, window_width, window_height);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 }
 
-long long getKey(int i, int j) {
-    return ((i + 1000) % 1000) * 1000 + (j + 1000) % 1000;
-}
+long long getKey(int i, int j) { return ((i + 1000) % 1000) * 1000 + (j + 1000) % 1000; }
 
 void initChunk(int i, int j) {
     ChunkTex chunk;
@@ -125,8 +113,7 @@ void Display() {
     glViewport(0, 0, window_width, window_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    view_matrix = lookAt(camPos, camPos + vecFromRot(phi, theta),
-                         glm::vec3(0.0f, 1.0f, 0.0f));
+    view_matrix = lookAt(camPos, camPos + vecFromRot(phi, theta), glm::vec3(0.0f, 1.0f, 0.0f));
 
     // cout << (camPos - glm::vec3(1.0f, 1.0f, 1.0f)).x << (camPos -
     // glm::vec3(1.0f, 1.0f, 1.0f)).y << (camPos - glm::vec3(1.0f, 1.0f,
@@ -136,16 +123,15 @@ void Display() {
     if (perlin_ready) {
 
         glViewport(0, 0, window_width, window_height);
-        for (std::map<long long, ChunkTex>::iterator it = chunkMap.begin();
-             it != chunkMap.end(); it++) {
+        for (std::map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end();
+             it++) {
             int i = it->second.x;
             int j = it->second.y;
-            mat4 model = quad_model_matrix *
-                         translate(IDENTITY_MATRIX,
-                                   vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
-                                        -((j - CHUNKS / 2) * 2 - DELTA * j)));
-            grid.Draw(it->second.perlinBuffer_tex_id, currentTime, model,
-                      view_matrix, projection_matrix);
+            mat4 model = model_matrix *
+                         translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
+                                                         -((j - CHUNKS / 2) * 2 - DELTA * j)));
+            grid.Draw(it->second.perlinBuffer_tex_id, currentTime, model, view_matrix,
+                      projection_matrix);
         }
     } else {
         perlinTex.Draw(octave, lac, H, 0, 0);
@@ -153,8 +139,7 @@ void Display() {
 
     // Measure speed
     nbFrames++;
-    if (currentTime - lastTime >= 1.0 ||
-        lastTime == 0) { // If last prinf() was more than 1 sec ago
+    if (currentTime - lastTime >= 1.0 || lastTime == 0) { // If last prinf() was more than 1 sec ago
         // printf and reset timer
         cout << nbFrames << " frames" << endl;
         nbFrames = 0;
@@ -169,17 +154,16 @@ void Display() {
         camPos -= vecFromRot(phi, theta) * vec3(CAMERA_SPEED);
     }
     if (arrows_down[RIGHT]) {
-        camPos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, theta)) *
-                  vec3(CAMERA_SPEED);
+        camPos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, theta)) * vec3(CAMERA_SPEED);
     }
     if (arrows_down[LEFT]) {
-        camPos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, theta)) *
-                  vec3(CAMERA_SPEED);
+        camPos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, theta)) * vec3(CAMERA_SPEED);
     }
 
     // Do we need to add chunks ?
     float camX = camPos.x > 0 ? (camPos.x + 1) / 2 : (camPos.x + 1) / 2 - 1;
     float camY = camPos.z > 0 ? (camPos.z + 1) / 2 : (camPos.z + 1) / 2 - 1;
+
     // cout << "-------------------------" << endl;
     // cout << camX << " and " << camY << endl;
     for (int dx = -VIEW_DIST; dx <= VIEW_DIST; dx++) {
@@ -189,12 +173,8 @@ void Display() {
 
             // cout << i << " - " << j << endl;
 
-            float fdx = dx + (camPos.x + 1) / 2 - (int)((camPos.x + 1) / 2);
-            float fdy = dy + (camPos.z + 1) / 2 - (int)((camPos.z + 1) / 2);
-
             if (dx * dx + dy * dy <= VIEW_DIST * VIEW_DIST) {
-                std::map<long long, ChunkTex>::iterator it =
-                    chunkMap.find(getKey(i, j));
+                std::map<long long, ChunkTex>::iterator it = chunkMap.find(getKey(i, j));
                 if (it == chunkMap.end()) { // no element at this position
                     initChunk(i, j);
                     cout << "Added chunk " << i << "-" << j << endl;
@@ -206,8 +186,8 @@ void Display() {
 
     // Do we need to remove chunks ?
     std::vector<long long> toBeRemoved;
-    for (std::map<long long, ChunkTex>::iterator it = chunkMap.begin();
-         it != chunkMap.end(); it++) {
+    for (std::map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end();
+         it++) {
         int i = it->second.x;
         int j = it->second.y;
 
@@ -233,8 +213,7 @@ vec2 TransformScreenCoords(GLFWwindow *window, int x, int y) {
     int width;
     int height;
     glfwGetWindowSize(window, &width, &height);
-    return vec2(2.0f * (float)x / width - 1.0f,
-                1.0f - 2.0f * (float)y / height);
+    return vec2(2.0f * (float)x / width - 1.0f, 1.0f - 2.0f * (float)y / height);
 }
 
 void MousePos(GLFWwindow *window, double x, double y) {
@@ -243,6 +222,9 @@ void MousePos(GLFWwindow *window, double x, double y) {
     int scaleFactor = 2;
     // glfwGetFramebufferSize(window, &window_width, &window_height);
     // glfwGetWindowSize(window, &window_width, &window_height);
+    /*vec2 s = TransformScreenCoords(window, x, y);
+    window_width = s.x;
+    window_height = s.y;*/
 
     int diffy = (int)y - window_height / scaleFactor;
     int diffx = (int)x - window_width / scaleFactor;
@@ -253,8 +235,7 @@ void MousePos(GLFWwindow *window, double x, double y) {
     theta += diffx * MOUSE_SENSIBILTY;
 
     if (x != window_width / scaleFactor || y != window_height / scaleFactor) {
-        glfwSetCursorPos(window, window_width / scaleFactor,
-                         window_height / scaleFactor);
+        glfwSetCursorPos(window, window_width / scaleFactor, window_height / scaleFactor);
     }
 
     // cout << window_height / scaleFactor << "x" << window_width / scaleFactor
@@ -280,97 +261,110 @@ void ErrorCallback(int error, const char *description) {
     fputs(description, stderr);
 }
 
-void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
-                 int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    } else if (key >= GLFW_KEY_1 && key <= GLFW_KEY_9 && action == GLFW_PRESS) {
-        octave = key - GLFW_KEY_0;
-        cout << "nbr octave : " << octave << endl;
-    } else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-        H += 0.01;
-        H = H > 2 ? 2 : H;
-        cout << "new H" << H << endl;
-    } else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        H -= 0.01;
-        H = H < -2 ? -2 : H;
-        cout << "new H" << H << endl;
-    } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-        lac += 0.01;
-        lac = lac > 10 ? 10 : lac;
-        cout << "new lac" << lac << endl;
-    } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-        lac -= 0.05;
-        lac = lac < 0 ? 0 : lac;
-        cout << "new lac" << lac << endl;
-    } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-        perlin_ready = !perlin_ready;
-    } else if (key == GLFW_KEY_UP) {
-        arrows_down[UP] = (action != GLFW_RELEASE);
-    } else if (key == GLFW_KEY_DOWN) {
-        arrows_down[DOWN] = (action != GLFW_RELEASE);
-    } else if (key == GLFW_KEY_RIGHT) {
-        arrows_down[RIGHT] = (action != GLFW_RELEASE);
-    } else if (key == GLFW_KEY_LEFT) {
-        arrows_down[LEFT] = (action != GLFW_RELEASE);
+void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS) {
+
+        if (key == GLFW_KEY_ESCAPE) {
+
+            glfwSetWindowShouldClose(window, GL_TRUE);
+
+        } else if (key >= GLFW_KEY_1 && key <= GLFW_KEY_9) {
+
+            octave = key - GLFW_KEY_0;
+            cout << "nbr octave : " << octave << endl;
+
+        }
+
+        switch(key) {
+            case GLFW_KEY_Q:
+                H += 0.01;
+                H = H > 2 ? 2 : H;
+                cout << "new H" << H << endl;
+                break;
+            case GLFW_KEY_W:
+                H -= 0.01;
+                H = H < -2 ? -2 : H;
+                cout << "new H" << H << endl;
+                break;
+            case GLFW_KEY_A:
+                lac += 0.01;
+                lac = lac > 10 ? 10 : lac;
+                cout << "new lac" << lac << endl;
+                break;
+            case GLFW_KEY_S:
+                lac -= 0.05;
+                lac = lac < 0 ? 0 : lac;
+                cout << "new lac" << lac << endl;
+                break;
+            case GLFW_KEY_D:
+                perlin_ready = !perlin_ready;
+                break;
+            default:
+                break;
+        }
+    }
+
+    switch(key) {
+        case GLFW_KEY_UP:
+            arrows_down[UP] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_DOWN:
+            arrows_down[DOWN] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_RIGHT:
+            arrows_down[RIGHT] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_LEFT:
+            arrows_down[LEFT] = (action != GLFW_RELEASE);
+            break;
+        default:
+            break;
     }
 }
 
 int main(int argc, char *argv[]) {
-    /// GLFW Initialization
+
     if (!glfwInit()) {
         fprintf(stderr, "Failed to initialize GLFW\n");
         return EXIT_FAILURE;
     }
+
     glfwSetErrorCallback(ErrorCallback);
 
-    /// Hint GLFW that we would like an OpenGL 3 context (at least)
-    /// http://www.glfw.org/faq.html#how-do-i-create-an-opengl-30-context
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    /// Attempt to open the window: fails if required version unavailable
-    /// @note some Intel GPUs do not support OpenGL 3.2
-    /// @note update the driver of your graphic card
-    GLFWwindow *window = glfwCreateWindow(window_width, window_height,
-                                          "INFINITE TERRAIN", NULL, NULL);
+    GLFWwindow *window =
+            glfwCreateWindow(window_width, window_height, "INFINITE TERRAIN", NULL, NULL);
     if (!window) {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-    /// Link the current context to the window we created
-    glfwMakeContextCurrent(window);
-
-    /// Set the callback for escape key
     glfwSetKeyCallback(window, KeyCallback);
-
     glfwSetWindowSizeCallback(window, resize_callback);
-
-    // set the mouse press and position callback
     glfwSetCursorPosCallback(window, MousePos);
 
-    /// GLEW Initialization (must have a context)
-    glewExperimental = GL_TRUE; ///<
+    glfwMakeContextCurrent(window);
+    glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_NO_ERROR) {
         fprintf(stderr, "Failed to initialize GLEW\n");
+        glfwDestroyWindow(window);
+        glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-    std::cout << "OpenGL" << glGetString(GL_VERSION) << std::endl;
+    std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "Glfw " << glfwGetVersionString() << std::endl;
+
     Init(window);
-    KeyCallback(window, GLFW_KEY_KP_1, 0, 0, 0);
-
-    // update the window size with the framebuffer size (on hidpi screens the
-    // framebuffer is bigger)
-    glfwGetFramebufferSize(window, &window_width, &window_height);
-    resize_callback(window, window_width, window_height);
-
     frameBufferInit();
 
-    /// Render loop & keyboard input
+    resize_callback(window, window_width, window_height);
+    glfwGetFramebufferSize(window, &window_width, &window_height);
+
     while (!glfwWindowShouldClose(window)) {
         Display();
         glfwSwapBuffers(window);
@@ -382,12 +376,11 @@ int main(int argc, char *argv[]) {
     perlinTex.Cleanup();
     normalBuffer.Cleanup();
 
-    for (std::map<long long, ChunkTex>::iterator it = chunkMap.begin();
-         it != chunkMap.end(); it++) {
+    for (std::map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end();
+         it++) {
         it->second.tex.Cleanup();
     }
 
-    /// Close OpenGL window and terminate GLFW
     glfwDestroyWindow(window);
     glfwTerminate();
     exit(EXIT_SUCCESS);
