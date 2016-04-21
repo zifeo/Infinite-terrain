@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
 
 get_filename_component(EXERCISENAME ${CMAKE_CURRENT_LIST_DIR} NAME)
 file(GLOB_RECURSE SOURCES "*.cpp")
