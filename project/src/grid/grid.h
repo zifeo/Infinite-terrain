@@ -248,7 +248,8 @@ class Grid : public Material, public Light {
         glm::mat4 MV = view * model;
         glUniformMatrix4fv(MV_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(MV));
 
-        glm::mat4 M = model;
+        //glm::mat4 M = model;
+        // TODO : check
         glUniformMatrix4fv(M_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(MV));
 
         glm::mat4 P = projection;
