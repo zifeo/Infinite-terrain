@@ -12,7 +12,7 @@ FIND_PATH( GLEW_INCLUDE_DIRS GL/glew.h
     ${CMAKE_SOURCE_DIR}/external/glew/include)
 
 if(WIN32)
-    IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
         SET(GLEWLIBNAME glew64)
 		SET(WINLIBPATH ${CMAKE_SOURCE_DIR}/external/glew/lib/x64)
     ELSE()
@@ -24,7 +24,7 @@ else()
     SET(GLEWLIBNAME GLEW)
 endif() 
 
-FIND_LIBRARY( GLEW_LIBRARIES 
+FIND_LIBRARY(GLEW_LIBRARIES
     NAMES ${GLEWLIBNAME} PATHS 
     $ENV{GLEWDIR}/lib
     /usr/local/lib
