@@ -21,8 +21,8 @@ private:
     bool arrows_down[4] = {false, false, false, false};
     enum { UP, DOWN, RIGHT, LEFT };
 
-    int window_width = 1280;
-    int window_height = 720;
+    int window_width = WINDOW_WIDTH;
+    int window_height = WINDOW_HEIGHT;
 
     int tex_width = 1024;
     int tex_height = 1024;
@@ -71,11 +71,11 @@ public:
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_MULTISAMPLE);
 
-        // All texture, vues and framebuffer init
+        onResize(window);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
         perlinTex.Init();
         grid.Init();
-        // resize_callback(window, window_width, window_height);
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
     void display() {
@@ -187,11 +187,11 @@ public:
 
     /* ********** Helpers ********** */
 
-    vec3 vecFromRot(float p, float t) {
+    inline vec3 vecFromRot(float p, float t) {
         return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t));
     }
 
-    long long getKey(int i, int j) {
+    inline long long getKey(int i, int j) {
         return ((i + 1000) % 1000) * 1000 + (j + 1000) % 1000;
     }
 
@@ -207,55 +207,34 @@ public:
         chunkMap.insert(pair<long long, ChunkTex>(getKey(i, j), chunk));
     }
 
-// transforms glfw screen coordinates into normalized OpenGL coordinates.
-    /*vec2 transformScreenCoords(GLFWwindow *window, int x, int y) {
-        // the framebuffer and the window doesn't necessarily have the same size
-        // i.e. hidpi screens. so we need to get the correct one
-        int width;
-        int height;
-        glfwGetWindowSize(window, &width, &height);
-        return vec2(2.0f * (float)x / width - 1.0f, 1.0f - 2.0f * (float)y / height);
-    }*/
-
     /* ********** Events ********** */
 
     void onMouseMove(GLFWwindow *window, double x, double y) {
-        // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 
-        int scaleFactor = 2;
-        // glfwGetFramebufferSize(window, &window_width, &window_height);
-        // glfwGetWindowSize(window, &window_width, &window_height);
-        /*vec2 s = TransformScreenCoords(window, x, y);
-        window_width = s.x;
-        window_height = s.y;*/
+        int half_width = 0, half_height = 0;
+        glfwGetWindowSize(window, &half_width, &half_height);
+        cout << half_width << ":" << half_height << endl;
+        half_width /= 2;
+        half_height /= 2;
 
-        int diffy = (int)y - window_height / scaleFactor;
-        int diffx = (int)x - window_width / scaleFactor;
-        cout << diffx << ":" << diffy << endl;
+        int dx = (int)x - half_width;
+        int dy = (int)y - half_height;
+        cout << dx << ":" << dy << endl;
 
-        phi += diffy * MOUSE_SENSIBILTY;
+        theta += dx * MOUSE_SENSIBILTY;
+        phi += dy * MOUSE_SENSIBILTY;
         phi = clamp(phi, (float)M_PI / 10, 9 * (float)M_PI / 10);
-        theta += diffx * MOUSE_SENSIBILTY;
 
-        /*if (x != window_width / scaleFactor || y != window_height / scaleFactor) {
-            glfwSetCursorPos(window, window_width / scaleFactor, window_height / scaleFactor);
-        }*/
-
-        // cout << window_height / scaleFactor << "x" << window_width / scaleFactor
-        // <<
-        // endl;
-        // cout << window_height << "x" << window_width << endl;
-        cout << x << ":" << y << endl;
-        //}
+        if (dx != 0 || dy != 0) {
+            glfwSetCursorPos(window, half_width, half_height - 1);
+        }
     }
 
-// Gets called when the windows/framebuffer is resized.
-    void onResize(GLFWwindow *window, int width, int height) {
-        window_width = width;
-        window_height = height;
-        cout << "=>" << window_height << "x" << window_width << endl;
+    void onResize(GLFWwindow *window) {
+        glfwGetFramebufferSize(window, &window_width, &window_height);
+        cout << "resize to " << window_width << " x " << window_height << endl;
 
-        float ratio = window_width / (float)window_height;
+        float ratio = 1.0f * window_width / window_height;
         projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
         glViewport(0, 0, window_width, window_height);
     }
