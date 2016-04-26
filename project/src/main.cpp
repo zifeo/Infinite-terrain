@@ -19,7 +19,8 @@ void bind_mouse(GLFWwindow* window, double x, double y) {
 }
 
 void bind_resize(GLFWwindow* window, int width, int height) {
-    simulation.onResize(window, width, height);
+    (void) width, (void) height;
+    simulation.onResize(window);
 }
 
 void bind_key(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -64,8 +65,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Glfw " << glfwGetVersionString() << std::endl;
 
     simulation.init(window);
-    //onResize(window, window_width, window_height);
-    //glfwGetFramebufferSize(window, &window_width, &window_height);
 
     while (!glfwWindowShouldClose(window)) {
         simulation.display();
