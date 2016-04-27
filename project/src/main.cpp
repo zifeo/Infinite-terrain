@@ -40,8 +40,7 @@ int main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window =
-        glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "INFINITE TERRAIN", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "INFINITE TERRAIN", NULL, NULL);
     if (!window) {
         glfwTerminate();
         exit(EXIT_FAILURE);

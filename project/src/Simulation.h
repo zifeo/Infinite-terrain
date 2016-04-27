@@ -102,9 +102,8 @@ class Simulation {
                 int i = it->second.x;
                 int j = it->second.y;
                 // TODO : move in shader
-                mat4 model = model_matrix *
-                             translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
-                                                             -((j - CHUNKS / 2) * 2 - DELTA * j)));
+                mat4 model = model_matrix * translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
+                                                                            -((j - CHUNKS / 2) * 2 - DELTA * j)));
                 grid.Draw(it->second.perlinBuffer_tex_id, (float)start_time, model, view_matrix, projection_matrix);
             }
 
@@ -179,7 +178,7 @@ class Simulation {
             chunkMap.erase(toBeRemoved[i]);
         }
 
-        sky.Draw(projection_matrix * model_matrix * view_matrix);
+        sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
     }
 
     void cleanUp() {
@@ -196,9 +195,7 @@ class Simulation {
 
     /* ********** Helpers ********** */
 
-    inline vec3 vecFromRot(float p, float t) {
-        return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t));
-    }
+    inline vec3 vecFromRot(float p, float t) { return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t)); }
 
     inline long long getKey(int i, int j) { return ((i + 1000) % 1000) * 1000 + (j + 1000) % 1000; }
 
