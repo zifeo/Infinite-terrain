@@ -7,6 +7,7 @@
 #include "grid/grid.h"
 #include "normalTex/normalTex.h"
 #include "perlinTex/perlinTex.h"
+#include "sky/sky.h"
 
 #include <map>
 #include <stdint.h>
@@ -16,8 +17,7 @@ using namespace glm;
 
 class Simulation {
 
-private:
-
+  private:
     bool arrows_down[4] = {false, false, false, false};
     enum { UP, DOWN, RIGHT, LEFT };
 
@@ -65,8 +65,9 @@ private:
     mat4 view_matrix;
     mat4 model_matrix;
 
-public:
+    Sky sky;
 
+  public:
     /* ********** States ********** */
 
     void init(GLFWwindow *window) {
@@ -79,6 +80,7 @@ public:
 
         perlinTex.Init();
         grid.Init();
+        sky.Init();
     }
 
     void display() {
@@ -99,10 +101,11 @@ public:
             for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
                 int i = it->second.x;
                 int j = it->second.y;
+                // TODO : move in shader
                 mat4 model = model_matrix *
                              translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
                                                              -((j - CHUNKS / 2) * 2 - DELTA * j)));
-                grid.Draw(it->second.perlinBuffer_tex_id, (float) start_time, model, view_matrix, projection_matrix);
+                grid.Draw(it->second.perlinBuffer_tex_id, (float)start_time, model, view_matrix, projection_matrix);
             }
 
         } else {
@@ -162,8 +165,8 @@ public:
             int i = it->second.x;
             int j = it->second.y;
 
-            int dx = (int) (-camX - 1 + i);
-            int dy = (int) (camY - 1 + j);
+            int dx = (int)(-camX - 1 + i);
+            int dy = (int)(camY - 1 + j);
 
             if (dx * dx + dy * dy > VIEW_DIST * VIEW_DIST * 1.1) {
                 it->second.tex.Cleanup();
@@ -175,6 +178,8 @@ public:
         for (unsigned int i = 0; i < toBeRemoved.size(); i++) {
             chunkMap.erase(toBeRemoved[i]);
         }
+
+        sky.Draw(projection_matrix * model_matrix * view_matrix);
     }
 
     void cleanUp() {
@@ -182,6 +187,7 @@ public:
         normalTex.Cleanup();
         perlinTex.Cleanup();
         normalBuffer.Cleanup();
+        sky.Cleanup();
 
         for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
             it->second.tex.Cleanup();
@@ -194,9 +200,7 @@ public:
         return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t));
     }
 
-    inline long long getKey(int i, int j) {
-        return ((i + 1000) % 1000) * 1000 + (j + 1000) % 1000;
-    }
+    inline long long getKey(int i, int j) { return ((i + 1000) % 1000) * 1000 + (j + 1000) % 1000; }
 
     void initChunk(int i, int j) {
         ChunkTex chunk;
@@ -213,8 +217,8 @@ public:
     /* ********** Events ********** */
 
     void onMouseMove(GLFWwindow *window, double x, double y) {
-        int dx = (int) (x - cursor_x);
-        int dy = (int) (y - cursor_y);
+        int dx = (int)(x - cursor_x);
+        int dy = (int)(y - cursor_y);
         cursor_x = x;
         cursor_y = y;
 
@@ -244,54 +248,52 @@ public:
                 cout << "nbr octave : " << octave << endl;
             }
 
-            switch(key) {
+            switch (key) {
 
-                case GLFW_KEY_Q:
-                    H += 0.01;
-                    H = H > 2 ? 2 : H;
-                    cout << "new H" << H << endl;
-                    break;
-                case GLFW_KEY_W:
-                    H -= 0.01;
-                    H = H < -2 ? -2 : H;
-                    cout << "new H" << H << endl;
-                    break;
-                case GLFW_KEY_A:
-                    lac += 0.01;
-                    lac = lac > 10 ? 10 : lac;
-                    cout << "new lac" << lac << endl;
-                    break;
-                case GLFW_KEY_S:
-                    lac -= 0.05;
-                    lac = lac < 0 ? 0 : lac;
-                    cout << "new lac" << lac << endl;
-                    break;
-                case GLFW_KEY_D:
-                    perlin_ready = !perlin_ready;
-                    break;
+            case GLFW_KEY_Q:
+                H += 0.01;
+                H = H > 2 ? 2 : H;
+                cout << "new H" << H << endl;
+                break;
+            case GLFW_KEY_W:
+                H -= 0.01;
+                H = H < -2 ? -2 : H;
+                cout << "new H" << H << endl;
+                break;
+            case GLFW_KEY_A:
+                lac += 0.01;
+                lac = lac > 10 ? 10 : lac;
+                cout << "new lac" << lac << endl;
+                break;
+            case GLFW_KEY_S:
+                lac -= 0.05;
+                lac = lac < 0 ? 0 : lac;
+                cout << "new lac" << lac << endl;
+                break;
+            case GLFW_KEY_D:
+                perlin_ready = !perlin_ready;
+                break;
 
-                default:
-                    break;
-
+            default:
+                break;
             }
         }
 
-        switch(key) {
-            case GLFW_KEY_UP:
-                arrows_down[UP] = (action != GLFW_RELEASE);
-                break;
-            case GLFW_KEY_DOWN:
-                arrows_down[DOWN] = (action != GLFW_RELEASE);
-                break;
-            case GLFW_KEY_RIGHT:
-                arrows_down[RIGHT] = (action != GLFW_RELEASE);
-                break;
-            case GLFW_KEY_LEFT:
-                arrows_down[LEFT] = (action != GLFW_RELEASE);
-                break;
-            default:
-                break;
+        switch (key) {
+        case GLFW_KEY_UP:
+            arrows_down[UP] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_DOWN:
+            arrows_down[DOWN] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_RIGHT:
+            arrows_down[RIGHT] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_LEFT:
+            arrows_down[LEFT] = (action != GLFW_RELEASE);
+            break;
+        default:
+            break;
         }
     }
-
 };

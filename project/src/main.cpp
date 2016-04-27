@@ -3,9 +3,9 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "icg_helper.h"
 #include "Config.h"
 #include "Simulation.h"
+#include "icg_helper.h"
 
 Simulation simulation;
 
@@ -14,21 +14,19 @@ void errorCallback(int error, const char *description) {
     fputs(description, stderr);
 }
 
-void bind_mouse(GLFWwindow* window, double x, double y) {
-    simulation.onMouseMove(window, x, y);
-}
+void bind_mouse(GLFWwindow *window, double x, double y) { simulation.onMouseMove(window, x, y); }
 
-void bind_resize(GLFWwindow* window, int width, int height) {
-    (void) width, (void) height;
+void bind_resize(GLFWwindow *window, int width, int height) {
+    (void)width, (void)height;
     simulation.onResize(window);
 }
 
-void bind_key(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void bind_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
     simulation.onKey(window, key, scancode, action, mods);
 }
 
-int main(int argc, char* argv[]) {
-    (void) argc, (void) argv;
+int main(int argc, char *argv[]) {
+    (void)argc, (void)argv;
 
     if (!glfwInit()) {
         fprintf(stderr, "Failed to initialize GLFW\n");
@@ -42,7 +40,8 @@ int main(int argc, char* argv[]) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "INFINITE TERRAIN", NULL, NULL);
+    GLFWwindow *window =
+        glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "INFINITE TERRAIN", NULL, NULL);
     if (!window) {
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -77,5 +76,4 @@ int main(int argc, char* argv[]) {
     glfwDestroyWindow(window);
     glfwTerminate();
     exit(EXIT_SUCCESS);
-
 }
