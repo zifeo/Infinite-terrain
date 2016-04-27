@@ -2,44 +2,6 @@
 #include "icg_helper.h"
 #include <glm/gtc/type_ptr.hpp>
 
-#define NB_COLOR_1D 100
-
-GLfloat tex[NB_COLOR_1D * 3] = {
-    0.384314, 0.666667, 0.243137, 0.392157, 0.65098,  0.258824, 0.396078, 0.639216, 0.270588,
-    0.396078, 0.623529, 0.282353, 0.403922, 0.607843, 0.298039, 0.403922, 0.603922, 0.301961,
-    0.403922, 0.596078, 0.305882, 0.403922, 0.592157, 0.309804, 0.407843, 0.588235, 0.313725,
-    0.407843, 0.588235, 0.313725, 0.407843, 0.584314, 0.317647, 0.407843, 0.584314, 0.317647,
-    0.407843, 0.580392, 0.317647, 0.407843, 0.584314, 0.317647, 0.407843, 0.584314, 0.317647,
-    0.407843, 0.584314, 0.317647, 0.407843, 0.584314, 0.317647, 0.407843, 0.588235, 0.313725,
-    0.407843, 0.592157, 0.313725, 0.407843, 0.592157, 0.309804, 0.403922, 0.596078, 0.309804,
-    0.403922, 0.6,      0.305882, 0.403922, 0.603922, 0.301961, 0.403922, 0.603922, 0.301961,
-    0.4,      0.607843, 0.298039, 0.4,      0.611765, 0.290196, 0.396078, 0.615686, 0.286275,
-    0.392157, 0.611765, 0.27451,  0.384314, 0.615686, 0.270588, 0.376471, 0.615686, 0.258824,
-    0.368627, 0.615686, 0.25098,  0.360784, 0.611765, 0.239216, 0.356863, 0.611765, 0.231373,
-    0.352941, 0.603922, 0.227451, 0.345098, 0.607843, 0.219608, 0.341176, 0.607843, 0.215686,
-    0.341176, 0.603922, 0.215686, 0.341176, 0.607843, 0.215686, 0.345098, 0.607843, 0.219608,
-    0.352941, 0.607843, 0.227451, 0.364706, 0.611765, 0.239216, 0.368627, 0.607843, 0.25098,
-    0.384314, 0.603922, 0.278431, 0.396078, 0.592157, 0.294118, 0.415686, 0.580392, 0.309804,
-    0.427451, 0.560784, 0.329412, 0.427451, 0.545098, 0.341176, 0.435294, 0.533333, 0.352941,
-    0.435294, 0.52549,  0.360784, 0.431373, 0.521569, 0.360784, 0.435294, 0.521569, 0.364706,
-    0.435294, 0.521569, 0.364706, 0.439216, 0.537255, 0.368627, 0.443137, 0.545098, 0.372549,
-    0.454902, 0.564706, 0.376471, 0.462745, 0.584314, 0.392157, 0.482353, 0.596078, 0.419608,
-    0.505882, 0.623529, 0.443137, 0.541176, 0.65098,  0.482353, 0.564706, 0.666667, 0.517647,
-    0.592157, 0.67451,  0.552941, 0.627451, 0.694118, 0.588235, 0.654902, 0.709804, 0.631373,
-    0.670588, 0.717647, 0.647059, 0.701961, 0.733333, 0.686275, 0.721569, 0.745098, 0.709804,
-    0.741176, 0.756863, 0.733333, 0.752941, 0.764706, 0.74902,  0.768627, 0.776471, 0.764706,
-    0.784314, 0.788235, 0.784314, 0.8,      0.803922, 0.8,      0.811765, 0.811765, 0.811765,
-    0.827451, 0.827451, 0.827451, 0.839216, 0.839216, 0.839216, 0.85098,  0.85098,  0.85098,
-    0.862745, 0.862745, 0.862745, 0.870588, 0.870588, 0.870588, 0.882353, 0.882353, 0.882353,
-    0.894118, 0.894118, 0.894118, 0.901961, 0.901961, 0.901961, 0.913725, 0.913725, 0.913725,
-    0.921569, 0.921569, 0.921569, 0.92549,  0.92549,  0.92549,  0.929412, 0.929412, 0.929412,
-    0.933333, 0.933333, 0.933333, 0.937255, 0.937255, 0.937255, 0.941176, 0.941176, 0.941176,
-    0.945098, 0.945098, 0.945098, 0.94902,  0.94902,  0.94902,  0.952941, 0.952941, 0.952941,
-    0.956863, 0.956863, 0.956863, 0.960784, 0.960784, 0.960784, 0.964706, 0.964706, 0.964706,
-    0.968627, 0.968627, 0.968627, 0.976471, 0.976471, 0.976471, 0.980392, 0.980392, 0.980392,
-    0.984314, 0.984314, 0.984314, 0.988235, 0.988235, 0.988235, 0.992157, 0.992157, 0.992157,
-    0.996078, 0.996078, 0.996078};
-
 struct Light {
     glm::vec3 La = glm::vec3(0.3f, 0.3f, 0.3f);
     glm::vec3 Ld = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -94,8 +56,11 @@ class Grid : public Material, public Light {
     GLuint vertex_buffer_object_position_; // memory buffer for positions
     GLuint vertex_buffer_object_index_;    // memory buffer for indices
     GLuint program_id_;                    // GLSL shader program ID
-    GLuint texture_1d_id_;                 // texture 1D ID
     GLuint texture_id_;                    // texture ID
+    GLuint sand_texture_id_;                // sand texture ID
+    GLuint grass_texture_id_;               // grass texture ID
+    GLuint rock_texture_id_;                // rock texture ID
+    GLuint snow_texture_id_;                // snow texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
     GLuint MV_id_;
@@ -170,23 +135,10 @@ class Grid : public Material, public Light {
         }
 
         {
-            GLuint tex_normal_id = glGetUniformLocation(program_id_, "tex");
-            glUniform1i(tex_normal_id, 0 /*GL_TEXTURE0*/);
-
-            // 1D texture
-            glGenTextures(1, &texture_1d_id_);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_1D, texture_1d_id_);
-            glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, NB_COLOR_1D, 0, GL_RGB, GL_FLOAT, tex);
-            glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            GLuint tex_1d_id = glGetUniformLocation(program_id_, "tex1D");
-            glUniform1i(tex_1d_id, 1 /*GL_TEXTURE0*/);
-
-            glBindTexture(GL_TEXTURE_1D, 0);
+            initTexture("sand_texture.tga", &sand_texture_id_, "sand_tex", GL_TEXTURE0 + 1);
+            initTexture("grass_texture.tga", &grass_texture_id_, "grass_tex", GL_TEXTURE0 + 2);
+            initTexture("rock_texture.tga", &rock_texture_id_, "rock_tex", GL_TEXTURE0 + 3);
+            initTexture("snow_texture.tga", &snow_texture_id_, "snow_tex", GL_TEXTURE0 + 4);
         }
 
         // other uniforms
@@ -219,6 +171,10 @@ class Grid : public Material, public Light {
         glDeleteVertexArrays(1, &vertex_array_id_);
         glDeleteProgram(program_id_);
         glDeleteTextures(1, &texture_id_);
+        glDeleteTextures(1, &sand_texture_id_);
+        glDeleteTextures(1, &grass_texture_id_);
+        glDeleteTextures(1, &rock_texture_id_);
+        glDeleteTextures(1, &snow_texture_id_);
     }
 
     void Draw(GLint texture_id, float time, const glm::mat4 &model = IDENTITY_MATRIX,
@@ -234,9 +190,17 @@ class Grid : public Material, public Light {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture_id);
 
-        // bind textures
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_1D, texture_1d_id_);
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, sand_texture_id_);
+
+        glActiveTexture(GL_TEXTURE0 + 2);
+        glBindTexture(GL_TEXTURE_2D, grass_texture_id_);
+
+        glActiveTexture(GL_TEXTURE0 + 3);
+        glBindTexture(GL_TEXTURE_2D, rock_texture_id_);
+
+        glActiveTexture(GL_TEXTURE0 + 4);
+        glBindTexture(GL_TEXTURE_2D, snow_texture_id_);
 
         // setup MVP
         glm::mat4 MVP = projection * view * model;
@@ -259,5 +223,42 @@ class Grid : public Material, public Light {
 
         glBindVertexArray(0);
         glUseProgram(0);
+    }
+
+private:
+    void initTexture(string filename, GLuint* texture_id, string texture_name, int val) {
+
+        int width;
+        int height;
+        int nb_component;
+        // set stb_image to have the same coordinates as OpenGL
+        stbi_set_flip_vertically_on_load(1);
+        unsigned char* image = stbi_load(filename.c_str(), &width,
+                                         &height, &nb_component, 0);
+
+        if(image == nullptr) {
+            throw(string("Failed to load texture"));
+        }
+
+        glGenTextures(1, texture_id);
+        glBindTexture(GL_TEXTURE_2D, *texture_id);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        if(nb_component == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0,
+                         GL_RGB, GL_UNSIGNED_BYTE, image);
+        } else if(nb_component == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                         GL_RGBA, GL_UNSIGNED_BYTE, image);
+        }
+
+        GLuint tex_id = glGetUniformLocation(program_id_, texture_name.c_str());
+        glUseProgram(program_id_);
+        glUniform1i(tex_id, val-GL_TEXTURE0);
+
+        // cleanup
+        glBindTexture(GL_TEXTURE_2D, val);
+        stbi_image_free(image);
     }
 };
