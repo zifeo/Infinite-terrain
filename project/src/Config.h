@@ -10,3 +10,9 @@
 
 #define CAMERA_SPEED 0.04
 #define MOUSE_SENSIBILTY 0.01
+
+#ifndef M_PI
+#define M_PI 3.14159265
+#endif
+
+#define FULLHDFTW 0 // set to -1 if you have a retina screen

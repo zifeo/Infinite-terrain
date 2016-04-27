@@ -159,8 +159,8 @@ public:
             int i = it->second.x;
             int j = it->second.y;
 
-            float dx = -camX - 1 + i;
-            float dy = camY - 1 + j;
+            int dx = -camX - 1 + i;
+            int dy = camY - 1 + j;
 
             if (dx * dx + dy * dy > VIEW_DIST * VIEW_DIST * 1.1) {
                 it->second.tex.Cleanup();
@@ -213,20 +213,20 @@ public:
 
         int half_width = 0, half_height = 0;
         glfwGetWindowSize(window, &half_width, &half_height);
-        cout << half_width << ":" << half_height << endl;
+        //cout << half_width << ":" << half_height << endl;
         half_width /= 2;
         half_height /= 2;
 
         int dx = (int)x - half_width;
         int dy = (int)y - half_height;
-        cout << dx << ":" << dy << endl;
+        //cout << dx << ":" << dy << endl;
 
         theta += dx * MOUSE_SENSIBILTY;
         phi += dy * MOUSE_SENSIBILTY;
         phi = clamp(phi, (float)M_PI / 10, 9 * (float)M_PI / 10);
 
         if (dx != 0 || dy != 0) {
-            glfwSetCursorPos(window, half_width, half_height - 1);
+            glfwSetCursorPos(window, half_width, half_height - FULLHDFTW);
         }
     }
 
