@@ -24,6 +24,9 @@ private:
     int window_width = WINDOW_WIDTH;
     int window_height = WINDOW_HEIGHT;
 
+    double cursor_x = WINDOW_WIDTH / 2;
+    double cursor_y = WINDOW_HEIGHT / 2;
+
     int tex_width = 1024;
     int tex_height = 1024;
 
@@ -72,7 +75,7 @@ public:
         glEnable(GL_MULTISAMPLE);
 
         onResize(window);
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         perlinTex.Init();
         grid.Init();
@@ -159,8 +162,8 @@ public:
             int i = it->second.x;
             int j = it->second.y;
 
-            int dx = -camX - 1 + i;
-            int dy = camY - 1 + j;
+            int dx = (int) (-camX - 1 + i);
+            int dy = (int) (camY - 1 + j);
 
             if (dx * dx + dy * dy > VIEW_DIST * VIEW_DIST * 1.1) {
                 it->second.tex.Cleanup();
@@ -210,24 +213,14 @@ public:
     /* ********** Events ********** */
 
     void onMouseMove(GLFWwindow *window, double x, double y) {
-
-        int half_width = 0, half_height = 0;
-        glfwGetWindowSize(window, &half_width, &half_height);
-        //cout << half_width << ":" << half_height << endl;
-        half_width /= 2;
-        half_height /= 2;
-
-        int dx = (int)x - half_width;
-        int dy = (int)y - half_height;
-        //cout << dx << ":" << dy << endl;
+        int dx = (int) (x - cursor_x);
+        int dy = (int) (y - cursor_y);
+        cursor_x = x;
+        cursor_y = y;
 
         theta += dx * MOUSE_SENSIBILTY;
         phi += dy * MOUSE_SENSIBILTY;
         phi = clamp(phi, (float)M_PI / 10, 9 * (float)M_PI / 10);
-
-        if (dx != 0 || dy != 0) {
-            glfwSetCursorPos(window, half_width, half_height - FULLHDFTW);
-        }
     }
 
     void onResize(GLFWwindow *window) {
