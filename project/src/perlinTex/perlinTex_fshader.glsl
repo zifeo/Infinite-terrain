@@ -33,22 +33,17 @@ float perlin(vec2 point) {
     vec2 RU = tpoint_floor + vec2(1, 1);
     vec2 LU = tpoint_floor + vec2(0, 1);
 
-    float rand_LD =
-        Perm[int(mod((Perm[int(mod(LD.x, RANDNBR))] + LD.y), RANDNBR))] / float(RANDNBR);
-    float rand_RD =
-        Perm[int(mod((Perm[int(mod(RD.x, RANDNBR))] + RD.y), RANDNBR))] / float(RANDNBR);
-    float rand_RU =
-        Perm[int(mod((Perm[int(mod(RU.x, RANDNBR))] + RU.y), RANDNBR))] / float(RANDNBR);
-    float rand_LU =
-        Perm[int(mod((Perm[int(mod(LU.x, RANDNBR))] + LU.y), RANDNBR))] / float(RANDNBR);
+    float rand_LD = Perm[int(mod((Perm[int(mod(LD.x, RANDNBR))] + LD.y), RANDNBR))] / float(RANDNBR);
+    float rand_RD = Perm[int(mod((Perm[int(mod(RD.x, RANDNBR))] + RD.y), RANDNBR))] / float(RANDNBR);
+    float rand_RU = Perm[int(mod((Perm[int(mod(RU.x, RANDNBR))] + RU.y), RANDNBR))] / float(RANDNBR);
+    float rand_LU = Perm[int(mod((Perm[int(mod(LU.x, RANDNBR))] + LU.y), RANDNBR))] / float(RANDNBR);
 
     float smoothx = smoothInt(tpoint_cell.x);
 
-    float st = perl_mix(gradAndDot(rand_LD, tpoint_cell),
-                        gradAndDot(rand_RD, tpoint_cell + vec2(-1, 0)), smoothx);
+    float st = perl_mix(gradAndDot(rand_LD, tpoint_cell), gradAndDot(rand_RD, tpoint_cell + vec2(-1, 0)), smoothx);
 
-    float uv = perl_mix(gradAndDot(rand_LU, tpoint_cell + vec2(0, -1)),
-                        gradAndDot(rand_RU, tpoint_cell + vec2(-1, -1)), smoothx);
+    float uv = perl_mix(gradAndDot(rand_LU, tpoint_cell + vec2(0, -1)), gradAndDot(rand_RU, tpoint_cell + vec2(-1, -1)),
+                        smoothx);
 
     return perl_mix(st, uv, smoothInt(tpoint_cell.y));
 }

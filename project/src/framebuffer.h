@@ -60,10 +60,9 @@ class FrameBuffer {
         {
             glGenFramebuffers(1, &framebuffer_object_id_);
             glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_object_id_);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 /*location = 0*/,
-                                   GL_TEXTURE_2D, color_texture_id_, 0 /*level*/);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
-                                      depth_render_buffer_id_);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 /*location = 0*/, GL_TEXTURE_2D,
+                                   color_texture_id_, 0 /*level*/);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_render_buffer_id_);
 
             if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
                 cerr << "!!!ERROR: Framebuffer not OK :(" << endl;
