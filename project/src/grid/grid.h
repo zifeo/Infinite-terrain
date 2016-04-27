@@ -120,10 +120,7 @@ class Grid : public Material, public Light {
         {
             std::vector<GLfloat> vertices;
             std::vector<GLuint> indices;
-            // TODO 5: make a triangle grid with dimension 100x100.
-            // always two subsequent entries in 'vertices' form a 2D vertex
-            // position.
-            int grid_dim = 512;
+            int grid_dim = 256;
 
             float half = grid_dim / 2.0;
 
