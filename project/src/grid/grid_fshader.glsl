@@ -22,11 +22,11 @@ const ivec2 l = ivec2(-1, 0);
 const ivec2 r = ivec2(1, 0);
 
 float coeffSand(float height, float angle) { // angle => 0 = plat, 1 = falaise
-    return clamp((1 - angle) * (1 - 25 * (height - 0.1) * (height - 0.1)), 0, 1);
+    return clamp((1 - angle) * (1 - 25 * (height - 0.2) * (height - 0.2)), 0, 1);
 }
 
 float coeffGrass(float height, float angle) {
-    return clamp((1 - angle) * (1 - 25 * (height - 0.35) * (height - 0.35)), 0, 1);
+    return clamp((1 - angle) * (1 - 25 * (height - 0.5) * (height - 0.5)), 0, 1);
 }
 
 float coeffRock(float height, float angle) {
@@ -34,11 +34,7 @@ float coeffRock(float height, float angle) {
 }
 
 float coeffSnow(float height, float angle) {
-<<<<<<< HEAD
-    return clamp((1 - angle) * (1 - 25 * (height-0.8)*(height-0.8)), 0, 1);
-=======
-    return clamp((1 - angle) * (1 - 25 * (height - 0.7) * (height - 0.7)), 0, 1);
->>>>>>> origin/master
+    return clamp((1 - angle) * (1 - 25 * (height-0.75)*(height-0.75)), 0, 1);
 }
 
 void main() {
@@ -57,12 +53,7 @@ void main() {
     vec3 dx = vec3(derx, (dxr - dxl));
     vec3 dy = vec3(dery, (dxr - dxl));
 
-<<<<<<< HEAD
-    vec3 normal_mv = normalize(cross(dx,dy));
-=======
     vec3 normal_mv = normalize(cross(dx, dy));
-
->>>>>>> origin/master
     float nl = dot(normal_mv, light_dir);
     nl = nl < 0 ? 0 : nl;
 

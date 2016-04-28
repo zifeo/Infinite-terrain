@@ -59,7 +59,7 @@ class Simulation {
 
     float phi = 2.0f;
     float theta = 0.0f;
-    vec3 cam_pos = vec3(2.9, 6, 2.9);
+    vec3 cam_pos = vec3(1,1,1);
 
     mat4 projection_matrix;
     mat4 view_matrix;
@@ -80,12 +80,7 @@ class Simulation {
 
         perlinTex.Init();
         grid.Init();
-<<<<<<< HEAD
-
-        //initChunk(0, 0);
-=======
         sky.Init();
->>>>>>> origin/master
     }
 
     void display() {
@@ -106,17 +101,10 @@ class Simulation {
             for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
                 int i = it->second.x;
                 int j = it->second.y;
-<<<<<<< HEAD
                 mat4 model = model_matrix *
                              translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
                                                              -((j - CHUNKS / 2) * 2 - DELTA * j)));
                 grid.Draw(it->second.perlinBuffer_tex_id, (float) start_time, i, j, model, view_matrix, projection_matrix);
-=======
-                // TODO : move in shader
-                mat4 model = model_matrix * translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
-                                                                            -((j - CHUNKS / 2) * 2 - DELTA * j)));
-                grid.Draw(it->second.perlinBuffer_tex_id, (float)start_time, model, view_matrix, projection_matrix);
->>>>>>> origin/master
             }
 
         } else {
@@ -160,7 +148,7 @@ class Simulation {
 
                 cout << i << " - " << j << endl;
 
-                if (0 <= VIEW_DIST * VIEW_DIST * 10) {
+                if (0 <= VIEW_DIST * VIEW_DIST) {
 
                     map<long long, ChunkTex>::iterator it = chunkMap.find(getKey(i, j));
 
@@ -173,18 +161,13 @@ class Simulation {
         }
 
         // Do we need to remove chunks ?
-        vector<long long> toBeRemoved;
+        /*vector<long long> toBeRemoved;
         for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
             int i = it->second.x;
             int j = it->second.y;
 
-<<<<<<< HEAD
-            float dx = -camX - 1 + i;
-            float dy = camY - 1 + j;
-=======
             int dx = (int)(-camX - 1 + i);
             int dy = (int)(camY - 1 + j);
->>>>>>> origin/master
 
             if (true || dx * dx + dy * dy > VIEW_DIST * VIEW_DIST * 1.5) {
                 it->second.tex.Cleanup();
@@ -195,7 +178,7 @@ class Simulation {
 
         for (unsigned int i = 0; i < toBeRemoved.size(); i++) {
             chunkMap.erase(toBeRemoved[i]);
-        }
+        }*/
 
         sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
     }
