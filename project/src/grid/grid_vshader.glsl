@@ -11,7 +11,6 @@ out float height;
 uniform mat4 MVP;
 uniform mat4 MV;
 uniform vec3 light_pos;
-uniform float time;
 
 uniform int x_chunk;
 uniform int y_chunk;
