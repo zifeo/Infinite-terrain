@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "Framebuffer.h"
 #include "grid/grid.h"
+#include "water/water.h"
 #include "normalTex/normalTex.h"
 #include "perlinTex/perlinTex.h"
 #include "sky/sky.h"
@@ -41,7 +42,7 @@ class Simulation {
     float H = 1.25;
 
     // Perlin parameters are ready to be used for normal and projection
-    bool perlin_ready = false;
+    bool perlin_ready = true;
     typedef struct {
         FrameBuffer tex;
         GLuint perlinBuffer_tex_id;
@@ -56,6 +57,7 @@ class Simulation {
 
     // Final grid vue
     Grid grid;
+    Water water;
 
     float phi = 2.0f;
     float theta = 0.0f;
@@ -80,6 +82,7 @@ class Simulation {
 
         perlinTex.Init();
         grid.Init();
+        water.Init();
         sky.Init();
     }
 
@@ -105,6 +108,14 @@ class Simulation {
                              translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
                                                              -((j - CHUNKS / 2) * 2 - DELTA * j)));
                 grid.Draw(it->second.perlinBuffer_tex_id, (float) start_time, i, j, model, view_matrix, projection_matrix);
+            }
+            for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
+                int i = it->second.x;
+                int j = it->second.y;
+                mat4 model = model_matrix *
+                             translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2, 0,
+                                                             -((j - CHUNKS / 2) * 2)));
+                water.Draw((float) start_time, i, j, model, view_matrix, projection_matrix);
             }
 
         } else {
@@ -137,7 +148,7 @@ class Simulation {
         float camX = (cam_pos.x + 1) / 2;
         float camY = (cam_pos.z + 1) / 2;
 
-        cout << "----------------------***" << camX << " and " << camY << endl;
+        //cout << "----------------------***" << camX << " and " << camY << endl;
         // cout << camX << " and " << camY << endl;
         for (int dx = -VIEW_DIST-1; dx <= VIEW_DIST+1; ++dx) {
             for (int dy = -VIEW_DIST-1; dy <= VIEW_DIST+1; ++dy) {
@@ -146,7 +157,7 @@ class Simulation {
                 int iCaY = camY > 0 ? (int) camY : (int) camY -1;
                 int j = -iCaY + dy >= 0 ? -iCaY + dy + 1 : -iCaY + dy + 1;
 
-                cout << i << " - " << j << endl;
+                //cout << i << " - " << j << endl;
 
                 if (0 <= VIEW_DIST * VIEW_DIST) {
 
@@ -185,6 +196,7 @@ class Simulation {
 
     void cleanUp() {
         grid.Cleanup();
+        water.Cleanup();
         normalTex.Cleanup();
         perlinTex.Cleanup();
         normalBuffer.Cleanup();
