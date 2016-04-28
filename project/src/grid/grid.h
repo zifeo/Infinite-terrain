@@ -1,4 +1,5 @@
 #pragma once
+
 #include "icg_helper.h"
 #include <glm/gtc/type_ptr.hpp>
 
@@ -57,10 +58,10 @@ class Grid : public Material, public Light {
     GLuint vertex_buffer_object_index_;    // memory buffer for indices
     GLuint program_id_;                    // GLSL shader program ID
     GLuint texture_id_;                    // texture ID
-    GLuint sand_texture_id_;                // sand texture ID
-    GLuint grass_texture_id_;               // grass texture ID
-    GLuint rock_texture_id_;                // rock texture ID
-    GLuint snow_texture_id_;                // snow texture ID
+    GLuint sand_texture_id_;               // sand texture ID
+    GLuint grass_texture_id_;              // grass texture ID
+    GLuint rock_texture_id_;               // rock texture ID
+    GLuint snow_texture_id_;               // snow texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
     GLuint MV_id_;
@@ -120,20 +121,17 @@ class Grid : public Material, public Light {
             // position buffer
             glGenBuffers(1, &vertex_buffer_object_position_);
             glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object_position_);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0],
-                         GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), &vertices[0], GL_STATIC_DRAW);
 
             // vertex indices
             glGenBuffers(1, &vertex_buffer_object_index_);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertex_buffer_object_index_);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0],
-                         GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
 
             // position shader attribute
             GLuint loc_position = glGetAttribLocation(program_id_, "position");
             glEnableVertexAttribArray(loc_position);
-            glVertexAttribPointer(loc_position, 2, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE,
-                                  ZERO_BUFFER_OFFSET);
+            glVertexAttribPointer(loc_position, 2, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
 
         {
@@ -182,9 +180,14 @@ class Grid : public Material, public Light {
         glDeleteTextures(1, &snow_texture_id_);
     }
 
+<<<<<<< HEAD
     void Draw(GLint texture_id, float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX,
               const glm::mat4 &projection = IDENTITY_MATRIX) {
+=======
+    void Draw(GLint texture_id, float time, const glm::mat4 &model = IDENTITY_MATRIX,
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
+>>>>>>> origin/master
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
@@ -214,7 +217,7 @@ class Grid : public Material, public Light {
         glm::mat4 MV = view * model;
         glUniformMatrix4fv(MV_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(MV));
 
-        //glm::mat4 M = model;
+        // glm::mat4 M = model;
         // TODO : check
         glUniformMatrix4fv(M_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(MV));
 
@@ -233,18 +236,17 @@ class Grid : public Material, public Light {
         glUseProgram(0);
     }
 
-private:
-    void initTexture(string filename, GLuint* texture_id, string texture_name, int val) {
+  private:
+    void initTexture(string filename, GLuint *texture_id, string texture_name, int val) {
 
         int width;
         int height;
         int nb_component;
         // set stb_image to have the same coordinates as OpenGL
         stbi_set_flip_vertically_on_load(1);
-        unsigned char* image = stbi_load(filename.c_str(), &width,
-                                         &height, &nb_component, 0);
+        unsigned char *image = stbi_load(filename.c_str(), &width, &height, &nb_component, 0);
 
-        if(image == nullptr) {
+        if (image == nullptr) {
             throw(string("Failed to load texture"));
         }
 
@@ -253,17 +255,15 @@ private:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        if(nb_component == 3) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0,
-                         GL_RGB, GL_UNSIGNED_BYTE, image);
-        } else if(nb_component == 4) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
-                         GL_RGBA, GL_UNSIGNED_BYTE, image);
+        if (nb_component == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+        } else if (nb_component == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         }
 
         GLuint tex_id = glGetUniformLocation(program_id_, texture_name.c_str());
         glUseProgram(program_id_);
-        glUniform1i(tex_id, val-GL_TEXTURE0);
+        glUniform1i(tex_id, val - GL_TEXTURE0);
 
         // cleanup
         glBindTexture(GL_TEXTURE_2D, val);

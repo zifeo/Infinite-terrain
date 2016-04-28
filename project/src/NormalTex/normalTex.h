@@ -41,8 +41,7 @@ class NormalTex {
             // attribute
             GLint vertex_point_id = glGetAttribLocation(program_id_, "vpoint");
             glEnableVertexAttribArray(vertex_point_id);
-            glVertexAttribPointer(vertex_point_id, 3, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE,
-                                  ZERO_BUFFER_OFFSET);
+            glVertexAttribPointer(vertex_point_id, 3, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
 
         // texture coordinates
@@ -55,8 +54,8 @@ class NormalTex {
             // buffer
             glGenBuffers(1, &vertex_buffer_object_);
             glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object_);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_texture_coordinates),
-                         vertex_texture_coordinates, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_texture_coordinates), vertex_texture_coordinates,
+                         GL_STATIC_DRAW);
 
             // attribute
             GLint vertex_texture_coord_id = glGetAttribLocation(program_id_, "vtexcoord");
