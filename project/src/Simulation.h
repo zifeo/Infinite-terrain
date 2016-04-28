@@ -169,7 +169,6 @@ public:
         grid.Cleanup();
         perlinTex.Cleanup();
         sky.Cleanup();
-
         for (auto& chunk : chunkMap) {
             chunk.second.tex.Cleanup();
         }
@@ -194,6 +193,20 @@ public:
         chunkMap.insert(pair<long, ChunkTex>(getKey(i, j), chunk));
     }
 
+    void set_noise_params(int doctave, float dlacunarity, float dfractal_increment) {
+        octave += doctave;
+        lacunarity += dlacunarity;
+        fractal_increment += dfractal_increment;
+
+        octave = clamp(octave, 1, 9);
+        lacunarity = clamp(lacunarity, 0.0f, 10.0f);
+        fractal_increment = clamp(fractal_increment, 1.0f, 2.0f);
+
+        cout << "octave: " << octave << endl;
+        cout << "lacunarity: " << lacunarity << endl;
+        cout << "fractal increment: " << fractal_increment << endl;
+    }
+
     /* ********** Events ********** */
 
     void onMouseMove(GLFWwindow *window, double x, double y) {
@@ -209,20 +222,6 @@ public:
         float ratio = window_width / (float) window_height;
         projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
         glViewport(0, 0, window_width, window_height);
-    }
-
-    void set_noise_params(int doctave, float dlacunarity, float dfractal_increment) {
-        octave += doctave;
-        lacunarity += dlacunarity;
-        fractal_increment += dfractal_increment;
-
-        octave = clamp(octave, 1, 9);
-        lacunarity = clamp(lacunarity, 0.0f, 10.0f);
-        fractal_increment = clamp(fractal_increment, 1.0f, 2.0f);
-
-        cout << "octave: " << octave << endl;
-        cout << "lacunarity: " << lacunarity << endl;
-        cout << "fractal increment: " << fractal_increment << endl;
     }
 
     void onKey(GLFWwindow *window, int key, int scancode, int action, int mods) {
