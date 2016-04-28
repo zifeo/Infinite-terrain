@@ -17,20 +17,19 @@ using namespace glm;
 
 class Simulation {
 
-private:
-
+  private:
     // windows parameters
     int window_width = WINDOW_WIDTH;
     int window_height = WINDOW_HEIGHT;
-    double cursor_x = WINDOW_WIDTH / 2;
-    double cursor_y = WINDOW_HEIGHT / 2;
+    double cursor_x = 0;
+    double cursor_y = 0;
 
     // camera displacement
     enum { UP = 0, DOWN, RIGHT, LEFT };
-    bool arrows_down[4] = { false, false, false, false };
+    bool arrows_down[4] = {false, false, false, false};
     float camera_phi = 2.0f;
     float camera_theta = 0.0f;
-    vec3 cam_pos = vec3(1,1,1);
+    vec3 cam_pos = vec3(1, 1, 1);
 
     // MVP
     mat4 projection_matrix;
@@ -64,8 +63,7 @@ private:
     Grid grid;
     Sky sky;
 
-
-public:
+  public:
     /* ********** States ********** */
 
     void init(GLFWwindow *window) {
@@ -73,9 +71,7 @@ public:
         glClearColor(1.0, 1.0, 1.0, 1.0);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_MULTISAMPLE);
-
         onResize(window);
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         perlinTex.Init();
         grid.Init();
@@ -92,25 +88,24 @@ public:
 
         switch (mode) {
 
-            case DEFAULT:
+        case DEFAULT:
 
-                break;
+            break;
 
-            case PERLIN:
-                perlinTex.Draw(octave, lacunarity, fractal_increment, 0, 0);
-                break;
+        case PERLIN:
+            perlinTex.Draw(octave, lacunarity, fractal_increment, 0, 0);
+            break;
 
-            case TEXTURE:
-                for (auto& chunk : chunkMap) {
-                    int i = chunk.second.x;
-                    int j = chunk.second.y;
-                    vec3 pos = vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0, -((j - CHUNKS / 2) * 2 - DELTA * j));
-                    mat4 model = translate(model_matrix, pos);
-                    grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model, view_matrix, projection_matrix);
-                }
-                sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
-                break;
-
+        case TEXTURE:
+            for (auto &chunk : chunkMap) {
+                int i = chunk.second.x;
+                int j = chunk.second.y;
+                vec3 pos = vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0, -((j - CHUNKS / 2) * 2 - DELTA * j));
+                mat4 model = translate(model_matrix, pos);
+                grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model, view_matrix, projection_matrix);
+            }
+            sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
+            break;
         }
 
         // Measure speed
@@ -141,16 +136,16 @@ public:
         float camX = (cam_pos.x + 1) / 2;
         float camY = (cam_pos.z + 1) / 2;
 
-        //cout << "----------------------***" << camX << " and " << camY << endl;
+        // cout << "----------------------***" << camX << " and " << camY << endl;
         // cout << camX << " and " << camY << endl;
-        for (int dx = -VIEW_DIST-1; dx <= VIEW_DIST+1; ++dx) {
-            for (int dy = -VIEW_DIST-1; dy <= VIEW_DIST+1; ++dy) {
-                int i = (int) (camX + dx) >= 0 ? (int) (camX + 1) + dx : (int) (camX) + dx;
+        for (int dx = -VIEW_DIST - 1; dx <= VIEW_DIST + 1; ++dx) {
+            for (int dy = -VIEW_DIST - 1; dy <= VIEW_DIST + 1; ++dy) {
+                int i = (int)(camX + dx) >= 0 ? (int)(camX + 1) + dx : (int)(camX) + dx;
 
-                int iCaY = camY > 0 ? (int) camY : (int) camY -1;
+                int iCaY = camY > 0 ? (int)camY : (int)camY - 1;
                 int j = -iCaY + dy >= 0 ? -iCaY + dy + 1 : -iCaY + dy + 1;
 
-                //cout << i << " - " << j << endl;
+                // cout << i << " - " << j << endl;
 
                 if (0 <= VIEW_DIST * VIEW_DIST) {
 
@@ -158,7 +153,8 @@ public:
 
                     if (it == chunkMap.end()) { // no element at this position
                         initChunk(i, j);
-                        //cout << "Added chunk " << i << "-" << j << " dist :" << (dx + diffX) << " " << (dy + diffY) << endl;
+                        // cout << "Added chunk " << i << "-" << j << " dist :" << (dx + diffX) << " " << (dy + diffY)
+                        // << endl;
                     }
                 }
             }
@@ -169,7 +165,7 @@ public:
         grid.Cleanup();
         perlinTex.Cleanup();
         sky.Cleanup();
-        for (auto& chunk : chunkMap) {
+        for (auto &chunk : chunkMap) {
             chunk.second.tex.Cleanup();
         }
         chunkMap.clear();
@@ -219,7 +215,7 @@ public:
 
     void onResize(GLFWwindow *window) {
         glfwGetFramebufferSize(window, &window_width, &window_height);
-        float ratio = window_width / (float) window_height;
+        float ratio = window_width / (float)window_height;
         projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
         glViewport(0, 0, window_width, window_height);
     }
@@ -232,29 +228,51 @@ public:
         }
 
         if (GLFW_KEY_1 <= key && key <= GLFW_KEY_9) {
-            mode = static_cast<Mode> (key - GLFW_KEY_1);
+            mode = static_cast<Mode>(key - GLFW_KEY_1);
+            glfwSetInputMode(window, GLFW_CURSOR, mode == DEFAULT ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
         }
 
         if (action == GLFW_PRESS) {
 
             switch (key) {
-                case GLFW_KEY_O: set_noise_params(0, 0, +0.01f); break;
-                case GLFW_KEY_P: set_noise_params(0, 0, -0.01f); break;
-                case GLFW_KEY_F: set_noise_params(0, +0.01f, 0); break;
-                case GLFW_KEY_G: set_noise_params(0, -0.01f, 0); break;
-                case GLFW_KEY_L: set_noise_params(+1, 0, 0); break;
-                case 59 /*É*/: set_noise_params(-1, 0.01, 0); break;
-                default:
-                    cout << "Pressed unregistered key: " << key << endl;
+            case GLFW_KEY_O:
+                set_noise_params(0, 0, +0.01f);
+                break;
+            case GLFW_KEY_P:
+                set_noise_params(0, 0, -0.01f);
+                break;
+            case GLFW_KEY_F:
+                set_noise_params(0, +0.01f, 0);
+                break;
+            case GLFW_KEY_G:
+                set_noise_params(0, -0.01f, 0);
+                break;
+            case GLFW_KEY_L:
+                set_noise_params(+1, 0, 0);
+                break;
+            case 59 /*É*/:
+                set_noise_params(-1, 0.01, 0);
+                break;
+            default:
+                cout << "Pressed unregistered key: " << key << endl;
             }
         }
 
         switch (key) {
-            case GLFW_KEY_W: arrows_down[UP] = (action != GLFW_RELEASE); break;
-            case GLFW_KEY_S: arrows_down[DOWN] = (action != GLFW_RELEASE); break;
-            case GLFW_KEY_D: arrows_down[RIGHT] = (action != GLFW_RELEASE); break;
-            case GLFW_KEY_A: arrows_down[LEFT] = (action != GLFW_RELEASE); break;
-            default: break;
+        case GLFW_KEY_W:
+            arrows_down[UP] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_S:
+            arrows_down[DOWN] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_D:
+            arrows_down[RIGHT] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_A:
+            arrows_down[LEFT] = (action != GLFW_RELEASE);
+            break;
+        default:
+            break;
         }
     }
 };

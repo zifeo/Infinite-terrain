@@ -67,8 +67,8 @@ class Grid : public Material, public Light {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
-    GLuint x_chunk_id_;                           //x value of the chunk
-    GLuint y_chunk_id_;                           //y value of the chunk
+    GLuint x_chunk_id_; // x value of the chunk
+    GLuint y_chunk_id_; // y value of the chunk
 
   public:
     void Init() {
@@ -181,8 +181,7 @@ class Grid : public Material, public Light {
     }
 
     void Draw(GLint texture_id, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX,
-              const glm::mat4 &projection = IDENTITY_MATRIX) {
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 

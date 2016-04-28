@@ -34,7 +34,7 @@ float coeffRock(float height, float angle) {
 }
 
 float coeffSnow(float height, float angle) {
-    return clamp((1 - angle) * (1 - 25 * (height-0.75)*(height-0.75)), 0, 1);
+    return clamp((1 - angle) * (1 - 25 * (height - 0.75) * (height - 0.75)), 0, 1);
 }
 
 void main() {
