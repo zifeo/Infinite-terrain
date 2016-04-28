@@ -1,0 +1,9 @@
+-water
+-biome
+-ridged
+-améliorer textures
+-améliorer chunk
+-améliorer performances (tesselation)
+-nuages
+-herbes + trees
+-mipmap
