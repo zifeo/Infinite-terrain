@@ -90,20 +90,52 @@ class Grid : public Material, public Light {
             std::vector<GLuint> indices;
             int grid_dim = 256;
 
-            float half = grid_dim / 2.0;
+            float half = grid_dim / 2.;
+            int ind = 0;
+            for (int i = 0; i <= grid_dim; i += 2) {
+                float posy0 = (i - half) / half;
+                float posy1 = posy0 + 1 / half;
+                float posy2 = posy1 + 1 / half;
 
-            for (int i = 0; i <= grid_dim; i++) {
-                for (int j = 0; j <= grid_dim; j++) {
-                    vertices.push_back((i - half) / half);
-                    vertices.push_back((j - half) / half);
-                    // cout << (i-half) / half << " " << (j-half) / half << " "
-                    // <<
-                    // (vertices.size()/2)-1 << "\n";
+                for (int j = 0; j < grid_dim; j++) {
+                    float posx = (j - half) / half;
+
+                    vertices.push_back(posx);
+                    vertices.push_back(posy0);
+                    indices.push_back(ind++);
+
+                    vertices.push_back(posx);
+                    vertices.push_back(posy1);
+                    indices.push_back(ind++);
+                }
+
+                vertices.push_back(1);
+                vertices.push_back(posy0);
+                indices.push_back(ind++);
+
+                vertices.push_back(1);
+                vertices.push_back(posy2);
+                indices.push_back(ind++);
+
+                vertices.push_back(1);
+                vertices.push_back(posy1);
+                indices.push_back(ind++);
+
+                for (int j = grid_dim - 1; j >= 0; j--) {
+                    float posx = (j - half) / half;
+
+                    vertices.push_back(posx);
+                    vertices.push_back(posy2);
+                    indices.push_back(ind++);
+
+                    vertices.push_back(posx);
+                    vertices.push_back(posy1);
+                    indices.push_back(ind++);
                 }
             }
 
-            for (int i = 0; i < grid_dim; i++) {
-                for (int j = 0; j < grid_dim; j++) {
+            /*for (int i = 0; i <= grid_dim; i++) {
+                for (int j = 0; j <= grid_dim; j++) {
                     int ind = (grid_dim + 1) * i + j;
                     // cout << ind << "\n";
                     indices.push_back(0 + ind);
@@ -114,7 +146,7 @@ class Grid : public Material, public Light {
                     indices.push_back(grid_dim + 1 + ind);
                     indices.push_back(grid_dim + 2 + ind);
                 }
-            }
+            }*/
 
             num_indices_ = indices.size();
 
@@ -221,7 +253,9 @@ class Grid : public Material, public Light {
         glUniform1i(x_chunk_id_, x);
         glUniform1i(y_chunk_id_, y);
 
-        glDrawElements(GL_TRIANGLES, num_indices_, GL_UNSIGNED_INT, 0);
+        // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
+        // glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
         glBindVertexArray(0);
         glUseProgram(0);

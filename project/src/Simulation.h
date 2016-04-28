@@ -29,10 +29,12 @@ class Simulation {
     bool arrows_down[4] = {false, false, false, false};
     float camera_phi = 2.0f;
     float camera_theta = 0.0f;
-    vec3 cam_pos = vec3(1, 1, 1);
+    < < < < < < < HEAD vec3 cam_pos = vec3(1, 1, 1);
+    == == == = vec3 cam_pos = vec3(0, 1, 0);
+    >>>>>>> ebf6adc6f767809aa2d77abc1335bc96f28f219d
 
-    // MVP
-    mat4 projection_matrix;
+        // MVP
+        mat4 projection_matrix;
     mat4 model_matrix;
     mat4 view_matrix;
 
@@ -95,12 +97,14 @@ class Simulation {
         case PERLIN:
             perlinTex.Draw(octave, lacunarity, fractal_increment, 0, 0);
             break;
-
         case TEXTURE:
             for (auto &chunk : chunkMap) {
                 int i = chunk.second.x;
                 int j = chunk.second.y;
-                vec3 pos = vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0, -((j - CHUNKS / 2) * 2 - DELTA * j));
+
+                // cout << "draw : " << i << " - " << j << endl;
+
+                vec3 pos = vec3(i, 0, j);
                 mat4 model = translate(model_matrix, pos);
                 grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model, view_matrix, projection_matrix);
             }
@@ -130,32 +134,20 @@ class Simulation {
             cam_pos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
         }
 
-        // =============
+        // + 1 is because we are in the middle of a chunk
+        // / 2 because a chunk is of length 2
+        int chunkX = floor((cam_pos.x + 1) / 2);
+        int chunkY = floor((cam_pos.z + 1) / 2);
 
-        // Do we need to add chunks ?
-        float camX = (cam_pos.x + 1) / 2;
-        float camY = (cam_pos.z + 1) / 2;
+        for (int dx = -VIEW_DIST; dx <= VIEW_DIST; ++dx) {
+            for (int dy = -VIEW_DIST; dy <= VIEW_DIST; ++dy) {
+                int i = chunkX + dx;
+                int j = chunkY + dy;
 
-        // cout << "----------------------***" << camX << " and " << camY << endl;
-        // cout << camX << " and " << camY << endl;
-        for (int dx = -VIEW_DIST - 1; dx <= VIEW_DIST + 1; ++dx) {
-            for (int dy = -VIEW_DIST - 1; dy <= VIEW_DIST + 1; ++dy) {
-                int i = (int)(camX + dx) >= 0 ? (int)(camX + 1) + dx : (int)(camX) + dx;
+                map<long, ChunkTex>::iterator it = chunkMap.find(getKey(i, j));
 
-                int iCaY = camY > 0 ? (int)camY : (int)camY - 1;
-                int j = -iCaY + dy >= 0 ? -iCaY + dy + 1 : -iCaY + dy + 1;
-
-                // cout << i << " - " << j << endl;
-
-                if (0 <= VIEW_DIST * VIEW_DIST) {
-
-                    map<long, ChunkTex>::iterator it = chunkMap.find(getKey(i, j));
-
-                    if (it == chunkMap.end()) { // no element at this position
-                        initChunk(i, j);
-                        // cout << "Added chunk " << i << "-" << j << " dist :" << (dx + diffX) << " " << (dy + diffY)
-                        // << endl;
-                    }
+                if (it == chunkMap.end()) {
+                    initChunk(i, j);
                 }
             }
         }
@@ -179,12 +171,13 @@ class Simulation {
 
     void initChunk(int i, int j) {
         ChunkTex chunk;
-        chunk.x = i;
-        chunk.y = j;
+        chunk.x = i * 2;
+        chunk.y = j * 2;
         chunk.perlinBuffer_tex_id = chunk.tex.Init(TEX_WIDTH, TEX_HEIGHT, true);
         chunk.tex.Bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        perlinTex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, j - CHUNKS / 2);
+        // (-j) because of inversion of y axis from 2D to 3D.
+        perlinTex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
         chunk.tex.Unbind();
         chunkMap.insert(pair<long, ChunkTex>(getKey(i, j), chunk));
     }
