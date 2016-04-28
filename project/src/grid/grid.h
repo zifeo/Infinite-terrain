@@ -180,7 +180,7 @@ class Grid : public Material, public Light {
         glDeleteTextures(1, &snow_texture_id_);
     }
 
-    void Draw(GLint texture_id, float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
+    void Draw(GLint texture_id, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX,
               const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
@@ -218,9 +218,6 @@ class Grid : public Material, public Light {
 
         glm::mat4 P = projection;
         glUniformMatrix4fv(P_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(P));
-
-        // pass the current time stamp to the shader.
-        glUniform1f(glGetUniformLocation(program_id_, "time"), time);
 
         glUniform1i(x_chunk_id_, x);
         glUniform1i(y_chunk_id_, y);

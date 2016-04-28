@@ -19,6 +19,7 @@ static const vec3 CubeVertices[] = {
     vec3(-0.5, 0.5, -0.5),  vec3(-0.5, -0.5, -0.5), vec3(-0.5, 0.5, 0.5),  vec3(-0.5, -0.5, -0.5),
     vec3(-0.5, 0.5, 0.5),   vec3(-0.5, -0.5, 0.5),  vec3(0.5, 0.5, -0.5),  vec3(-0.5, 0.5, -0.5),
     vec3(0.5, 0.5, 0.5),    vec3(-0.5, 0.5, -0.5),  vec3(0.5, 0.5, 0.5),   vec3(-0.5, 0.5, 0.5)};
+// TODO which best
 
 static const unsigned int NbCubeUVs = 36;
 
