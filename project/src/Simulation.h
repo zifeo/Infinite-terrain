@@ -7,6 +7,7 @@
 #include "grid/grid.h"
 #include "normalTex/normalTex.h"
 #include "perlinTex/perlinTex.h"
+#include "sky/sky.h"
 
 #include <map>
 #include <stdint.h>
@@ -16,13 +17,15 @@ using namespace glm;
 
 class Simulation {
 
-private:
-
+  private:
     bool arrows_down[4] = {false, false, false, false};
     enum { UP, DOWN, RIGHT, LEFT };
 
     int window_width = WINDOW_WIDTH;
     int window_height = WINDOW_HEIGHT;
+
+    double cursor_x = WINDOW_WIDTH / 2;
+    double cursor_y = WINDOW_HEIGHT / 2;
 
     int tex_width = 1024;
     int tex_height = 1024;
@@ -62,8 +65,9 @@ private:
     mat4 view_matrix;
     mat4 model_matrix;
 
-public:
+    Sky sky;
 
+  public:
     /* ********** States ********** */
 
     void init(GLFWwindow *window) {
@@ -72,12 +76,16 @@ public:
         glEnable(GL_MULTISAMPLE);
 
         onResize(window);
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         perlinTex.Init();
         grid.Init();
+<<<<<<< HEAD
 
         //initChunk(0, 0);
+=======
+        sky.Init();
+>>>>>>> origin/master
     }
 
     void display() {
@@ -98,10 +106,17 @@ public:
             for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
                 int i = it->second.x;
                 int j = it->second.y;
+<<<<<<< HEAD
                 mat4 model = model_matrix *
                              translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
                                                              -((j - CHUNKS / 2) * 2 - DELTA * j)));
                 grid.Draw(it->second.perlinBuffer_tex_id, (float) start_time, i, j, model, view_matrix, projection_matrix);
+=======
+                // TODO : move in shader
+                mat4 model = model_matrix * translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
+                                                                            -((j - CHUNKS / 2) * 2 - DELTA * j)));
+                grid.Draw(it->second.perlinBuffer_tex_id, (float)start_time, model, view_matrix, projection_matrix);
+>>>>>>> origin/master
             }
 
         } else {
@@ -163,8 +178,13 @@ public:
             int i = it->second.x;
             int j = it->second.y;
 
+<<<<<<< HEAD
             float dx = -camX - 1 + i;
             float dy = camY - 1 + j;
+=======
+            int dx = (int)(-camX - 1 + i);
+            int dy = (int)(camY - 1 + j);
+>>>>>>> origin/master
 
             if (true || dx * dx + dy * dy > VIEW_DIST * VIEW_DIST * 1.5) {
                 it->second.tex.Cleanup();
@@ -176,6 +196,8 @@ public:
         for (unsigned int i = 0; i < toBeRemoved.size(); i++) {
             chunkMap.erase(toBeRemoved[i]);
         }
+
+        sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
     }
 
     void cleanUp() {
@@ -183,6 +205,7 @@ public:
         normalTex.Cleanup();
         perlinTex.Cleanup();
         normalBuffer.Cleanup();
+        sky.Cleanup();
 
         for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
             it->second.tex.Cleanup();
@@ -191,13 +214,9 @@ public:
 
     /* ********** Helpers ********** */
 
-    inline vec3 vecFromRot(float p, float t) {
-        return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t));
-    }
+    inline vec3 vecFromRot(float p, float t) { return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t)); }
 
-    inline long long getKey(int i, int j) {
-        return ((i + 1000) % 1000) * 1000 + (j + 1000) % 1000;
-    }
+    inline long long getKey(int i, int j) { return ((i + 1000) % 1000) * 1000 + (j + 1000) % 1000; }
 
     void initChunk(int i, int j) {
         ChunkTex chunk;
@@ -214,24 +233,14 @@ public:
     /* ********** Events ********** */
 
     void onMouseMove(GLFWwindow *window, double x, double y) {
-
-        int half_width = 0, half_height = 0;
-        glfwGetWindowSize(window, &half_width, &half_height);
-        //cout << half_width << ":" << half_height << endl;
-        half_width /= 2;
-        half_height /= 2;
-
-        int dx = (int)x - half_width;
-        int dy = (int)y - half_height;
-        //cout << dx << ":" << dy << endl;
+        int dx = (int)(x - cursor_x);
+        int dy = (int)(y - cursor_y);
+        cursor_x = x;
+        cursor_y = y;
 
         theta += dx * MOUSE_SENSIBILTY;
         phi += dy * MOUSE_SENSIBILTY;
         phi = clamp(phi, (float)M_PI / 10, 9 * (float)M_PI / 10);
-
-        if (dx != 0 || dy != 0) {
-            glfwSetCursorPos(window, half_width, half_height - FULLHDFTW);
-        }
     }
 
     void onResize(GLFWwindow *window) {
@@ -255,54 +264,52 @@ public:
                 cout << "nbr octave : " << octave << endl;
             }
 
-            switch(key) {
+            switch (key) {
 
-                case GLFW_KEY_Q:
-                    H += 0.01;
-                    H = H > 2 ? 2 : H;
-                    cout << "new H" << H << endl;
-                    break;
-                case GLFW_KEY_W:
-                    H -= 0.01;
-                    H = H < -2 ? -2 : H;
-                    cout << "new H" << H << endl;
-                    break;
-                case GLFW_KEY_A:
-                    lac += 0.01;
-                    lac = lac > 10 ? 10 : lac;
-                    cout << "new lac" << lac << endl;
-                    break;
-                case GLFW_KEY_S:
-                    lac -= 0.05;
-                    lac = lac < 0 ? 0 : lac;
-                    cout << "new lac" << lac << endl;
-                    break;
-                case GLFW_KEY_D:
-                    perlin_ready = !perlin_ready;
-                    break;
+            case GLFW_KEY_Q:
+                H += 0.01;
+                H = H > 2 ? 2 : H;
+                cout << "new H" << H << endl;
+                break;
+            case GLFW_KEY_W:
+                H -= 0.01;
+                H = H < -2 ? -2 : H;
+                cout << "new H" << H << endl;
+                break;
+            case GLFW_KEY_A:
+                lac += 0.01;
+                lac = lac > 10 ? 10 : lac;
+                cout << "new lac" << lac << endl;
+                break;
+            case GLFW_KEY_S:
+                lac -= 0.05;
+                lac = lac < 0 ? 0 : lac;
+                cout << "new lac" << lac << endl;
+                break;
+            case GLFW_KEY_D:
+                perlin_ready = !perlin_ready;
+                break;
 
-                default:
-                    break;
-
+            default:
+                break;
             }
         }
 
-        switch(key) {
-            case GLFW_KEY_UP:
-                arrows_down[UP] = (action != GLFW_RELEASE);
-                break;
-            case GLFW_KEY_DOWN:
-                arrows_down[DOWN] = (action != GLFW_RELEASE);
-                break;
-            case GLFW_KEY_RIGHT:
-                arrows_down[RIGHT] = (action != GLFW_RELEASE);
-                break;
-            case GLFW_KEY_LEFT:
-                arrows_down[LEFT] = (action != GLFW_RELEASE);
-                break;
-            default:
-                break;
+        switch (key) {
+        case GLFW_KEY_UP:
+            arrows_down[UP] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_DOWN:
+            arrows_down[DOWN] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_RIGHT:
+            arrows_down[RIGHT] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_LEFT:
+            arrows_down[LEFT] = (action != GLFW_RELEASE);
+            break;
+        default:
+            break;
         }
     }
-
 };
