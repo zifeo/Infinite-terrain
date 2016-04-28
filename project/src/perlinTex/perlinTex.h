@@ -98,7 +98,6 @@ class PerlinTex {
             glUniform1i(tex_id, 0 /*GL_TEXTURE0*/);
 
             glBindTexture(GL_TEXTURE_1D, 0);
-            check_error_gl();
         }
 
         // pass permutation as uniform variable
