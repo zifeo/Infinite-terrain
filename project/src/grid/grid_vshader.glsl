@@ -3,7 +3,6 @@
 #define SKIRT 0.001
 
 in vec2 position;
-in vec2 vtexcoord;
 
 out vec2 uv;
 out vec3 light_dir;
@@ -13,6 +12,9 @@ uniform mat4 MVP;
 uniform mat4 MV;
 uniform vec3 light_pos;
 uniform float time;
+
+uniform int x_chunk;
+uniform int y_chunk;
 
 uniform sampler2D tex;
 
@@ -29,4 +31,8 @@ void main() {
     gl_Position = MVP * vec4(pos_3d, 1.0);
 
     light_dir = normalize(light_pos.xyz - vpoint_mv.xyz);
+
+    float offset = (x_chunk+y_chunk+position.x+position.y)*(x_chunk+y_chunk+position.x+position.y);
+    height += 0.04 * sin(3.1415 * (offset));
+    height = clamp(height, 0, 1);
 }

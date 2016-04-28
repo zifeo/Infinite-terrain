@@ -56,7 +56,7 @@ private:
 
     float phi = 2.0f;
     float theta = 0.0f;
-    vec3 cam_pos = vec3(1, 1, 1);
+    vec3 cam_pos = vec3(2.9, 6, 2.9);
 
     mat4 projection_matrix;
     mat4 view_matrix;
@@ -76,6 +76,8 @@ public:
 
         perlinTex.Init();
         grid.Init();
+
+        //initChunk(0, 0);
     }
 
     void display() {
@@ -99,7 +101,7 @@ public:
                 mat4 model = model_matrix *
                              translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
                                                              -((j - CHUNKS / 2) * 2 - DELTA * j)));
-                grid.Draw(it->second.perlinBuffer_tex_id, (float) start_time, model, view_matrix, projection_matrix);
+                grid.Draw(it->second.perlinBuffer_tex_id, (float) start_time, i, j, model, view_matrix, projection_matrix);
             }
 
         } else {
@@ -129,25 +131,27 @@ public:
         }
 
         // Do we need to add chunks ?
-        float camX = cam_pos.x > 0 ? (cam_pos.x + 1) / 2 : (cam_pos.x + 1) / 2 - 1;
-        float camY = cam_pos.z > 0 ? (cam_pos.z + 1) / 2 : (cam_pos.z + 1) / 2 - 1;
+        float camX = (cam_pos.x + 1) / 2;
+        float camY = (cam_pos.z + 1) / 2;
 
-        // cout << "-------------------------" << endl;
+        cout << "----------------------***" << camX << " and " << camY << endl;
         // cout << camX << " and " << camY << endl;
-        for (int dx = -VIEW_DIST; dx <= VIEW_DIST; ++dx) {
-            for (int dy = -VIEW_DIST; dy <= VIEW_DIST; ++dy) {
-                float i = camX + dx + 1;
-                float j = -camY + dy + 1;
+        for (int dx = -VIEW_DIST-1; dx <= VIEW_DIST+1; ++dx) {
+            for (int dy = -VIEW_DIST-1; dy <= VIEW_DIST+1; ++dy) {
+                int i = (int) (camX + dx) >= 0 ? (int) (camX + 1) + dx : (int) (camX) + dx;
 
-                // cout << i << " - " << j << endl;
+                int iCaY = camY > 0 ? (int) camY : (int) camY -1;
+                int j = -iCaY + dy >= 0 ? -iCaY + dy + 1 : -iCaY + dy + 1;
 
-                if (dx * dx + dy * dy <= VIEW_DIST * VIEW_DIST) {
+                cout << i << " - " << j << endl;
+
+                if (0 <= VIEW_DIST * VIEW_DIST * 10) {
 
                     map<long long, ChunkTex>::iterator it = chunkMap.find(getKey(i, j));
 
                     if (it == chunkMap.end()) { // no element at this position
                         initChunk(i, j);
-                        cout << "Added chunk " << i << "-" << j << endl;
+                        //cout << "Added chunk " << i << "-" << j << " dist :" << (dx + diffX) << " " << (dy + diffY) << endl;
                     }
                 }
             }
@@ -159,13 +163,13 @@ public:
             int i = it->second.x;
             int j = it->second.y;
 
-            int dx = -camX - 1 + i;
-            int dy = camY - 1 + j;
+            float dx = -camX - 1 + i;
+            float dy = camY - 1 + j;
 
-            if (dx * dx + dy * dy > VIEW_DIST * VIEW_DIST * 1.1) {
+            if (true || dx * dx + dy * dy > VIEW_DIST * VIEW_DIST * 1.5) {
                 it->second.tex.Cleanup();
                 toBeRemoved.push_back(it->first);
-                cout << "Removed chunk " << i << "-" << j << endl;
+                //cout << "Removed chunk " << i << "-" << j  << " dist :" << dx  << " " <<  dy <<  endl;
             }
         }
 

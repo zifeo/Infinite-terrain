@@ -34,7 +34,7 @@ float coeffRock(float height, float angle) {
 }
 
 float coeffSnow(float height, float angle) {
-    return clamp((1 - angle) * (1 - 25 * (height-0.7)*(height-0.7)), 0, 1);
+    return clamp((1 - angle) * (1 - 25 * (height-0.8)*(height-0.8)), 0, 1);
 }
 
 void main() {
@@ -54,7 +54,6 @@ void main() {
     vec3 dy = vec3(dery, (dxr - dxl));
 
     vec3 normal_mv = normalize(cross(dx,dy));
-
     float nl = dot(normal_mv, light_dir);
     nl = nl < 0 ? 0 : nl;
 

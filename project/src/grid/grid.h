@@ -66,6 +66,8 @@ class Grid : public Material, public Light {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
+    GLuint x_chunk_id_;                           //x value of the chunk
+    GLuint y_chunk_id_;                           //y value of the chunk
 
   public:
     void Init() {
@@ -147,6 +149,9 @@ class Grid : public Material, public Light {
         M_id_ = glGetUniformLocation(program_id_, "M");
         P_id_ = glGetUniformLocation(program_id_, "P");
 
+        x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
+        y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
+
         GLuint light_pos_id = glGetUniformLocation(program_id_, "light_pos");
 
         GLuint La_id = glGetUniformLocation(program_id_, "La");
@@ -177,7 +182,7 @@ class Grid : public Material, public Light {
         glDeleteTextures(1, &snow_texture_id_);
     }
 
-    void Draw(GLint texture_id, float time, const glm::mat4 &model = IDENTITY_MATRIX,
+    void Draw(GLint texture_id, float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX,
               const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
@@ -218,6 +223,9 @@ class Grid : public Material, public Light {
 
         // pass the current time stamp to the shader.
         glUniform1f(glGetUniformLocation(program_id_, "time"), time);
+
+        glUniform1i(x_chunk_id_, x);
+        glUniform1i(y_chunk_id_, y);
 
         glDrawElements(GL_TRIANGLES, num_indices_, GL_UNSIGNED_INT, 0);
 
