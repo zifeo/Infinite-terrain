@@ -29,9 +29,7 @@ class Simulation {
     bool arrows_down[4] = {false, false, false, false};
     float camera_phi = 2.0f;
     float camera_theta = 0.0f;
-    < < < < < < < HEAD vec3 cam_pos = vec3(1, 1, 1);
-    == == == = vec3 cam_pos = vec3(0, 1, 0);
-    >>>>>>> ebf6adc6f767809aa2d77abc1335bc96f28f219d
+    vec3 cam_pos = vec3(0, 1, 0);
 
         // MVP
         mat4 projection_matrix;
