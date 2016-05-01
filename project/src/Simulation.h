@@ -9,6 +9,7 @@
 #include "normalTex/normalTex.h"
 #include "perlinTex/perlinTex.h"
 #include "sky/sky.h"
+#include "tree/tree.h"
 
 #include <map>
 #include <stdint.h>
@@ -58,6 +59,7 @@ class Simulation {
     // Final grid vue
     Grid grid;
     Water water;
+    Tree tree;
 
     float phi = 2.0f;
     float theta = 0.0f;
@@ -84,6 +86,7 @@ class Simulation {
         grid.Init();
         water.Init();
         sky.Init();
+        tree.Init();
     }
 
     void display() {
@@ -101,21 +104,47 @@ class Simulation {
 
         if (perlin_ready) {
 
+            sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
+
+
             for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
                 int i = it->second.x;
                 int j = it->second.y;
-                mat4 model = model_matrix *
-                             translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
+                mat4 model = translate(model_matrix, vec3((i - CHUNKS / 2) * 2 - DELTA * i, 0,
                                                              -((j - CHUNKS / 2) * 2 - DELTA * j)));
+
+
                 grid.Draw(it->second.perlinBuffer_tex_id, (float) start_time, i, j, model, view_matrix, projection_matrix);
+            }
+
+            for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
+                int i = it->second.x;
+                int j = it->second.y;
+                mat4 model = translate(model_matrix, vec3((i - CHUNKS / 2) * 2, 0,
+                                                             -((j - CHUNKS / 2) * 2)));
+                water.Draw((float) start_time, i, j, model, view_matrix, projection_matrix);
             }
             for (map<long long, ChunkTex>::iterator it = chunkMap.begin(); it != chunkMap.end(); ++it) {
                 int i = it->second.x;
                 int j = it->second.y;
-                mat4 model = model_matrix *
-                             translate(IDENTITY_MATRIX, vec3((i - CHUNKS / 2) * 2, 0,
-                                                             -((j - CHUNKS / 2) * 2)));
-                water.Draw((float) start_time, i, j, model, view_matrix, projection_matrix);
+
+                int seed = ((int) (pow(3, i * 1000 + j))) % 30 + 30;
+                srand((int) (pow(3, i * 1000 + j))); // we need to seed the random for each chunk, so that the trees are exactly at the same place on each chunk
+                for (int k = 0; k < seed; k++) {
+                    float x_in_chunk = (rand() % 2000) / 1000.0f - 1;
+                    float y_in_chunk = (rand() % 2000) / 1000.0f - 1;
+                    mat4 model = translate(model_matrix, vec3((i - CHUNKS / 2) * 2 - DELTA * i + x_in_chunk, 0,
+                                                              -((j - CHUNKS / 2) * 2 - DELTA * j + y_in_chunk)));
+
+                    float x = (i - CHUNKS / 2) * 2 - DELTA * i + x_in_chunk - cam_pos.x;
+                    float y = -((j - CHUNKS / 2) * 2 - DELTA * j + y_in_chunk) - cam_pos.z;
+                    float angle = y > 0 ? M_PI / 2 +  acos(x / (sqrt(x*x + y*y))) : M_PI / 2 -  acos(x / (sqrt(x*x + y*y)));
+                    //cout << acos(x / (sqrt(x*x + y*y))) << " " << angle << " " << x << " " << y << endl;
+                    tree.Draw(angle, x_in_chunk, y_in_chunk, it->second.perlinBuffer_tex_id, (float) start_time, it->second.perlinBuffer_tex_id, 0, model,
+                        view_matrix, projection_matrix);
+                }
+
+
             }
 
         } else {
@@ -190,8 +219,6 @@ class Simulation {
         for (unsigned int i = 0; i < toBeRemoved.size(); i++) {
             chunkMap.erase(toBeRemoved[i]);
         }*/
-
-        sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
     }
 
     void cleanUp() {

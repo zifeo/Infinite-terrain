@@ -3,26 +3,24 @@
 #include "icg_helper.h"
 #include <glm/gtc/type_ptr.hpp>
 
-class Water {
+class Tree {
 
   private:
     GLuint vertex_array_id_;               // vertex array object
     GLuint vertex_buffer_object_position_; // memory buffer for positions
     GLuint vertex_buffer_object_index_;    // memory buffer for indices
     GLuint program_id_;                    // GLSL shader program ID
-    GLuint water_texture_id_;              // water texture ID
+    GLuint perlin_texture_id_;               // perlin texture ID
+    GLuint tree_texture_id_;               // water texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
-    GLuint MV_id_;
-    GLuint M_id_;
-    GLuint P_id_;
     GLuint x_chunk_id_;                           //x value of the chunk
     GLuint y_chunk_id_;                           //y value of the chunk
 
   public:
     void Init() {
         // compile the shaders.
-        program_id_ = icg_helper::LoadShaders("water_vshader.glsl", "water_fshader.glsl");
+        program_id_ = icg_helper::LoadShaders("tree_vshader.glsl", "tree_fshader.glsl");
         if (!program_id_) {
             exit(EXIT_FAILURE);
         }
@@ -37,33 +35,25 @@ class Water {
         {
             std::vector<GLfloat> vertices;
             std::vector<GLuint> indices;
-            int grid_dim = 256;
 
-            float half = grid_dim / 2.0;
+            float scaleFactor = 16;
 
-            for (int i = 0; i <= grid_dim; i++) {
-                for (int j = 0; j <= grid_dim; j++) {
-                    vertices.push_back((i - half) / half);
-                    vertices.push_back((j - half) / half);
-                    // cout << (i-half) / half << " " << (j-half) / half << " "
-                    // <<
-                    // (vertices.size()/2)-1 << "\n";
-                }
-            }
+            vertices.push_back(-1/scaleFactor);
+            vertices.push_back(-1/scaleFactor);
 
-            for (int i = 0; i < grid_dim; i++) {
-                for (int j = 0; j < grid_dim; j++) {
-                    int ind = (grid_dim + 1) * i + j;
-                    // cout << ind << "\n";
-                    indices.push_back(0 + ind);
-                    indices.push_back(1 + ind);
-                    indices.push_back(grid_dim + 1 + ind);
+            vertices.push_back(-1/scaleFactor);
+            vertices.push_back(1/scaleFactor);
 
-                    indices.push_back(1 + ind);
-                    indices.push_back(grid_dim + 1 + ind);
-                    indices.push_back(grid_dim + 2 + ind);
-                }
-            }
+            vertices.push_back(1/scaleFactor);
+            vertices.push_back(-1/scaleFactor);
+
+            vertices.push_back(1/scaleFactor);
+            vertices.push_back(1/scaleFactor);
+
+            indices.push_back(0);
+            indices.push_back(1);
+            indices.push_back(2);
+            indices.push_back(3);
 
             num_indices_ = indices.size();
 
@@ -84,14 +74,11 @@ class Water {
         }
 
         {
-            initTexture("water_texture.tga", &water_texture_id_, "water_tex", GL_TEXTURE0);
+            initTexture("tree_texture.tga", &tree_texture_id_, "tree_tex", GL_TEXTURE0 + 1);
         }
 
         // other uniforms
         MVP_id_ = glGetUniformLocation(program_id_, "MVP");
-        MV_id_ = glGetUniformLocation(program_id_, "MV");
-        M_id_ = glGetUniformLocation(program_id_, "M");
-        P_id_ = glGetUniformLocation(program_id_, "P");
 
         x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
         y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
@@ -108,10 +95,10 @@ class Water {
         glDeleteBuffers(1, &vertex_buffer_object_index_);
         glDeleteVertexArrays(1, &vertex_array_id_);
         glDeleteProgram(program_id_);
-        glDeleteTextures(1, &water_texture_id_);
+        glDeleteTextures(1, &tree_texture_id_);
     }
 
-    void Draw(float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
+    void Draw(float angle, float x_in_chunk, float y_in_chunk, GLint perlin_texture_id, float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX,
               const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
@@ -119,14 +106,14 @@ class Water {
 
         // bind textures
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, water_texture_id_);
+        glBindTexture(GL_TEXTURE_2D, perlin_texture_id);
+
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, tree_texture_id_);
 
         // setup MVP
         glm::mat4 MVP = projection * view * model;
         glUniformMatrix4fv(MVP_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(MVP));
-
-        glm::mat4 MV = view * model;
-        glUniformMatrix4fv(MV_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(MV));
 
         // pass the current time stamp to the shader.
         glUniform1f(glGetUniformLocation(program_id_, "time"), time);
@@ -134,10 +121,16 @@ class Water {
         glUniform1i(x_chunk_id_, x);
         glUniform1i(y_chunk_id_, y);
 
+        glUniform1f(glGetUniformLocation(program_id_, "angle"), angle);
+
+        glUniform1f(glGetUniformLocation(program_id_, "x_in_chunk"), x_in_chunk);
+        glUniform1f(glGetUniformLocation(program_id_, "y_in_chunk"), y_in_chunk);
+
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        glDrawElements(GL_TRIANGLES, num_indices_, GL_UNSIGNED_INT, 0);
+
+        glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
 
         glDisable(GL_BLEND);
 
