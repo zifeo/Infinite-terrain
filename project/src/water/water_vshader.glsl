@@ -22,7 +22,5 @@ void main() {
     float height = -0.1 + 0.006 * sin(40 * sin(x * y) + time) + 0.006 * sin(40 * cos(y) + time); // + 0.006 * sin(40 * x * y + time) + 0.006 * sin(40 * (-x) * y + time)
 
     vec3 pos_3d = vec3(position.x, height, -position.y);
-
-    vec4 vpoint_mv = MV * vec4(pos_3d, 1.0);
     gl_Position = MVP * vec4(pos_3d, 1.0);
 }
