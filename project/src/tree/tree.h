@@ -126,13 +126,9 @@ class Tree {
         glUniform1f(glGetUniformLocation(program_id_, "x_in_chunk"), x_in_chunk);
         glUniform1f(glGetUniformLocation(program_id_, "y_in_chunk"), y_in_chunk);
 
-        glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
-
-        glDisable(GL_BLEND);
 
         glBindVertexArray(0);
         glUseProgram(0);
