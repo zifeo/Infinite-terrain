@@ -140,13 +140,13 @@ class Simulation {
                         float x = (i - CHUNKS / 2) * 2 - DELTA * i + posInChunk.x - cam_pos.x;
                         float y = -((j - CHUNKS / 2) * 2 - DELTA * j + posInChunk.y) - cam_pos.z;
                         float angle = y > 0 ? M_PI / 2 +  acos(x / (sqrt(x*x + y*y))) : M_PI / 2 -  acos(x / (sqrt(x*x + y*y)));
-                        tree.Draw(angle, posInChunk.x, posInChunk.y, it->second.perlinBuffer_tex_id, (float) start_time, it->second.perlinBuffer_tex_id, 0, model,
+                        tree.Draw(angle, posInChunk, it->second.perlinBuffer_tex_id, (float) start_time, it->second.perlinBuffer_tex_id, 0, model,
                             view_matrix, projection_matrix);
                     }
                     else {
                         float angle = 0.0f;
                         for (int l = 0; l < TREE_PLANE_COUNT; l++) {
-                            tree.Draw(angle, posInChunk.x, posInChunk.y, it->second.perlinBuffer_tex_id, (float) start_time, it->second.perlinBuffer_tex_id, 0, model,
+                            tree.Draw(angle, posInChunk, it->second.perlinBuffer_tex_id, (float) start_time, it->second.perlinBuffer_tex_id, 0, model,
                                 view_matrix, projection_matrix);
                             angle += M_PI / TREE_PLANE_COUNT;
                         }
@@ -262,7 +262,7 @@ class Simulation {
 
 
         //tree init
-        int count = rand() % 30 + 30;
+        int count = rand() % (MAX_TREES_PER_CHUNK/2) + (MAX_TREES_PER_CHUNK/2);
         for (int k = 0; k < count; k++) {
 
             vec2 posInChunk;
@@ -270,8 +270,6 @@ class Simulation {
             posInChunk.y = (rand() % 2000) / 1000.0f - 1;
 
             chunk.treeList.push_back(posInChunk);
-
-
         }
 
         chunkMap.insert(pair<long long, ChunkTex>(getKey(i, j), chunk));
