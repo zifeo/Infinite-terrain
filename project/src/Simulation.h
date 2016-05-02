@@ -108,6 +108,7 @@ public:
                     //cout << "draw : " << i << " - " << j << endl;
 
                     vec3 pos = vec3(i, 0, j);
+                    //vec3 pos = vec3(0,0,0);
                     mat4 model = translate(model_matrix, pos);
                     grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model, view_matrix, projection_matrix);
                 }
@@ -216,7 +217,7 @@ public:
     void onResize(GLFWwindow *window) {
         glfwGetFramebufferSize(window, &window_width, &window_height);
         float ratio = window_width / (float) window_height;
-        projection_matrix = perspective(45.0f, ratio, 0.1f, 10.0f);
+        projection_matrix = perspective(45.0f, ratio, 0.1f, 100.0f);
         glViewport(0, 0, window_width, window_height);
     }
 

@@ -92,12 +92,17 @@ class Grid : public Material, public Light {
 
             float half = grid_dim / 2.;
             int ind = 0;
-            for (int i = 0; i <= grid_dim; i+=2) {
+            for (int i = 0; i < grid_dim; i++) {
                 float posy0 = (i - half) / half;
                 float posy1 = posy0 + 1 / half;
-                float posy2 = posy1 + 1 / half;
 
-                for (int j = 0; j < grid_dim; j++) {
+                if (i > 0) {
+                    vertices.push_back(-1);
+                    vertices.push_back(posy0);
+                    indices.push_back(ind++);
+                }
+
+                for (int j = 0; j <= grid_dim; j++) {
                     float posx = (j - half) / half;
 
                     vertices.push_back(posx);
@@ -109,29 +114,12 @@ class Grid : public Material, public Light {
                     indices.push_back(ind++);
                 }
 
-                vertices.push_back(1);
-                vertices.push_back(posy0);
-                indices.push_back(ind++);
-
-                vertices.push_back(1);
-                vertices.push_back(posy2);
-                indices.push_back(ind++);
-
-                vertices.push_back(1);
-                vertices.push_back(posy1);
-                indices.push_back(ind++);
-
-                for (int j = grid_dim - 1; j >= 0; j--) {
-                    float posx = (j - half) / half;
-
-                    vertices.push_back(posx);
-                    vertices.push_back(posy2);
-                    indices.push_back(ind++);
-
-                    vertices.push_back(posx);
+                if (i < grid_dim) {
+                    vertices.push_back(1);
                     vertices.push_back(posy1);
                     indices.push_back(ind++);
                 }
+
             }
 
             /*for (int i = 0; i <= grid_dim; i++) {
@@ -254,9 +242,9 @@ class Grid : public Material, public Light {
         glUniform1i(x_chunk_id_, x);
         glUniform1i(y_chunk_id_, y);
 
-        //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_TRIANGLES );
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
-        //glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
         glBindVertexArray(0);
         glUseProgram(0);
@@ -278,14 +266,24 @@ class Grid : public Material, public Light {
 
         glGenTextures(1, texture_id);
         glBindTexture(GL_TEXTURE_2D, *texture_id);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 
         if (nb_component == 3) {
+            glTexStorage2D(GL_TEXTURE_2D, 8, GL_RGB, width, height);
+            //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, image);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
         } else if (nb_component == 4) {
+            glTexStorage2D(GL_TEXTURE_2D, 8, GL_RGBA, width, height);
+            //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, image);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         }
+
+
+        glGenerateMipmap(GL_TEXTURE_2D);  //Generate num_mipmaps number of mipmaps here.
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
         GLuint tex_id = glGetUniformLocation(program_id_, texture_name.c_str());
         glUseProgram(program_id_);
