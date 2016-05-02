@@ -32,7 +32,7 @@ void main() {
 
     light_dir = normalize(light_pos.xyz - vpoint_mv.xyz);
 
-    float offset = (x_chunk+y_chunk+position.x+position.y)*(x_chunk+y_chunk+position.x+position.y);
+    //float offset = (position.x+position.y)*(position.x+position.y);
     //height += 0.04 * sin(3.1415 * (offset));
     height = clamp(height, 0, 1);
 }

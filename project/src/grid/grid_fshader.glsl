@@ -17,9 +17,7 @@ uniform sampler2D sand_tex;
 uniform sampler2D grass_tex;
 uniform sampler2D rock_tex;
 uniform sampler2D snow_tex;
-
-const ivec2 l = ivec2(-1, 0);
-const ivec2 r = ivec2(1, 0);
+uniform int x_chunk;
 
 float coeffSand(float height, float angle) { // angle => 0 = plat, 1 = falaise
     return clamp((1 - angle) * (1 - 25 * (height - 0.2) * (height - 0.2)), 0, 1);
@@ -38,20 +36,33 @@ float coeffSnow(float height, float angle) {
 }
 
 void main() {
-    float perlinValue = texture(tex, uv).x;
-
-    float dxl = textureOffset(tex, uv, l).x;
-    float dxr = textureOffset(tex, uv, r).x;
-    float dyl = textureOffset(tex, uv, l.yx).x;
-    float dyr = textureOffset(tex, uv, r.yx).x;
+    const ivec2 l = ivec2(-1, 0);
+    const ivec2 r = ivec2(1, 0);
 
     vec2 texSize = textureSize(tex, 0);
 
-    vec2 derx = vec2(2.0 / texSize.x, 0);
-    vec2 dery = vec2(0, 2.0 / texSize.y);
+    float perlinValue = texture(tex, uv).x;
 
-    vec3 dx = vec3(derx, (dxr - dxl));
-    vec3 dy = vec3(dery, (dxr - dxl));
+    vec2 derx = vec2(1.0 / texSize.x, 0);
+    vec2 dery = vec2(0, 1.0 / texSize.y);
+
+    float zdx = 0;
+    float zdy = 0;
+
+    if (uv.x <= texSize.x / (2*texSize.x)) {
+        zdx = textureOffset(tex, uv, r).x - perlinValue;
+    } else {
+        zdx = perlinValue - textureOffset(tex, uv, l).x;
+    }
+
+    if (uv.y <= texSize.x / (2*texSize.x)) {
+        zdy = textureOffset(tex, uv, r.yx).x - perlinValue;
+    } else {
+        zdy = perlinValue - textureOffset(tex, uv, l.yx).x;
+    }
+
+    vec3 dx = vec3(derx, abs(zdx));
+    vec3 dy = vec3(dery, abs(zdy));
 
     vec3 normal_mv = normalize(cross(dx, dy));
     float nl = dot(normal_mv, light_dir);
@@ -65,10 +76,9 @@ void main() {
 
     float sum = cSand + cGrass + cRock + cSnow;
 
-    vec3 colorTex = (cSand * texture(sand_tex, uv).rgb + cGrass * texture(grass_tex, uv).rgb +
-                     cRock * texture(rock_tex, uv).rgb + cSnow * texture(snow_tex, uv).rgb) /
+    vec3 colorTex = (cSand * texture(sand_tex, uv*30).rgb + cGrass * texture(grass_tex, uv*20).rgb +
+                     cRock * texture(rock_tex, uv*30).rgb + cSnow * texture(snow_tex, uv*30).rgb) /
                     sum;
 
     color = colorTex * (nl * Ld + La);
-    // color = vec3(1, 2/texSize.x * 2048, 0);
 }

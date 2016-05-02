@@ -8,7 +8,7 @@
 
 #define CHUNKS 2
 #define DELTA 0.02
-#define VIEW_DIST 0 // in chunk
+#define VIEW_DIST 2 // in chunk
 
 #define CAMERA_SPEED 0.04
 #define MOUSE_SENSIBILTY 0.002
