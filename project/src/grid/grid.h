@@ -67,8 +67,8 @@ class Grid : public Material, public Light {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
-    GLuint x_chunk_id_;                           //x value of the chunk
-    GLuint y_chunk_id_;                           //y value of the chunk
+    GLuint x_chunk_id_; // x value of the chunk
+    GLuint y_chunk_id_; // y value of the chunk
 
   public:
     void Init() {
@@ -121,20 +121,6 @@ class Grid : public Material, public Light {
                 }
 
             }
-
-            /*for (int i = 0; i <= grid_dim; i++) {
-                for (int j = 0; j <= grid_dim; j++) {
-                    int ind = (grid_dim + 1) * i + j;
-                    // cout << ind << "\n";
-                    indices.push_back(0 + ind);
-                    indices.push_back(1 + ind);
-                    indices.push_back(grid_dim + 1 + ind);
-
-                    indices.push_back(1 + ind);
-                    indices.push_back(grid_dim + 1 + ind);
-                    indices.push_back(grid_dim + 2 + ind);
-                }
-            }*/
 
             num_indices_ = indices.size();
 
@@ -201,8 +187,7 @@ class Grid : public Material, public Light {
     }
 
     void Draw(GLint texture_id, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX,
-              const glm::mat4 &projection = IDENTITY_MATRIX) {
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
@@ -242,9 +227,9 @@ class Grid : public Material, public Light {
         glUniform1i(x_chunk_id_, x);
         glUniform1i(y_chunk_id_, y);
 
-        glPolygonMode( GL_FRONT_AND_BACK, GL_TRIANGLES );
+        // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+        // glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
         glBindVertexArray(0);
         glUseProgram(0);
