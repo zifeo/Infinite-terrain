@@ -36,19 +36,17 @@ class Tree {
             std::vector<GLfloat> vertices;
             std::vector<GLuint> indices;
 
-            float scaleFactor = 16;
+            vertices.push_back(-TREE_HEIGHT);
+            vertices.push_back(-TREE_HEIGHT);
 
-            vertices.push_back(-1/scaleFactor);
-            vertices.push_back(-1/scaleFactor);
+            vertices.push_back(-TREE_HEIGHT);
+            vertices.push_back(TREE_HEIGHT);
 
-            vertices.push_back(-1/scaleFactor);
-            vertices.push_back(1/scaleFactor);
+            vertices.push_back(TREE_HEIGHT);
+            vertices.push_back(-TREE_HEIGHT);
 
-            vertices.push_back(1/scaleFactor);
-            vertices.push_back(-1/scaleFactor);
-
-            vertices.push_back(1/scaleFactor);
-            vertices.push_back(1/scaleFactor);
+            vertices.push_back(TREE_HEIGHT);
+            vertices.push_back(TREE_HEIGHT);
 
             indices.push_back(0);
             indices.push_back(1);
@@ -98,7 +96,7 @@ class Tree {
         glDeleteTextures(1, &tree_texture_id_);
     }
 
-    void Draw(float angle, float x_in_chunk, float y_in_chunk, GLint perlin_texture_id, float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
+    void Draw(float angle, vec2 pos_in_chunk, GLint perlin_texture_id, float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX,
               const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
@@ -123,10 +121,13 @@ class Tree {
 
         glUniform1f(glGetUniformLocation(program_id_, "angle"), angle);
 
-        glUniform1f(glGetUniformLocation(program_id_, "x_in_chunk"), x_in_chunk);
-        glUniform1f(glGetUniformLocation(program_id_, "y_in_chunk"), y_in_chunk);
+        glUniform1f(glGetUniformLocation(program_id_, "x_in_chunk"), pos_in_chunk.x);
+        glUniform1f(glGetUniformLocation(program_id_, "y_in_chunk"), pos_in_chunk.y);
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glUniform1f(glGetUniformLocation(program_id_, "max_tree_alt"), MAX_TREE_ALT);
+        glUniform1f(glGetUniformLocation(program_id_, "min_tree_alt"), MIN_TREE_ALT);
+
+        glUniform1f(glGetUniformLocation(program_id_, "tree_height"), TREE_HEIGHT);
 
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
 
