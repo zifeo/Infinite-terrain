@@ -3,7 +3,7 @@
 #define RANDNBR 256
 
 out vec3 color;
-in vec2 tpoint;
+in vec2 point;
 uniform sampler1D gradientMap;
 uniform int Perm[RANDNBR];
 uniform int octaves;
@@ -65,9 +65,7 @@ float noiseBFM(vec2 point, float H, float lacunarity, int octave) {
 }
 
 void main() {
-
-    float noise = noiseBFM((tpoint + vec2(X, Y) * 2), H, lac, octaves);
+    float noise = noiseBFM(point / 1.4, H, lac, octaves);
 
     color = vec3(noise);
-    // color = vec3(tpoint.x);
 }

@@ -67,8 +67,8 @@ class Grid : public Material, public Light {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
-    GLuint x_chunk_id_;                           //x value of the chunk
-    GLuint y_chunk_id_;                           //y value of the chunk
+    GLuint x_chunk_id_; // x value of the chunk
+    GLuint y_chunk_id_; // y value of the chunk
 
   public:
     void Init() {
@@ -90,29 +90,34 @@ class Grid : public Material, public Light {
             std::vector<GLuint> indices;
             int grid_dim = 256;
 
-            float half = grid_dim / 2.0;
-
-            for (int i = 0; i <= grid_dim; i++) {
-                for (int j = 0; j <= grid_dim; j++) {
-                    vertices.push_back((i - half) / half);
-                    vertices.push_back((j - half) / half);
-                    // cout << (i-half) / half << " " << (j-half) / half << " "
-                    // <<
-                    // (vertices.size()/2)-1 << "\n";
-                }
-            }
-
+            float half = grid_dim / 2.;
+            int ind = 0;
             for (int i = 0; i < grid_dim; i++) {
-                for (int j = 0; j < grid_dim; j++) {
-                    int ind = (grid_dim + 1) * i + j;
-                    // cout << ind << "\n";
-                    indices.push_back(0 + ind);
-                    indices.push_back(1 + ind);
-                    indices.push_back(grid_dim + 1 + ind);
+                float posy0 = (i - half) / half;
+                float posy1 = posy0 + 1 / half;
 
-                    indices.push_back(1 + ind);
-                    indices.push_back(grid_dim + 1 + ind);
-                    indices.push_back(grid_dim + 2 + ind);
+                if (i > 0) {
+                    vertices.push_back(-1);
+                    vertices.push_back(posy0);
+                    indices.push_back(ind++);
+                }
+
+                for (int j = 0; j <= grid_dim; j++) {
+                    float posx = (j - half) / half;
+
+                    vertices.push_back(posx);
+                    vertices.push_back(posy0);
+                    indices.push_back(ind++);
+
+                    vertices.push_back(posx);
+                    vertices.push_back(posy1);
+                    indices.push_back(ind++);
+                }
+
+                if (i < grid_dim) {
+                    vertices.push_back(1);
+                    vertices.push_back(posy1);
+                    indices.push_back(ind++);
                 }
             }
 
@@ -180,9 +185,8 @@ class Grid : public Material, public Light {
         glDeleteTextures(1, &snow_texture_id_);
     }
 
-    void Draw(GLint texture_id, float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX,
-              const glm::mat4 &projection = IDENTITY_MATRIX) {
+    void Draw(GLint texture_id, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
@@ -219,13 +223,12 @@ class Grid : public Material, public Light {
         glm::mat4 P = projection;
         glUniformMatrix4fv(P_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(P));
 
-        // pass the current time stamp to the shader.
-        glUniform1f(glGetUniformLocation(program_id_, "time"), time);
-
         glUniform1i(x_chunk_id_, x);
         glUniform1i(y_chunk_id_, y);
 
-        glDrawElements(GL_TRIANGLES, num_indices_, GL_UNSIGNED_INT, 0);
+        // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
+        // glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
         glBindVertexArray(0);
         glUseProgram(0);
@@ -247,14 +250,22 @@ class Grid : public Material, public Light {
 
         glGenTextures(1, texture_id);
         glBindTexture(GL_TEXTURE_2D, *texture_id);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
         if (nb_component == 3) {
+            glTexStorage2D(GL_TEXTURE_2D, 8, GL_RGB, width, height);
+            // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, image);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
         } else if (nb_component == 4) {
+            glTexStorage2D(GL_TEXTURE_2D, 8, GL_RGBA, width, height);
+            // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, image);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         }
+
+        glGenerateMipmap(GL_TEXTURE_2D); // Generate num_mipmaps number of mipmaps here.
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
         GLuint tex_id = glGetUniformLocation(program_id_, texture_name.c_str());
         glUseProgram(program_id_);
