@@ -19,6 +19,7 @@ static const vec3 CubeVertices[] = {
     vec3(-0.5, 0.5, -0.5),  vec3(-0.5, -0.5, -0.5), vec3(-0.5, 0.5, 0.5),  vec3(-0.5, -0.5, -0.5),
     vec3(-0.5, 0.5, 0.5),   vec3(-0.5, -0.5, 0.5),  vec3(0.5, 0.5, -0.5),  vec3(-0.5, 0.5, -0.5),
     vec3(0.5, 0.5, 0.5),    vec3(-0.5, 0.5, -0.5),  vec3(0.5, 0.5, 0.5),   vec3(-0.5, 0.5, 0.5)};
+// TODO which best
 
 static const unsigned int NbCubeUVs = 36;
 
@@ -86,7 +87,7 @@ class Sky {
             int width;
             int height;
             int nb_component;
-            string texture_filename = "sky_texture2.tga";
+            string texture_filename = "sky_texture.tga";
             stbi_set_flip_vertically_on_load(1);
             unsigned char *image = stbi_load(texture_filename.c_str(), &width, &height, &nb_component, 0);
 
@@ -112,7 +113,7 @@ class Sky {
             glUniform1i(tex_id, 0 /*GL_TEXTURE0*/);
 
             // cleanup
-            glBindTexture(GL_TEXTURE_2D, 0); // TODO GL_TEXTURE0
+            glBindTexture(GL_TEXTURE_2D, 0);
             stbi_image_free(image);
         }
 

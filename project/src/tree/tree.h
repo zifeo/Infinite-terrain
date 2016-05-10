@@ -10,12 +10,12 @@ class Tree {
     GLuint vertex_buffer_object_position_; // memory buffer for positions
     GLuint vertex_buffer_object_index_;    // memory buffer for indices
     GLuint program_id_;                    // GLSL shader program ID
-    GLuint perlin_texture_id_;               // perlin texture ID
+    GLuint perlin_texture_id_;             // perlin texture ID
     GLuint tree_texture_id_;               // water texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
-    GLuint x_chunk_id_;                           //x value of the chunk
-    GLuint y_chunk_id_;                           //y value of the chunk
+    GLuint x_chunk_id_;                    // x value of the chunk
+    GLuint y_chunk_id_;                    // y value of the chunk
 
   public:
     void Init() {
@@ -71,9 +71,7 @@ class Tree {
             glVertexAttribPointer(loc_position, 2, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
 
-        {
-            initTexture("tree_texture.tga", &tree_texture_id_, "tree_tex", GL_TEXTURE0 + 1);
-        }
+        { initTexture("tree_texture.tga", &tree_texture_id_, "tree_tex", GL_TEXTURE0 + 1); }
 
         // other uniforms
         MVP_id_ = glGetUniformLocation(program_id_, "MVP");
@@ -96,8 +94,8 @@ class Tree {
         glDeleteTextures(1, &tree_texture_id_);
     }
 
-    void Draw(float angle, vec2 pos_in_chunk, GLint perlin_texture_id, float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX,
+    void Draw(float angle, vec2 pos_in_chunk, GLint perlin_texture_id, float time, int x, int y,
+              const glm::mat4 &model = IDENTITY_MATRIX, const glm::mat4 &view = IDENTITY_MATRIX,
               const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);

@@ -16,7 +16,7 @@ void main() {
     }
 
     color = vec4(texture(tree_tex, uv).rgba);
-    if(color.a < 0.5) {
+    if (color.a < 0.5) {
         discard;
     }
 }

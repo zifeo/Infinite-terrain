@@ -16,8 +16,8 @@ class Water {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
-    GLuint x_chunk_id_;                           //x value of the chunk
-    GLuint y_chunk_id_;                           //y value of the chunk
+    GLuint x_chunk_id_; // x value of the chunk
+    GLuint y_chunk_id_; // y value of the chunk
 
   public:
     void Init() {
@@ -83,9 +83,7 @@ class Water {
             glVertexAttribPointer(loc_position, 2, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
 
-        {
-            initTexture("water_texture.tga", &water_texture_id_, "water_tex", GL_TEXTURE0);
-        }
+        { initTexture("water_texture.tga", &water_texture_id_, "water_tex", GL_TEXTURE0); }
 
         // other uniforms
         MVP_id_ = glGetUniformLocation(program_id_, "MVP");
@@ -112,8 +110,7 @@ class Water {
     }
 
     void Draw(float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX,
-              const glm::mat4 &projection = IDENTITY_MATRIX) {
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 

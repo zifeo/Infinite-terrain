@@ -118,6 +118,8 @@ class PerlinTex {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
+        cout << "X and Y " << X << " - " << Y;
+
         glUniform1i(glGetUniformLocation(program_id_, "octaves"), octave);
         glUniform1f(glGetUniformLocation(program_id_, "lac"), lac);
         glUniform1f(glGetUniformLocation(program_id_, "H"), H);

@@ -26,7 +26,7 @@ uniform float tree_height;
 uniform sampler2D perlin_tex;
 
 void main() {
-    uv = (position + vec2(1.0)) * (1/tree_height) / 2;
+    uv = (position + vec2(1.0)) * (1 / tree_height) / 2;
     uv.x += 0.5;
     uv.y += 0.5;
 
@@ -34,8 +34,7 @@ void main() {
 
     if (ground_height > max_tree_alt || ground_height < min_tree_alt) {
         discardVertex = 1.0f;
-    }
-    else {
+    } else {
         discardVertex = 0.0f;
     }
 
