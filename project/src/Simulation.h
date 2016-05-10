@@ -240,7 +240,7 @@ class Simulation {
                 set_noise_params(+1, 0, 0);
                 break;
             case 59 /*É*/:
-                set_noise_params(-1, 0.01, 0);
+                set_noise_params(-1, 0, 0);
                 break;
             default:
                 cout << "Pressed unregistered key: " << key << endl;
