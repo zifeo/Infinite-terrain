@@ -18,9 +18,10 @@ class Water {
     GLuint P_id_;
     GLuint x_chunk_id_; // x value of the chunk
     GLuint y_chunk_id_; // y value of the chunk
+    GLuint tex_reflection_id_;
 
   public:
-    void Init() {
+    void Init(GLuint tex_reflection_id) {
         // compile the shaders.
         program_id_ = icg_helper::LoadShaders("water_vshader.glsl", "water_fshader.glsl");
         if (!program_id_) {
@@ -94,6 +95,10 @@ class Water {
         x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
         y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
 
+        tex_reflection_id_ = tex_reflection_id;
+        GLuint tex_reflect_id = glGetUniformLocation(program_id_, "tex_reflect");
+        glUniform1i(tex_reflect_id, 1 /*GL_TEXTURE1*/);
+
         // to avoid the current object being polluted
         glBindVertexArray(0);
         glUseProgram(0);
@@ -107,6 +112,7 @@ class Water {
         glDeleteVertexArrays(1, &vertex_array_id_);
         glDeleteProgram(program_id_);
         glDeleteTextures(1, &water_texture_id_);
+        glDeleteTextures(1, &tex_reflection_id_);
     }
 
     void Draw(float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
@@ -117,6 +123,10 @@ class Water {
         // bind textures
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, water_texture_id_);
+
+        // bind textures
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, tex_reflection_id_);
 
         // setup MVP
         glm::mat4 MVP = projection * view * model;

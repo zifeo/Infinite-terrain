@@ -61,13 +61,18 @@ class Simulation {
         std::vector<vec2> treeList;
     } ChunkTex;
 
-    map<long, ChunkTex> chunkMap;
+    map<long, ChunkTex> chunk_map;
 
     // objects
     Grid grid;
     Water water;
     Tree tree;
     Sky sky;
+
+    // TODO : normal tex ?
+
+    // water reflection
+    FrameBuffer water_reflection;
 
   public:
     /* ********** States ********** */
@@ -81,9 +86,21 @@ class Simulation {
 
         perlinTex.Init();
         grid.Init();
-        water.Init();
+        GLuint water_reflection_tex_id = water_reflection.Init(window_width, window_height);
+        water.Init(water_reflection_tex_id);
         sky.Init();
         tree.Init();
+    }
+
+    void drawChunk(mat4 view) {
+        for (auto &chunk : chunk_map) {
+            int i = chunk.second.x;
+            int j = chunk.second.y;
+
+            vec3 pos = vec3(i, 0, j);
+            mat4 model = translate(model_matrix, pos);
+            grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model, view, projection_matrix);
+        }
     }
 
     void display() {
@@ -93,6 +110,8 @@ class Simulation {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
+        vec3 cam_pos2 = vec3(0, -1, 0);
+        mat4 view_matrix_reflection = lookAt(cam_pos2, cam_pos2 + vecFromRot(camera_phi + M_PI, camera_theta), vec3(0.0f, 1.0f, 0.0f));
 
         switch (mode) {
 
@@ -105,16 +124,14 @@ class Simulation {
             break;
         case TEXTURE:
 
-            for (auto &chunk : chunkMap) {
-                int i = chunk.second.x;
-                int j = chunk.second.y;
+            water_reflection.Bind();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            drawChunk(view_matrix_reflection);
+            water_reflection.Unbind();
 
-                vec3 pos = vec3(i, 0, j);
-                mat4 model = translate(model_matrix, pos);
-                grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model, view_matrix, projection_matrix);
-            }
+            drawChunk(view_matrix);
 
-            for (auto &chunk : chunkMap) {
+            for (auto &chunk : chunk_map) {
                 int i = chunk.second.x;
                 int j = chunk.second.y;
 
@@ -124,7 +141,7 @@ class Simulation {
             }
 
             /*
-            for (auto &chunk : chunkMap) {
+            for (auto &chunk : chunk_map) {
                 int i = chunk.second.x;
                 int j = chunk.second.y;
 
@@ -188,9 +205,9 @@ class Simulation {
                 int i = chunkX + dx;
                 int j = chunkY + dy;
 
-                map<long, ChunkTex>::iterator it = chunkMap.find(getKey(i, j));
+                map<long, ChunkTex>::iterator it = chunk_map.find(getKey(i, j));
 
-                if (it == chunkMap.end()) {
+                if (it == chunk_map.end()) {
                     initChunk(i, j);
                 }
             }
@@ -201,13 +218,14 @@ class Simulation {
 
     void cleanUp() {
         grid.Cleanup();
+        water_reflection.Cleanup();
         water.Cleanup();
         perlinTex.Cleanup();
         sky.Cleanup();
-        for (auto &chunk : chunkMap) {
+        for (auto &chunk : chunk_map) {
             chunk.second.tex.Cleanup();
         }
-        chunkMap.clear();
+        chunk_map.clear();
     }
 
     /* ********** Helpers ********** */
@@ -238,7 +256,7 @@ class Simulation {
             chunk.treeList.push_back(posInChunk);
         }
 
-        chunkMap.insert(pair<long, ChunkTex>(getKey(i, j), chunk));
+        chunk_map.insert(pair<long, ChunkTex>(getKey(i, j), chunk));
     }
 
     void set_noise_params(int doctave, float dlacunarity, float dfractal_increment) {
@@ -270,6 +288,8 @@ class Simulation {
         float ratio = window_width / (float)window_height;
         projection_matrix = perspective(45.0f, ratio, 0.1f, 100.0f);
         glViewport(0, 0, window_width, window_height);
+        water_reflection.Cleanup();
+        water_reflection.Init(window_width, window_height);
     }
 
     void onKey(GLFWwindow *window, int key, int scancode, int action, int mods) {
