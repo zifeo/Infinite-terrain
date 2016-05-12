@@ -58,7 +58,7 @@ class Simulation {
         GLuint perlinBuffer_tex_id;
         int x;
         int y;
-        std::vector<vec2> treeList;
+        std::vector<vec3> treeList;
     } ChunkTex;
 
     map<long, ChunkTex> chunk_map;
@@ -140,34 +140,31 @@ class Simulation {
                 water.Draw((float)start_time, i, j, model, view_matrix, projection_matrix);
             }
 
-            /*
+
             for (auto &chunk : chunk_map) {
                 int i = chunk.second.x;
                 int j = chunk.second.y;
+                vec3 pos = vec3(i, 0, j);
 
                 for (int k = 0; k < chunk.second.treeList.size(); k++) {
-                    vec2 posInChunk = chunk.second.treeList[k];
-                    mat4 model = translate(model_matrix, vec3((i - CHUNKS / 2) * 2 - DELTA * i + posInChunk.x, 0,
-                                                              -((j - CHUNKS / 2) * 2 - DELTA * j + posInChunk.y)));
+                    vec3 posInChunk = chunk.second.treeList[k];
+                    mat4 model = translate(model_matrix, pos + posInChunk);
 
                     if (TURNING_TREES) {
                         float x = (i - CHUNKS / 2) * 2 - DELTA * i + posInChunk.x - cam_pos.x;
                         float y = -((j - CHUNKS / 2) * 2 - DELTA * j + posInChunk.y) - cam_pos.z;
                         float angle = y > 0 ? M_PI / 2 + acos(x / (sqrt(x * x + y * y)))
                                             : M_PI / 2 - acos(x / (sqrt(x * x + y * y)));
-                        tree.Draw(angle, posInChunk, it->second.perlinBuffer_tex_id, (float)start_time,
-                                  it->second.perlinBuffer_tex_id, 0, model, view_matrix, projection_matrix);
+                        tree.Draw(angle, (float)start_time, model, view_matrix, projection_matrix);
                     } else {
                         float angle = 0.0f;
                         for (int l = 0; l < TREE_PLANE_COUNT; l++) {
-                            tree.Draw(angle, posInChunk, it->second.perlinBuffer_tex_id, (float)start_time,
-                                      it->second.perlinBuffer_tex_id, 0, model, view_matrix, projection_matrix);
+                            tree.Draw(angle, (float)start_time, model, view_matrix, projection_matrix);
                             angle += M_PI / TREE_PLANE_COUNT;
                         }
                     }
                 }
             }
-             */
 
             sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
             break;
@@ -199,6 +196,8 @@ class Simulation {
         // / 2 because a chunk is of length 2
         int chunkX = floor((cam_pos.x + 1) / 2);
         int chunkY = floor((cam_pos.z + 1) / 2);
+
+        //cout << chunkX << " " << chunkY << endl;
 
         for (int dx = -VIEW_DIST; dx <= VIEW_DIST; ++dx) {
             for (int dy = -VIEW_DIST; dy <= VIEW_DIST; ++dy) {
@@ -243,18 +242,25 @@ class Simulation {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // (-j) because of inversion of y axis from 2D to 3D.
         perlinTex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
-        chunk.tex.Unbind();
+
 
         // tree init
         int count = rand() % (MAX_TREES_PER_CHUNK / 2) + (MAX_TREES_PER_CHUNK / 2);
         for (int k = 0; k < count; k++) {
 
-            vec2 posInChunk;
+            vec3 posInChunk;
             posInChunk.x = (rand() % 2000) / 1000.0f - 1;
-            posInChunk.y = (rand() % 2000) / 1000.0f - 1;
+            posInChunk.z = (rand() % 2000) / 1000.0f - 1;
+
+            GLfloat r[1];
+            glReadPixels((posInChunk.x+1)*TEX_WIDTH/2, (-posInChunk.z+1)*TEX_HEIGHT/2, 1, 1, GL_RED, GL_FLOAT, r);
+
+            posInChunk.y = r[0] * 2 - 1;
 
             chunk.treeList.push_back(posInChunk);
         }
+
+        chunk.tex.Unbind(); // unbind after so that the trees can read the height
 
         chunk_map.insert(pair<long, ChunkTex>(getKey(i, j), chunk));
     }
