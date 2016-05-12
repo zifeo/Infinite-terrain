@@ -12,27 +12,27 @@ uniform mat4 MVP;
 uniform mat4 MV;
 uniform vec3 light_pos;
 
+uniform float clipping;
+
 uniform int x_chunk;
 uniform int y_chunk;
 
 uniform sampler2D tex;
 
 void main() {
+
     uv = (position + vec2(1.0)) * 0.5;
     height = texture(tex, uv).x;
 
+    vec4 v = vec4(position.x, height, position.y, 1);
     vec3 pos_3d = vec3(position.x, height * 2 - 1, -position.y);
-
-    /*if (position.x < -1.0f + SKIRT || position.x > 1.0f - SKIRT || position.y < -1.0f + SKIRT ||
-        position.y > 1.0f - SKIRT)
-        pos_3d = vec3(pos_3d.x, pos_3d.y - 0.2, pos_3d.z);*/
 
     vec4 vpoint_mv = MV * vec4(pos_3d, 1.0);
     gl_Position = MVP * vec4(pos_3d, 1.0);
 
-    light_dir = normalize(light_pos.xyz - vpoint_mv.xyz);
+    gl_ClipDistance[0] = height - clipping;
 
-    // float offset = (position.x+position.y)*(position.x+position.y);
-    // height += 0.04 * sin(3.1415 * (offset));
+    light_dir = normalize(light_pos.xyz - vpoint_mv.xyz);
     height = clamp(height, 0, 1);
+
 }
