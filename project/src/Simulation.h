@@ -59,9 +59,10 @@ class Simulation {
         int x;
         int y;
         std::vector<vec3> treeList;
+        bool tmpFlag;
     } ChunkTex;
 
-    map<long, ChunkTex> chunk_map;
+    map<uint64_t, ChunkTex> chunk_map;
 
     // objects
     Grid grid;
@@ -131,14 +132,14 @@ class Simulation {
 
             drawChunk(view_matrix);
 
-            for (auto &chunk : chunk_map) {
+            /*for (auto &chunk : chunk_map) {
                 int i = chunk.second.x;
                 int j = chunk.second.y;
 
                 vec3 pos = vec3(i, 0, j);
                 mat4 model = translate(model_matrix, pos);
                 water.Draw((float)start_time, i, j, model, view_matrix, projection_matrix);
-            }
+            }*/
 
 
             for (auto &chunk : chunk_map) {
@@ -199,20 +200,37 @@ class Simulation {
 
         //cout << chunkX << " " << chunkY << endl;
 
+        for (auto &chunk : chunk_map) {
+            chunk.second.tmpFlag = false;
+        }
+
         for (int dx = -VIEW_DIST; dx <= VIEW_DIST; ++dx) {
             for (int dy = -VIEW_DIST; dy <= VIEW_DIST; ++dy) {
                 int i = chunkX + dx;
                 int j = chunkY + dy;
 
-                map<long, ChunkTex>::iterator it = chunk_map.find(getKey(i, j));
+                map<uint64_t, ChunkTex>::iterator it = chunk_map.find(getKey(i, j));
 
                 if (it == chunk_map.end()) {
                     initChunk(i, j);
                 }
+                else {
+                    it->second.tmpFlag = true;
+                }
             }
         }
 
-        // TODO : cleanup ?
+        vector<uint64_t> toBeRemoved;
+        for (auto &chunk : chunk_map) {
+            if (chunk.second.tmpFlag == false) {
+                chunk.second.tex.Cleanup();
+                toBeRemoved.push_back(chunk.first);
+            }
+        }
+
+        for (unsigned int i = 0; i < toBeRemoved.size(); i++) {
+            chunk_map.erase(toBeRemoved[i]);
+        }
     }
 
     void cleanUp() {
@@ -231,12 +249,13 @@ class Simulation {
 
     inline vec3 vecFromRot(float p, float t) { return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t)); }
 
-    inline long getKey(int i, int j) { return (i << sizeof(long) / 2) + j; }
+    inline uint64_t getKey(int i, int j) { return (((uint64_t)i) << 32) + j; }
 
     void initChunk(int i, int j) {
         ChunkTex chunk;
         chunk.x = i * 2;
         chunk.y = j * 2;
+        chunk.tmpFlag = true;
         chunk.perlinBuffer_tex_id = chunk.tex.Init(TEX_WIDTH, TEX_HEIGHT, true);
         chunk.tex.Bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -262,7 +281,7 @@ class Simulation {
 
         chunk.tex.Unbind(); // unbind after so that the trees can read the height
 
-        chunk_map.insert(pair<long, ChunkTex>(getKey(i, j), chunk));
+        chunk_map.insert(pair<uint64_t, ChunkTex>(getKey(i, j), chunk));
     }
 
     void set_noise_params(int doctave, float dlacunarity, float dfractal_increment) {
