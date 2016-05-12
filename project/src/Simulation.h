@@ -5,7 +5,6 @@
 #include "Config.h"
 #include "Framebuffer.h"
 #include "grid/grid.h"
-#include "normalTex/normalTex.h"
 #include "perlinTex/perlinTex.h"
 #include "sky/sky.h"
 #include "tree/tree.h"
