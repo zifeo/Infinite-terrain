@@ -33,6 +33,13 @@ class Simulation {
     float camera_theta = 0.0f;
     vec3 cam_pos = vec3(0, 1, 0);
 
+    bool is_jumping = false;
+    float y_speed = 0.0;
+
+    // camera mode
+    enum CameraMode { DEFAULT_CAMERA = 0, GROUND };
+    CameraMode cameraMode = GROUND;
+
     // MVP
     mat4 projection_matrix;
     mat4 model_matrix;
@@ -180,18 +187,73 @@ class Simulation {
         }
 
         // Camera movements
-        if (arrows_down[UP]) {
-            cam_pos += vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
+        switch (cameraMode) {
+        case DEFAULT_CAMERA:
+            if (arrows_down[UP]) {
+                cam_pos += vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
+            }
+            if (arrows_down[DOWN]) {
+                cam_pos -= vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
+            }
+            if (arrows_down[RIGHT]) {
+                cam_pos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
+            }
+            if (arrows_down[LEFT]) {
+                cam_pos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
+            }
+            break;
+
+        case GROUND:
+            if (is_jumping) {
+                y_speed -= G;
+            }
+
+            float old_cam_posY = cam_pos.y;
+
+            if (arrows_down[UP]) {
+                cam_pos += vecFromRot(M_PI / 2, camera_theta) * vec3(CAMERA_SPEED);
+            }
+            if (arrows_down[DOWN]) {
+                cam_pos -= vecFromRot(M_PI / 2, camera_theta) * vec3(CAMERA_SPEED);
+            }
+            if (arrows_down[RIGHT]) {
+                cam_pos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(M_PI / 2, camera_theta)) * vec3(CAMERA_SPEED);
+            }
+            if (arrows_down[LEFT]) {
+                cam_pos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(M_PI / 2, camera_theta)) * vec3(CAMERA_SPEED);
+            }
+
+            int chunkCamX = floor((cam_pos.x + 1) / 2);
+            int chunkCamY = floor((cam_pos.z + 1) / 2);
+
+            float posInChunkX = ((cam_pos.x + 1) / 2) - chunkCamX;
+            float posInChunkY = ((cam_pos.z + 1) / 2) - chunkCamY;
+
+            map<uint64_t, ChunkTex>::iterator it = chunk_map.find(getKey(chunkCamX, chunkCamY));
+
+            if (it != chunk_map.end()) { // Sometimes, just before the chunk's generation, there is no ground at the bottom of the camera
+                it->second.tex.Bind();
+
+                GLfloat r[1];
+                glReadPixels(posInChunkX*TEX_WIDTH, TEX_HEIGHT - posInChunkY*TEX_HEIGHT, 1, 1, GL_RED, GL_FLOAT, r);
+                float newHeight = r[0] * 2 - 1 + 0.2;
+
+                if (is_jumping) {
+                    cam_pos.y = old_cam_posY + y_speed;
+
+                    if (cam_pos.y < newHeight) {
+                        is_jumping = false;
+                    }
+                }
+                else {
+                    cam_pos.y = newHeight;
+                }
+
+                it->second.tex.Unbind();
+            }
+            break;
         }
-        if (arrows_down[DOWN]) {
-            cam_pos -= vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
-        }
-        if (arrows_down[RIGHT]) {
-            cam_pos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
-        }
-        if (arrows_down[LEFT]) {
-            cam_pos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
-        }
+
 
         // + 1 is because we are in the middle of a chunk
         // / 2 because a chunk is of length 2
@@ -262,8 +324,12 @@ class Simulation {
         // (-j) because of inversion of y axis from 2D to 3D.
         perlinTex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
 
-
         // tree init
+        GLfloat* r = new GLfloat[TEX_WIDTH*TEX_HEIGHT];
+        glReadPixels(0, 0, TEX_WIDTH, TEX_HEIGHT, GL_RED, GL_FLOAT, r); // One fat read is much faster than small reads for all trees
+
+        chunk.tex.Unbind();
+
         int count = rand() % (MAX_TREES_PER_CHUNK / 2) + (MAX_TREES_PER_CHUNK / 2);
         for (int k = 0; k < count; k++) {
 
@@ -271,15 +337,15 @@ class Simulation {
             posInChunk.x = (rand() % 2000) / 1000.0f - 1;
             posInChunk.z = (rand() % 2000) / 1000.0f - 1;
 
-            GLfloat r[1];
-            glReadPixels((posInChunk.x+1)*TEX_WIDTH/2, (-posInChunk.z+1)*TEX_HEIGHT/2, 1, 1, GL_RED, GL_FLOAT, r);
+            int x = ((posInChunk.x+1)*TEX_WIDTH/2);
+            int y = ((-posInChunk.z+1)*TEX_HEIGHT/2);
 
-            posInChunk.y = r[0] * 2 - 1;
+            posInChunk.y = r[x + y * TEX_HEIGHT] * 2 - 1;
 
             chunk.treeList.push_back(posInChunk);
         }
 
-        chunk.tex.Unbind(); // unbind after so that the trees can read the height
+        delete r;
 
         chunk_map.insert(pair<uint64_t, ChunkTex>(getKey(i, j), chunk));
     }
@@ -349,6 +415,12 @@ class Simulation {
                 break;
             case 59 /*É*/:
                 set_noise_params(-1, 0.01, 0);
+                break;
+            case GLFW_KEY_SPACE:
+                if (cameraMode == GROUND && !is_jumping) {
+                    is_jumping = true;
+                    y_speed = JUMP_SPEED;
+                }
                 break;
             default:
                 break;

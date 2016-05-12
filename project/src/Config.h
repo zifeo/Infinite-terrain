@@ -25,7 +25,10 @@
 #define TREE_HEIGHT 1 / 32.0
 
 #define MAX_TREES_PER_CHUNK                                                                                            \
-    60 // the number of trees will be from MAX_TREES_PER_CHUNK/2 to MAX_TREES_PER_CHUNK (counting the trees that will be
+    40 // the number of trees will be from MAX_TREES_PER_CHUNK/2 to MAX_TREES_PER_CHUNK (counting the trees that will be
        // discarded later)
 #define MAX_TREE_ALT 0.3 // trees that spawn outside of this range will be discarded
 #define MIN_TREE_ALT 0
+
+#define G 0.0001
+#define JUMP_SPEED 0.01
