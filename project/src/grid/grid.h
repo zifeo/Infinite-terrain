@@ -69,6 +69,7 @@ class Grid : public Material, public Light {
     GLuint P_id_;
     GLuint x_chunk_id_; // x value of the chunk
     GLuint y_chunk_id_; // y value of the chunk
+    GLuint clipping_id_; // clipping value
 
   public:
     void Init() {
@@ -154,6 +155,7 @@ class Grid : public Material, public Light {
 
         x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
         y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
+        clipping_id_ = glGetUniformLocation(program_id_, "clipping");
 
         GLuint light_pos_id = glGetUniformLocation(program_id_, "light_pos");
 
@@ -186,7 +188,8 @@ class Grid : public Material, public Light {
     }
 
     void Draw(GLint texture_id, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
+              float clipping_height = 0.0f) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
@@ -225,6 +228,7 @@ class Grid : public Material, public Light {
 
         glUniform1i(x_chunk_id_, x);
         glUniform1i(y_chunk_id_, y);
+        glUniform1f(clipping_id_, clipping_height);
 
         // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);

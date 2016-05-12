@@ -38,7 +38,7 @@ class Water {
         {
             std::vector<GLfloat> vertices;
             std::vector<GLuint> indices;
-            int grid_dim = 256;
+            int grid_dim = 128;
 
             float half = grid_dim / 2.0;
 
@@ -117,14 +117,13 @@ class Water {
 
     void Draw(float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
+
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
         // bind textures
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, water_texture_id_);
-
-        // bind textures
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, tex_reflection_id_);
 

@@ -10,7 +10,6 @@ class Tree {
     GLuint vertex_buffer_object_position_; // memory buffer for positions
     GLuint vertex_buffer_object_index_;    // memory buffer for indices
     GLuint program_id_;                    // GLSL shader program ID
-    GLuint perlin_texture_id_;             // perlin texture ID
     GLuint tree_texture_id_;               // water texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID

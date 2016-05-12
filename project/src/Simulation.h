@@ -57,7 +57,7 @@ class Simulation {
         GLuint perlinBuffer_tex_id;
         int x;
         int y;
-        std::vector<vec2> treeList;
+        vector<vec2> treeList;
     } ChunkTex;
 
     map<long, ChunkTex> chunk_map;
@@ -85,20 +85,20 @@ class Simulation {
 
         perlinTex.Init();
         grid.Init();
-        GLuint water_reflection_tex_id = water_reflection.Init(window_width, window_height);
+        GLuint water_reflection_tex_id = water_reflection.Init(window_width, window_height, false, GL_RGB8, GL_RGB);
         water.Init(water_reflection_tex_id);
         sky.Init();
         tree.Init();
     }
 
-    void drawChunk(mat4 view) {
+    void drawChunk(mat4 model, mat4 view, float clipping_height = 0.0f) {
         for (auto &chunk : chunk_map) {
             int i = chunk.second.x;
             int j = chunk.second.y;
 
-            vec3 pos = vec3(i, 0, j);
-            mat4 model = translate(model_matrix, pos);
-            grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model, view, projection_matrix);
+            vec3 pos = vec3(chunk.second.x, 0, chunk.second.y);
+            mat4 model_trans = translate(model_matrix, pos);
+            grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model_trans, view, projection_matrix, clipping_height);
         }
     }
 
@@ -123,21 +123,28 @@ class Simulation {
             break;
         case TEXTURE:
 
+                vec3 pos = vec3(2*VIEW_DIST + 1, 1, 2*VIEW_DIST + 1);
+
             water_reflection.Bind();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            drawChunk(view_matrix_reflection);
+            {
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glEnable(GL_CLIP_DISTANCE0);
+                drawChunk(model_matrix, view_matrix, 0.45);
+                glDisable(GL_CLIP_DISTANCE0);
+
+            }
             water_reflection.Unbind();
 
-            drawChunk(view_matrix);
+                drawChunk(model_matrix, view_matrix);
 
-            for (auto &chunk : chunk_map) {
-                int i = chunk.second.x;
-                int j = chunk.second.y;
+                //for (auto &chunk : chunk_map) {
+                int i = 0;
+                int j = 0;
 
-                vec3 pos = vec3(i, 0, j);
-                mat4 model = translate(model_matrix, pos);
+                mat4 model = scale(model_matrix, pos);
                 water.Draw((float)start_time, i, j, model, view_matrix, projection_matrix);
-            }
+
+            //}
 
             /*
             for (auto &chunk : chunk_map) {
@@ -237,7 +244,7 @@ class Simulation {
         ChunkTex chunk;
         chunk.x = i * 2;
         chunk.y = j * 2;
-        chunk.perlinBuffer_tex_id = chunk.tex.Init(TEX_WIDTH, TEX_HEIGHT, true);
+        chunk.perlinBuffer_tex_id = chunk.tex.Init(TEX_WIDTH, TEX_HEIGHT, true, GL_R32F, GL_RED);
         chunk.tex.Bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // (-j) because of inversion of y axis from 2D to 3D.
@@ -287,8 +294,8 @@ class Simulation {
         float ratio = window_width / (float)window_height;
         projection_matrix = perspective(45.0f, ratio, 0.1f, 100.0f);
         glViewport(0, 0, window_width, window_height);
-        water_reflection.Cleanup();
-        water_reflection.Init(window_width, window_height);
+        //water_reflection.Cleanup();
+        //water_reflection.Init(window_width, window_height, false);
     }
 
     void onKey(GLFWwindow *window, int key, int scancode, int action, int mods) {

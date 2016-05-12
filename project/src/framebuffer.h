@@ -22,9 +22,10 @@ class FrameBuffer {
 
     void Unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
-    GLuint Init(int image_width, int image_height, bool use_interpolation = false) {
-        this->width_ = image_width;
-        this->height_ = image_height;
+    GLuint Init(int image_width, int image_height, bool use_interpolation, GLint internal_format, GLint format) {
+
+        width_ = image_width;
+        height_ = image_height;
 
         // create color attachment
         {
@@ -44,7 +45,7 @@ class FrameBuffer {
             // create texture for the color attachment
             // see Table.2 on
             // khronos.org/opengles/sdk/docs/man3/docbook4/xhtml/glTexImage2D.xml
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width_, height_, 0, GL_RED, GL_FLOAT, NULL);
+            glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width_, height_, 0, format, GL_FLOAT, NULL);
             // how to load from buffer
         }
 
