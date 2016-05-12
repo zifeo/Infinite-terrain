@@ -71,7 +71,7 @@ class Tree {
             glVertexAttribPointer(loc_position, 2, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
 
-        { initTexture("tree_texture.tga", &tree_texture_id_, "tree_tex", GL_TEXTURE0 + 1); }
+        { initTexture("tree_texture.tga", &tree_texture_id_, "tree_tex", GL_TEXTURE0); }
 
         // other uniforms
         MVP_id_ = glGetUniformLocation(program_id_, "MVP");
@@ -94,7 +94,7 @@ class Tree {
         glDeleteTextures(1, &tree_texture_id_);
     }
 
-    void Draw(float angle, vec2 pos_in_chunk, GLint perlin_texture_id, float time, int x, int y,
+    void Draw(float angle, float time,
               const glm::mat4 &model = IDENTITY_MATRIX, const glm::mat4 &view = IDENTITY_MATRIX,
               const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
@@ -102,9 +102,6 @@ class Tree {
 
         // bind textures
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, perlin_texture_id);
-
-        glActiveTexture(GL_TEXTURE0 + 1);
         glBindTexture(GL_TEXTURE_2D, tree_texture_id_);
 
         // setup MVP
@@ -114,13 +111,7 @@ class Tree {
         // pass the current time stamp to the shader.
         glUniform1f(glGetUniformLocation(program_id_, "time"), time);
 
-        glUniform1i(x_chunk_id_, x);
-        glUniform1i(y_chunk_id_, y);
-
         glUniform1f(glGetUniformLocation(program_id_, "angle"), angle);
-
-        glUniform1f(glGetUniformLocation(program_id_, "x_in_chunk"), pos_in_chunk.x);
-        glUniform1f(glGetUniformLocation(program_id_, "y_in_chunk"), pos_in_chunk.y);
 
         glUniform1f(glGetUniformLocation(program_id_, "max_tree_alt"), MAX_TREE_ALT);
         glUniform1f(glGetUniformLocation(program_id_, "min_tree_alt"), MIN_TREE_ALT);
