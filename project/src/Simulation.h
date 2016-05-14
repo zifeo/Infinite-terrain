@@ -32,6 +32,7 @@ class Simulation {
     float camera_phi = 2.0f;
     float camera_theta = 0.0f;
     vec3 cam_pos = vec3(0, 1, 0);
+    vec3 cam_speed = vec3(0, 0, 0);
 
     bool is_jumping = false;
     float y_speed = 0.0;
@@ -51,6 +52,7 @@ class Simulation {
 
     // fps
     int nb_frames = 0;
+    float one_over_pre_nb_frames = 1;
     double last_time = 0;
 
     // Perlin parameters
@@ -182,6 +184,7 @@ class Simulation {
         ++nb_frames;
         if (start_time - last_time >= 1.0) { // over 1 second
             cout << nb_frames << " frames" << endl;
+            one_over_pre_nb_frames = nb_frames > 0 ? 1.f/nb_frames : 1;
             nb_frames = 0;
             last_time = start_time;
         }
@@ -189,39 +192,19 @@ class Simulation {
         // Camera movements
         switch (cameraMode) {
         case DEFAULT_CAMERA:
-            if (arrows_down[UP]) {
-                cam_pos += vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
-            }
-            if (arrows_down[DOWN]) {
-                cam_pos -= vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
-            }
-            if (arrows_down[RIGHT]) {
-                cam_pos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
-            }
-            if (arrows_down[LEFT]) {
-                cam_pos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
-            }
+
+            cameraMovements(camera_phi);
+
             break;
 
         case GROUND:
             if (is_jumping) {
-                y_speed -= G;
+                y_speed -= G * one_over_pre_nb_frames;
             }
 
             float old_cam_posY = cam_pos.y;
 
-            if (arrows_down[UP]) {
-                cam_pos += vecFromRot(M_PI / 2, camera_theta) * vec3(CAMERA_SPEED);
-            }
-            if (arrows_down[DOWN]) {
-                cam_pos -= vecFromRot(M_PI / 2, camera_theta) * vec3(CAMERA_SPEED);
-            }
-            if (arrows_down[RIGHT]) {
-                cam_pos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(M_PI / 2, camera_theta)) * vec3(CAMERA_SPEED);
-            }
-            if (arrows_down[LEFT]) {
-                cam_pos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(M_PI / 2, camera_theta)) * vec3(CAMERA_SPEED);
-            }
+            cameraMovements(M_PI / 2);
 
             int chunkCamX = floor((cam_pos.x + 1) / 2);
             int chunkCamY = floor((cam_pos.z + 1) / 2);
@@ -236,7 +219,9 @@ class Simulation {
 
                 GLfloat r[1];
                 glReadPixels(posInChunkX*TEX_WIDTH, TEX_HEIGHT - posInChunkY*TEX_HEIGHT, 1, 1, GL_RED, GL_FLOAT, r);
-                float newHeight = r[0] * 2 - 1 + 0.2;
+                it->second.tex.Unbind();
+
+                float newHeight = r[0] * 2 - 1 + 0.17;
 
                 if (is_jumping) {
                     cam_pos.y = old_cam_posY + y_speed;
@@ -249,7 +234,7 @@ class Simulation {
                     cam_pos.y = newHeight;
                 }
 
-                it->second.tex.Unbind();
+
             }
             break;
         }
@@ -293,6 +278,35 @@ class Simulation {
         for (unsigned int i = 0; i < toBeRemoved.size(); i++) {
             chunk_map.erase(toBeRemoved[i]);
         }
+    }
+
+    void cameraMovements(float phi) {
+        if (!is_jumping && !arrows_down[UP] && !arrows_down[DOWN] && !arrows_down[RIGHT] && !arrows_down[LEFT]) {
+            cam_speed = pow((float)CAMERA_DECELERATION, one_over_pre_nb_frames) * cam_speed;
+        }
+
+        if (!is_jumping) {
+            if (arrows_down[UP]) {
+                cam_speed += vecFromRot(phi, camera_theta) * vec3(CAMERA_ACCELERATION) * one_over_pre_nb_frames;
+            }
+            if (arrows_down[DOWN]) {
+                cam_speed -= vecFromRot(phi, camera_theta) * vec3(CAMERA_ACCELERATION) * one_over_pre_nb_frames;
+            }
+            if (arrows_down[RIGHT]) {
+                cam_speed -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta))
+                        * vec3(CAMERA_ACCELERATION) * one_over_pre_nb_frames;
+            }
+            if (arrows_down[LEFT]) {
+                cam_speed += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta))
+                        * vec3(CAMERA_ACCELERATION) * one_over_pre_nb_frames;
+            }
+        }
+
+        if (length(cam_speed) > CAMERA_SPEED) {
+            cam_speed = normalize(cam_speed) * (float)CAMERA_SPEED;
+        }
+
+        cam_pos += cam_speed * one_over_pre_nb_frames;
     }
 
     void cleanUp() {
