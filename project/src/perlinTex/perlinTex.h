@@ -118,13 +118,21 @@ class PerlinTex {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
-        cout << "X and Y " << X << " - " << Y;
+        //cout << "X : " << X << ", Y : " << Y << endl;
 
         glUniform1i(glGetUniformLocation(program_id_, "octaves"), octave);
         glUniform1f(glGetUniformLocation(program_id_, "lac"), lac);
         glUniform1f(glGetUniformLocation(program_id_, "H"), H);
         glUniform1i(glGetUniformLocation(program_id_, "X"), X);
         glUniform1i(glGetUniformLocation(program_id_, "Y"), Y);
+
+        glUniform1i(glGetUniformLocation(program_id_, "temperature_octave"), TEMPERATURE_OCTAVE);
+        glUniform1f(glGetUniformLocation(program_id_, "temperature_lac"), TEMPERATURE_LAC);
+        glUniform1f(glGetUniformLocation(program_id_, "temperature_H"), TEMPERATURE_H);
+
+        glUniform1i(glGetUniformLocation(program_id_, "altitude_octave"), ALTITUDE_OCTAVE);
+        glUniform1f(glGetUniformLocation(program_id_, "altitude_lac"), ALTITUDE_LAC);
+        glUniform1f(glGetUniformLocation(program_id_, "altitude_H"), ALTITUDE_H);
 
         // bind textures
         glActiveTexture(GL_TEXTURE0);

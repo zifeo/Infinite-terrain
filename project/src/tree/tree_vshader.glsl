@@ -16,8 +16,6 @@ uniform float min_tree_alt;
 
 uniform float tree_height;
 
-uniform sampler2D perlin_tex;
-
 void main() {
     uv = (position + vec2(1.0)) * (1 / tree_height) / 2;
     uv.x += 0.5;

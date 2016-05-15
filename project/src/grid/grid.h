@@ -90,7 +90,7 @@ class Grid : public Material, public Light {
             std::vector<GLuint> indices;
             int grid_dim = 256;
 
-            float half = grid_dim / 2.;
+            float half = grid_dim / 2.f;
             int ind = 0;
             for (int i = 0; i < grid_dim; i++) {
                 float posy0 = (i - half) / half;

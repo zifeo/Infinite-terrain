@@ -32,5 +32,17 @@
 #define MAX_TREE_ALT 0.3 // trees that spawn outside of this range will be discarded
 #define MIN_TREE_ALT 0
 
+//Physic defines
 #define G 0.01
 #define JUMP_SPEED 0.015
+
+//Biome defines
+#define TEMPERATURE_OCTAVE 2
+#define TEMPERATURE_LAC 2
+#define TEMPERATURE_H 1.25
+
+#define ALTITUDE_OCTAVE 2
+#define ALTITUDE_LAC 2
+#define ALTITUDE_H 1.25
+
+enum TreeType { NORMAL_TREE = 0, DESERT_TREE};

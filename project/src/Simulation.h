@@ -61,15 +61,22 @@ class Simulation {
     float lacunarity = 2;
     float fractal_increment = 1.25;
 
+    //trees
+    typedef struct {
+        vec3 pos;
+        TreeType type;
+    } TreeStruct;
+
     // chunks
     typedef struct {
         FrameBuffer tex;
         GLuint perlinBuffer_tex_id;
         int x;
         int y;
-        std::vector<vec3> treeList;
+        std::vector<TreeStruct> treeList;
         bool tmpFlag;
     } ChunkTex;
+
 
     map<uint64_t, ChunkTex> chunk_map;
 
@@ -121,7 +128,7 @@ class Simulation {
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
         vec3 cam_pos2 = vec3(0, -1, 0);
-        mat4 view_matrix_reflection = lookAt(cam_pos2, cam_pos2 + vecFromRot(camera_phi + M_PI, camera_theta), vec3(0.0f, 1.0f, 0.0f));
+        //mat4 view_matrix_reflection = lookAt(cam_pos2, cam_pos2 + vecFromRot(camera_phi + M_PI, camera_theta), vec3(0.0f, 1.0f, 0.0f));
 
         switch (mode) {
 
@@ -134,10 +141,10 @@ class Simulation {
             break;
         case TEXTURE:
 
-            water_reflection.Bind();
+            /*water_reflection.Bind();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             drawChunk(view_matrix_reflection);
-            water_reflection.Unbind();
+            water_reflection.Unbind();*/
 
             drawChunk(view_matrix);
 
@@ -150,14 +157,13 @@ class Simulation {
                 water.Draw((float)start_time, i, j, model, view_matrix, projection_matrix);
             }*/
 
-
             for (auto &chunk : chunk_map) {
                 int i = chunk.second.x;
                 int j = chunk.second.y;
                 vec3 pos = vec3(i, 0, j);
 
-                for (int k = 0; k < chunk.second.treeList.size(); k++) {
-                    vec3 posInChunk = chunk.second.treeList[k];
+                for (unsigned int k = 0; k < chunk.second.treeList.size(); k++) {
+                    vec3 posInChunk = chunk.second.treeList[k].pos;
                     mat4 model = translate(model_matrix, pos + posInChunk);
 
                     if (TURNING_TREES) {
@@ -165,12 +171,12 @@ class Simulation {
                         float y = -((j - CHUNKS / 2) * 2 - DELTA * j + posInChunk.y) - cam_pos.z;
                         float angle = y > 0 ? M_PI / 2 + acos(x / (sqrt(x * x + y * y)))
                                             : M_PI / 2 - acos(x / (sqrt(x * x + y * y)));
-                        tree.Draw(angle, (float)start_time, model, view_matrix, projection_matrix);
+                        tree.Draw(angle, (float)start_time, chunk.second.treeList[k].type, model, view_matrix, projection_matrix);
                     } else {
                         float angle = 0.0f;
                         for (int l = 0; l < TREE_PLANE_COUNT; l++) {
-                            tree.Draw(angle, (float)start_time, model, view_matrix, projection_matrix);
-                            angle += M_PI / TREE_PLANE_COUNT;
+                            tree.Draw(angle, (float)start_time, chunk.second.treeList[k].type, model, view_matrix, projection_matrix);
+                            angle += (float) M_PI / TREE_PLANE_COUNT;
                         }
                     }
                 }
@@ -199,15 +205,15 @@ class Simulation {
 
         case GROUND:
             if (is_jumping) {
-                y_speed -= G * one_over_pre_nb_frames;
+                y_speed -= (float) G * one_over_pre_nb_frames;
             }
 
             float old_cam_posY = cam_pos.y;
 
-            cameraMovements(M_PI / 2);
+            cameraMovements((float) M_PI / 2);
 
-            int chunkCamX = floor((cam_pos.x + 1) / 2);
-            int chunkCamY = floor((cam_pos.z + 1) / 2);
+            int chunkCamX = (int) floor((cam_pos.x + 1) / 2);
+            int chunkCamY = (int) floor((cam_pos.z + 1) / 2);
 
             float posInChunkX = ((cam_pos.x + 1) / 2) - chunkCamX;
             float posInChunkY = ((cam_pos.z + 1) / 2) - chunkCamY;
@@ -218,7 +224,7 @@ class Simulation {
                 it->second.tex.Bind();
 
                 GLfloat r[1];
-                glReadPixels(posInChunkX*TEX_WIDTH, TEX_HEIGHT - posInChunkY*TEX_HEIGHT, 1, 1, GL_RED, GL_FLOAT, r);
+                glReadPixels((int) (posInChunkX*TEX_WIDTH), (int) (TEX_HEIGHT - posInChunkY*TEX_HEIGHT), 1, 1, GL_RED, GL_FLOAT, r);
                 it->second.tex.Unbind();
 
                 float newHeight = r[0] * 2 - 1 + 0.17;
@@ -233,17 +239,14 @@ class Simulation {
                 else {
                     cam_pos.y = newHeight;
                 }
-
-
             }
             break;
         }
 
-
         // + 1 is because we are in the middle of a chunk
         // / 2 because a chunk is of length 2
-        int chunkX = floor((cam_pos.x + 1) / 2);
-        int chunkY = floor((cam_pos.z + 1) / 2);
+        int chunkX = (int) floor((cam_pos.x + 1) / 2);
+        int chunkY = (int) floor((cam_pos.z + 1) / 2);
 
         //cout << chunkX << " " << chunkY << endl;
 
@@ -339,8 +342,8 @@ class Simulation {
         perlinTex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
 
         // tree init
-        GLfloat* r = new GLfloat[TEX_WIDTH*TEX_HEIGHT];
-        glReadPixels(0, 0, TEX_WIDTH, TEX_HEIGHT, GL_RED, GL_FLOAT, r); // One fat read is much faster than small reads for all trees
+        GLfloat* perlin_tex = new GLfloat[TEX_WIDTH*TEX_HEIGHT*3];
+        glReadPixels(0, 0, TEX_WIDTH, TEX_HEIGHT, GL_RGB, GL_FLOAT, perlin_tex); // One fat read is much faster than small reads for all trees
 
         chunk.tex.Unbind();
 
@@ -348,18 +351,29 @@ class Simulation {
         for (int k = 0; k < count; k++) {
 
             vec3 posInChunk;
-            posInChunk.x = (rand() % 2000) / 1000.0f - 1;
-            posInChunk.z = (rand() % 2000) / 1000.0f - 1;
+            posInChunk.x = (rand() % 1999 + 1) / 1000.0f - 1;
+            posInChunk.z = (rand() % 1999 + 1) / 1000.0f - 1;
 
-            int x = ((posInChunk.x+1)*TEX_WIDTH/2);
-            int y = ((-posInChunk.z+1)*TEX_HEIGHT/2);
+            int x = (int) ((posInChunk.x+1)*TEX_WIDTH/2);
+            int y = (int) ((-posInChunk.z+1)*TEX_HEIGHT/2);
 
-            posInChunk.y = r[x + y * TEX_HEIGHT] * 2 - 1;
+            posInChunk.y = perlin_tex[(x + y * TEX_HEIGHT)*3] * 2 - 1;
 
-            chunk.treeList.push_back(posInChunk);
+            float temperature = perlin_tex[(x + y * TEX_HEIGHT)*3 + 1];
+            float altitude = perlin_tex[(x + y * TEX_HEIGHT)*3 + 2];
+
+            TreeStruct tree_struct;
+            tree_struct.pos = posInChunk;
+            tree_struct.type = NORMAL_TREE;
+
+            if (temperature > 0.45 && altitude > 0.45) {
+                tree_struct.type = DESERT_TREE;
+            }
+
+            chunk.treeList.push_back(tree_struct);
         }
 
-        delete r;
+        delete perlin_tex;
 
         chunk_map.insert(pair<uint64_t, ChunkTex>(getKey(i, j), chunk));
     }
@@ -381,8 +395,8 @@ class Simulation {
     /* ********** Events ********** */
 
     void onMouseMove(GLFWwindow *window, double x, double y) {
-        camera_theta += (x - cursor_x) * MOUSE_SENSIBILTY;
-        camera_phi += (y - cursor_y) * MOUSE_SENSIBILTY;
+        camera_theta += (float) (x - cursor_x) * MOUSE_SENSIBILTY;
+        camera_phi += (float) (y - cursor_y) * MOUSE_SENSIBILTY;
         camera_phi = clamp(camera_phi, (float)(M_PI / 10), (float)(9 * M_PI / 10));
         cursor_x = x;
         cursor_y = y;
@@ -428,12 +442,12 @@ class Simulation {
                 set_noise_params(+1, 0, 0);
                 break;
             case 59 /*É*/:
-                set_noise_params(-1, 0.01, 0);
+                set_noise_params(-1, 0.01f, 0);
                 break;
             case GLFW_KEY_SPACE:
                 if (cameraMode == GROUND && !is_jumping) {
                     is_jumping = true;
-                    y_speed = JUMP_SPEED;
+                    y_speed = (float) JUMP_SPEED;
                 }
                 break;
             default:
