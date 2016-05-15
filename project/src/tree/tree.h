@@ -2,6 +2,7 @@
 
 #include "icg_helper.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "../Config.h"
 
 class Tree {
 
@@ -11,7 +12,8 @@ class Tree {
     GLuint vertex_buffer_object_index_;    // memory buffer for indices
     GLuint program_id_;                    // GLSL shader program ID
     GLuint perlin_texture_id_;             // perlin texture ID
-    GLuint tree_texture_id_;               // water texture ID
+    GLuint tree_texture_id_;               // tree texture ID
+    GLuint desert_tree_texture_id_;        // desert tree texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
     GLuint x_chunk_id_;                    // x value of the chunk
@@ -71,7 +73,10 @@ class Tree {
             glVertexAttribPointer(loc_position, 2, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
 
-        { initTexture("tree_texture.tga", &tree_texture_id_, "tree_tex", GL_TEXTURE0); }
+        {
+            initTexture("tree_texture.tga", &tree_texture_id_, "tree_tex", GL_TEXTURE0);
+            initTexture("desert_tree_texture.tga", &desert_tree_texture_id_, "desert_tree_tex", GL_TEXTURE0+1);
+        }
 
         // other uniforms
         MVP_id_ = glGetUniformLocation(program_id_, "MVP");
@@ -94,7 +99,7 @@ class Tree {
         glDeleteTextures(1, &tree_texture_id_);
     }
 
-    void Draw(float angle, float time,
+    void Draw(float angle, float time, TreeType type,
               const glm::mat4 &model = IDENTITY_MATRIX, const glm::mat4 &view = IDENTITY_MATRIX,
               const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
@@ -102,7 +107,13 @@ class Tree {
 
         // bind textures
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, tree_texture_id_);
+
+        if (type == NORMAL_TREE) {
+            glBindTexture(GL_TEXTURE_2D, tree_texture_id_);
+        }
+        else {
+            glBindTexture(GL_TEXTURE_2D, desert_tree_texture_id_);
+        }
 
         // setup MVP
         glm::mat4 MVP = projection * view * model;
@@ -116,7 +127,7 @@ class Tree {
         glUniform1f(glGetUniformLocation(program_id_, "max_tree_alt"), MAX_TREE_ALT);
         glUniform1f(glGetUniformLocation(program_id_, "min_tree_alt"), MIN_TREE_ALT);
 
-        glUniform1f(glGetUniformLocation(program_id_, "tree_height"), TREE_HEIGHT);
+        glUniform1f(glGetUniformLocation(program_id_, "tree_height"), (float)TREE_HEIGHT);
 
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
 
