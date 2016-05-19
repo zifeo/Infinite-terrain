@@ -20,15 +20,15 @@ uniform int altitude_octave;
 uniform float altitude_lac;
 uniform float altitude_H;
 
-#define BIOME_COUNT 3
+#define BIOME_COUNT 4
 
-vec2 biome_position [BIOME_COUNT] = {vec2(0.5,0.5),  vec2(0.6,0.4), vec2(0.4,0.6)}; // x -> temp, y -> altitude, if changes, need to copy to grid shaders !
+vec2 biome_position [BIOME_COUNT] = vec2[](vec2(0.5,0.5), vec2(0.65,0.35), vec2(0.35,0.65), vec2(0.2, 0.5)); // x -> temp, y -> altitude, if changes, need to copy to grid shaders !
 
-vec3 biome_parameter [BIOME_COUNT] = {vec3(H, lac, octaves), vec3(H, lac*50, 2), vec3(H, lac, octaves)}; // x -> H, y -> lac, z -> octaves
+vec3 biome_parameter [BIOME_COUNT] = vec3[](vec3(H, lac, octaves), vec3(H, lac*50, 2), vec3(H, lac, octaves), vec3(H, lac, octaves)); // x -> H, y -> lac, z -> octaves
 
-float biome_amplitude [BIOME_COUNT] = {1, 0.3, 1.2};
+float biome_amplitude [BIOME_COUNT] = float[](1, 0.3, 1.1, 1);
 
-float biome_offset [BIOME_COUNT] = {0, 0.3, 0.5};
+float biome_offset [BIOME_COUNT] = float[](0, 0.3, 0.3, -0.3);
 
 float perl_mix(float x, float y, float a) { return (1 - a) * x + a * y; }
 
@@ -94,7 +94,7 @@ void main() {
     float sum = 0;
     for (int i = 0; i < BIOME_COUNT; i++) {
         float dist = (temperature - biome_position[i].x)*(temperature - biome_position[i].x) + (altitude - biome_position[i].y)*(altitude - biome_position[i].y);
-        coeff_biomes[i] = 1 / (dist*dist*dist*dist);
+        coeff_biomes[i] = 1 / (dist*dist*dist);
         sum += coeff_biomes[i];
     }
 

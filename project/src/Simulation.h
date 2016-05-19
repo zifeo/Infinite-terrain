@@ -91,6 +91,12 @@ class Simulation {
     // water reflection
     FrameBuffer water_reflection;
 
+    vec2 biome_position [BIOME_COUNT] = {vec2(0.5,0.5), vec2(0.65,0.35), vec2(0.35,0.65), vec2(0.2, 0.5)}; //if changes, need to copy to shaders !
+
+    vector<TreeType> biome_trees [BIOME_COUNT];
+
+    float biome_tree_count[BIOME_COUNT] = {1.f, 0.3f, 0.4f, 0.5f};
+
   public:
     /* ********** States ********** */
 
@@ -107,6 +113,11 @@ class Simulation {
         water.Init(water_reflection_tex_id);
         sky.Init();
         tree.Init();
+
+        biome_trees[NORMAL_BIOME].push_back(NORMAL_TREE);
+        biome_trees[DESERT_TREE].push_back(DESERT_TREE);
+        biome_trees[DESERT_TREE].push_back(CACTUS);
+        biome_trees[SEA].push_back(ALGAE);
     }
 
     void drawChunk(mat4 view) {
@@ -127,8 +138,8 @@ class Simulation {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
-        vec3 cam_pos2 = vec3(0, -1, 0);
-        //mat4 view_matrix_reflection = lookAt(cam_pos2, cam_pos2 + vecFromRot(camera_phi + M_PI, camera_theta), vec3(0.0f, 1.0f, 0.0f));
+        vec3 cam_pos2 = vec3(cam_pos.x, -cam_pos.y, cam_pos.z);
+        mat4 view_matrix_reflection = lookAt(cam_pos2, cam_pos2 + vecFromRot(M_PI - camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
 
         switch (mode) {
 
@@ -143,7 +154,8 @@ class Simulation {
 
             /*water_reflection.Bind();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            drawChunk(view_matrix_reflection);
+            //drawChunk(view_matrix);
+            sky.Draw(translate(projection_matrix * model_matrix * view_matrix_reflection, cam_pos));
             water_reflection.Unbind();*/
 
             drawChunk(view_matrix);
@@ -153,9 +165,13 @@ class Simulation {
                 int j = chunk.second.y;
 
                 vec3 pos = vec3(i, 0, j);
-                mat4 model = translate(model_matrix, pos);
-                water.Draw((float)start_time, i, j, model, view_matrix, projection_matrix);
+
+                ;
             }*/
+
+
+            mat4 model = translate(model_matrix, vec3(cam_pos.x + WATER_SIZE/2, 0, cam_pos.z + WATER_SIZE/2));
+            //water.Draw((float)start_time, model, view_matrix, projection_matrix);
 
             for (auto &chunk : chunk_map) {
                 int i = chunk.second.x;
@@ -166,19 +182,20 @@ class Simulation {
                     vec3 posInChunk = chunk.second.treeList[k].pos;
                     mat4 model = translate(model_matrix, pos + posInChunk);
 
-                    if (TURNING_TREES) {
-                        float x = (i - CHUNKS / 2) * 2 - DELTA * i + posInChunk.x - cam_pos.x;
-                        float y = -((j - CHUNKS / 2) * 2 - DELTA * j + posInChunk.y) - cam_pos.z;
+                    #if TURNING_TREES
+                        float x = pos.x + posInChunk.x - cam_pos.x;
+                        float y = pos.z + posInChunk.y - cam_pos.z - 0.5;
+                        cout << x << " " << y << endl;
                         float angle = y > 0 ? M_PI / 2 + acos(x / (sqrt(x * x + y * y)))
                                             : M_PI / 2 - acos(x / (sqrt(x * x + y * y)));
                         tree.Draw(angle, (float)start_time, chunk.second.treeList[k].type, model, view_matrix, projection_matrix);
-                    } else {
+                    #else
                         float angle = 0.0f;
                         for (int l = 0; l < TREE_PLANE_COUNT; l++) {
                             tree.Draw(angle, (float)start_time, chunk.second.treeList[k].type, model, view_matrix, projection_matrix);
                             angle += (float) M_PI / TREE_PLANE_COUNT;
                         }
-                    }
+                    #endif
                 }
             }
 
@@ -366,11 +383,26 @@ class Simulation {
             tree_struct.pos = posInChunk;
             tree_struct.type = NORMAL_TREE;
 
-            if (temperature > 0.45 && altitude > 0.45) {
-                tree_struct.type = DESERT_TREE;
+            int best_biome = -1;
+            float min_dist = 9999;
+            for (int i = 0; i < BIOME_COUNT; i++) {
+                float dist = (temperature - biome_position[i].x)*(temperature - biome_position[i].x) + (altitude - biome_position[i].y)*(altitude - biome_position[i].y);
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    best_biome = i;
+                }
+
             }
 
-            chunk.treeList.push_back(tree_struct);
+            if (biome_trees[best_biome].size() > 0) {
+
+                float tree_chance = (rand() % 1000) / 1000.f;
+
+                if (tree_chance < biome_tree_count[best_biome]) {
+                    tree_struct.type = biome_trees[best_biome][rand() % biome_trees[best_biome].size()];
+                    chunk.treeList.push_back(tree_struct);
+                }
+            }
         }
 
         delete perlin_tex;

@@ -19,10 +19,9 @@ uniform sampler2D rock_tex;
 uniform sampler2D snow_tex;
 uniform int x_chunk;
 
-#define BIOME_COUNT 3
+#define BIOME_COUNT 4
 
-vec2 biome_position [BIOME_COUNT] = {vec2(0.5,0.5), vec2(0.6,0.4), vec2(0.4,0.6)}; // x -> temp, y -> altitude, if changes, need to copy to perlin shaders !
-
+vec2 biome_position [BIOME_COUNT] = vec2[](vec2(0.5,0.5), vec2(0.65,0.35), vec2(0.35,0.65), vec2(0.2, 0.5)); // x -> temp, y -> altitude, if changes, need to copy to perlin shaders !
 
 float coeffSand(float height, float angle, int biome) { // angle => 0 = plat, 1 = falaise
     switch(biome){
@@ -108,7 +107,7 @@ void main() {
     float sum = 0;
     for (int i = 0; i < BIOME_COUNT; i++) {
         float dist = (temperature - biome_position[i].x)*(temperature - biome_position[i].x) + (altitude - biome_position[i].y)*(altitude - biome_position[i].y);
-        coeff_biomes[i] = 1 / (dist*dist*dist*dist);
+        coeff_biomes[i] = 1 / (dist*dist*dist);
         sum += coeff_biomes[i];
     }
 
