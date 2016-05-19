@@ -107,10 +107,11 @@ class Simulation {
         double start_time = glfwGetTime();
         glViewport(0, 0, window_width, window_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+float water_height = 0.45;
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
-        vec3 cam_pos2 = vec3(0, -1, 0);
-        mat4 view_matrix_reflection = lookAt(cam_pos2, cam_pos2 + vecFromRot(camera_phi + M_PI, camera_theta), vec3(0.0f, 1.0f, 0.0f));
+        vec3 cam_pos2 = vec3(cam_pos.x, -cam_pos.y + 2 * water_height, cam_pos.z);
+        mat4 view_matrix_reflection = lookAt(cam_pos2, cam_pos2 + vecFromRot(M_PI - camera_phi, camera_theta), vec3(0.0f, -1.0f, 0.0f));
 
         switch (mode) {
 
@@ -129,7 +130,7 @@ class Simulation {
             {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glEnable(GL_CLIP_DISTANCE0);
-                drawChunk(model_matrix, view_matrix, 0.45);
+                drawChunk(model_matrix, view_matrix, water_height);
                 glDisable(GL_CLIP_DISTANCE0);
 
             }
