@@ -14,6 +14,8 @@ class Tree {
     GLuint perlin_texture_id_;             // perlin texture ID
     GLuint tree_texture_id_;               // tree texture ID
     GLuint desert_tree_texture_id_;        // desert tree texture ID
+    GLuint cactus_texture_id_;             // cactus texture ID
+    GLuint algae_texture_id_;              // algae texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
     GLuint x_chunk_id_;                    // x value of the chunk
@@ -76,6 +78,8 @@ class Tree {
         {
             initTexture("tree_texture.tga", &tree_texture_id_, "tree_tex", GL_TEXTURE0);
             initTexture("desert_tree_texture.tga", &desert_tree_texture_id_, "desert_tree_tex", GL_TEXTURE0+1);
+            initTexture("cactus_texture.tga", &cactus_texture_id_, "cactus_tex", GL_TEXTURE0+2);
+            initTexture("algae_texture.tga", &algae_texture_id_, "algae_tex", GL_TEXTURE0+3);
         }
 
         // other uniforms
@@ -111,8 +115,17 @@ class Tree {
         if (type == NORMAL_TREE) {
             glBindTexture(GL_TEXTURE_2D, tree_texture_id_);
         }
-        else {
+        else if (type == DESERT_TREE){
             glBindTexture(GL_TEXTURE_2D, desert_tree_texture_id_);
+        }
+        else if (type == CACTUS){
+            glBindTexture(GL_TEXTURE_2D, cactus_texture_id_);
+        }
+        else if (type == ALGAE){
+            glBindTexture(GL_TEXTURE_2D, algae_texture_id_);
+        }
+        else {
+            cout << "ERROR : UNEXISISTING TREE TYPE" << endl;
         }
 
         // setup MVP
