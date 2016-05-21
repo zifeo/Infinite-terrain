@@ -61,7 +61,7 @@ class Simulation {
     float lacunarity = 2;
     float fractal_increment = 1.25;
 
-    //trees
+    // trees
     typedef struct {
         vec3 pos;
         TreeType type;
@@ -77,7 +77,6 @@ class Simulation {
         bool tmpFlag;
     } ChunkTex;
 
-
     map<uint64_t, ChunkTex> chunk_map;
 
     // objects
@@ -91,9 +90,10 @@ class Simulation {
     // water reflection
     FrameBuffer water_reflection;
 
-    vec2 biome_position [BIOME_COUNT] = {vec2(0.5,0.5), vec2(0.65,0.35), vec2(0.35,0.65), vec2(0.2, 0.5)}; //if changes, need to copy to shaders !
+    vec2 biome_position[BIOME_COUNT] = {vec2(0.5, 0.5), vec2(0.65, 0.35), vec2(0.35, 0.65),
+                                        vec2(0.2, 0.5)}; // if changes, need to copy to shaders !
 
-    vector<TreeType> biome_trees [BIOME_COUNT];
+    vector<TreeType> biome_trees[BIOME_COUNT];
 
     float biome_tree_count[BIOME_COUNT] = {1.f, 0.3f, 0.4f, 0.5f};
 
@@ -139,7 +139,8 @@ class Simulation {
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
         vec3 cam_pos2 = vec3(cam_pos.x, -cam_pos.y, cam_pos.z);
-        mat4 view_matrix_reflection = lookAt(cam_pos2, cam_pos2 + vecFromRot(M_PI - camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
+        mat4 view_matrix_reflection =
+            lookAt(cam_pos2, cam_pos2 + vecFromRot(M_PI - camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
 
         switch (mode) {
 
@@ -169,9 +170,8 @@ class Simulation {
                 ;
             }*/
 
-
-            mat4 model = translate(model_matrix, vec3(cam_pos.x + WATER_SIZE/2, 0, cam_pos.z + WATER_SIZE/2));
-            //water.Draw((float)start_time, model, view_matrix, projection_matrix);
+            mat4 model = translate(model_matrix, vec3(cam_pos.x + WATER_SIZE / 2, 0, cam_pos.z + WATER_SIZE / 2));
+            // water.Draw((float)start_time, model, view_matrix, projection_matrix);
 
             for (auto &chunk : chunk_map) {
                 int i = chunk.second.x;
@@ -182,20 +182,22 @@ class Simulation {
                     vec3 posInChunk = chunk.second.treeList[k].pos;
                     mat4 model = translate(model_matrix, pos + posInChunk);
 
-                    #if TURNING_TREES
-                        float x = pos.x + posInChunk.x - cam_pos.x;
-                        float y = pos.z + posInChunk.y - cam_pos.z - 0.5;
-                        cout << x << " " << y << endl;
-                        float angle = y > 0 ? M_PI / 2 + acos(x / (sqrt(x * x + y * y)))
-                                            : M_PI / 2 - acos(x / (sqrt(x * x + y * y)));
-                        tree.Draw(angle, (float)start_time, chunk.second.treeList[k].type, model, view_matrix, projection_matrix);
-                    #else
-                        float angle = 0.0f;
-                        for (int l = 0; l < TREE_PLANE_COUNT; l++) {
-                            tree.Draw(angle, (float)start_time, chunk.second.treeList[k].type, model, view_matrix, projection_matrix);
-                            angle += (float) M_PI / TREE_PLANE_COUNT;
-                        }
-                    #endif
+#if TURNING_TREES
+                    float x = pos.x + posInChunk.x - cam_pos.x;
+                    float y = pos.z + posInChunk.y - cam_pos.z - 0.5;
+                    cout << x << " " << y << endl;
+                    float angle =
+                        y > 0 ? M_PI / 2 + acos(x / (sqrt(x * x + y * y))) : M_PI / 2 - acos(x / (sqrt(x * x + y * y)));
+                    tree.Draw(angle, (float)start_time, chunk.second.treeList[k].type, model, view_matrix,
+                              projection_matrix);
+#else
+                    float angle = 0.0f;
+                    for (int l = 0; l < TREE_PLANE_COUNT; l++) {
+                        tree.Draw(angle, (float)start_time, chunk.second.treeList[k].type, model, view_matrix,
+                                  projection_matrix);
+                        angle += (float)M_PI / TREE_PLANE_COUNT;
+                    }
+#endif
                 }
             }
 
@@ -207,7 +209,7 @@ class Simulation {
         ++nb_frames;
         if (start_time - last_time >= 1.0) { // over 1 second
             cout << nb_frames << " frames" << endl;
-            one_over_pre_nb_frames = nb_frames > 0 ? 1.f/nb_frames : 1;
+            one_over_pre_nb_frames = nb_frames > 0 ? 1.f / nb_frames : 1;
             nb_frames = 0;
             last_time = start_time;
         }
@@ -222,26 +224,28 @@ class Simulation {
 
         case GROUND:
             if (is_jumping) {
-                y_speed -= (float) G * one_over_pre_nb_frames;
+                y_speed -= (float)G * one_over_pre_nb_frames;
             }
 
             float old_cam_posY = cam_pos.y;
 
-            cameraMovements((float) M_PI / 2);
+            cameraMovements((float)M_PI / 2);
 
-            int chunkCamX = (int) floor((cam_pos.x + 1) / 2);
-            int chunkCamY = (int) floor((cam_pos.z + 1) / 2);
+            int chunkCamX = (int)floor((cam_pos.x + 1) / 2);
+            int chunkCamY = (int)floor((cam_pos.z + 1) / 2);
 
             float posInChunkX = ((cam_pos.x + 1) / 2) - chunkCamX;
             float posInChunkY = ((cam_pos.z + 1) / 2) - chunkCamY;
 
             map<uint64_t, ChunkTex>::iterator it = chunk_map.find(getKey(chunkCamX, chunkCamY));
 
-            if (it != chunk_map.end()) { // Sometimes, just before the chunk's generation, there is no ground at the bottom of the camera
+            if (it != chunk_map.end()) { // Sometimes, just before the chunk's generation, there is no ground at the
+                                         // bottom of the camera
                 it->second.tex.Bind();
 
                 GLfloat r[1];
-                glReadPixels((int) (posInChunkX*TEX_WIDTH), (int) (TEX_HEIGHT - posInChunkY*TEX_HEIGHT), 1, 1, GL_RED, GL_FLOAT, r);
+                glReadPixels((int)(posInChunkX * TEX_WIDTH), (int)(TEX_HEIGHT - posInChunkY * TEX_HEIGHT), 1, 1, GL_RED,
+                             GL_FLOAT, r);
                 it->second.tex.Unbind();
 
                 float newHeight = r[0] * 2 - 1 + 0.17;
@@ -252,8 +256,7 @@ class Simulation {
                     if (cam_pos.y < newHeight) {
                         is_jumping = false;
                     }
-                }
-                else {
+                } else {
                     cam_pos.y = newHeight;
                 }
             }
@@ -262,10 +265,10 @@ class Simulation {
 
         // + 1 is because we are in the middle of a chunk
         // / 2 because a chunk is of length 2
-        int chunkX = (int) floor((cam_pos.x + 1) / 2);
-        int chunkY = (int) floor((cam_pos.z + 1) / 2);
+        int chunkX = (int)floor((cam_pos.x + 1) / 2);
+        int chunkY = (int)floor((cam_pos.z + 1) / 2);
 
-        //cout << chunkX << " " << chunkY << endl;
+        // cout << chunkX << " " << chunkY << endl;
 
         for (auto &chunk : chunk_map) {
             chunk.second.tmpFlag = false;
@@ -280,8 +283,7 @@ class Simulation {
 
                 if (it == chunk_map.end()) {
                     initChunk(i, j);
-                }
-                else {
+                } else {
                     it->second.tmpFlag = true;
                 }
             }
@@ -313,12 +315,12 @@ class Simulation {
                 cam_speed -= vecFromRot(phi, camera_theta) * vec3(CAMERA_ACCELERATION) * one_over_pre_nb_frames;
             }
             if (arrows_down[RIGHT]) {
-                cam_speed -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta))
-                        * vec3(CAMERA_ACCELERATION) * one_over_pre_nb_frames;
+                cam_speed -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * vec3(CAMERA_ACCELERATION) *
+                             one_over_pre_nb_frames;
             }
             if (arrows_down[LEFT]) {
-                cam_speed += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta))
-                        * vec3(CAMERA_ACCELERATION) * one_over_pre_nb_frames;
+                cam_speed += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * vec3(CAMERA_ACCELERATION) *
+                             one_over_pre_nb_frames;
             }
         }
 
@@ -359,8 +361,9 @@ class Simulation {
         perlinTex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
 
         // tree init
-        GLfloat* perlin_tex = new GLfloat[TEX_WIDTH*TEX_HEIGHT*3];
-        glReadPixels(0, 0, TEX_WIDTH, TEX_HEIGHT, GL_RGB, GL_FLOAT, perlin_tex); // One fat read is much faster than small reads for all trees
+        GLfloat *perlin_tex = new GLfloat[TEX_WIDTH * TEX_HEIGHT * 3];
+        glReadPixels(0, 0, TEX_WIDTH, TEX_HEIGHT, GL_RGB, GL_FLOAT,
+                     perlin_tex); // One fat read is much faster than small reads for all trees
 
         chunk.tex.Unbind();
 
@@ -371,13 +374,13 @@ class Simulation {
             posInChunk.x = (rand() % 1999 + 1) / 1000.0f - 1;
             posInChunk.z = (rand() % 1999 + 1) / 1000.0f - 1;
 
-            int x = (int) ((posInChunk.x+1)*TEX_WIDTH/2);
-            int y = (int) ((-posInChunk.z+1)*TEX_HEIGHT/2);
+            int x = (int)((posInChunk.x + 1) * TEX_WIDTH / 2);
+            int y = (int)((-posInChunk.z + 1) * TEX_HEIGHT / 2);
 
-            posInChunk.y = perlin_tex[(x + y * TEX_HEIGHT)*3] * 2 - 1;
+            posInChunk.y = perlin_tex[(x + y * TEX_HEIGHT) * 3] * 2 - 1;
 
-            float temperature = perlin_tex[(x + y * TEX_HEIGHT)*3 + 1];
-            float altitude = perlin_tex[(x + y * TEX_HEIGHT)*3 + 2];
+            float temperature = perlin_tex[(x + y * TEX_HEIGHT) * 3 + 1];
+            float altitude = perlin_tex[(x + y * TEX_HEIGHT) * 3 + 2];
 
             TreeStruct tree_struct;
             tree_struct.pos = posInChunk;
@@ -386,12 +389,12 @@ class Simulation {
             int best_biome = -1;
             float min_dist = 9999;
             for (int i = 0; i < BIOME_COUNT; i++) {
-                float dist = (temperature - biome_position[i].x)*(temperature - biome_position[i].x) + (altitude - biome_position[i].y)*(altitude - biome_position[i].y);
+                float dist = (temperature - biome_position[i].x) * (temperature - biome_position[i].x) +
+                             (altitude - biome_position[i].y) * (altitude - biome_position[i].y);
                 if (dist < min_dist) {
                     min_dist = dist;
                     best_biome = i;
                 }
-
             }
 
             if (biome_trees[best_biome].size() > 0) {
@@ -427,8 +430,8 @@ class Simulation {
     /* ********** Events ********** */
 
     void onMouseMove(GLFWwindow *window, double x, double y) {
-        camera_theta += (float) (x - cursor_x) * MOUSE_SENSIBILTY;
-        camera_phi += (float) (y - cursor_y) * MOUSE_SENSIBILTY;
+        camera_theta += (float)(x - cursor_x) * MOUSE_SENSIBILTY;
+        camera_phi += (float)(y - cursor_y) * MOUSE_SENSIBILTY;
         camera_phi = clamp(camera_phi, (float)(M_PI / 10), (float)(9 * M_PI / 10));
         cursor_x = x;
         cursor_y = y;
@@ -479,7 +482,7 @@ class Simulation {
             case GLFW_KEY_SPACE:
                 if (cameraMode == GROUND && !is_jumping) {
                     is_jumping = true;
-                    y_speed = (float) JUMP_SPEED;
+                    y_speed = (float)JUMP_SPEED;
                 }
                 break;
             default:

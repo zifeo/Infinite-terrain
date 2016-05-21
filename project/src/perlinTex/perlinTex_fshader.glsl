@@ -22,13 +22,16 @@ uniform float altitude_H;
 
 #define BIOME_COUNT 4
 
-vec2 biome_position [BIOME_COUNT] = vec2[](vec2(0.5,0.5), vec2(0.65,0.35), vec2(0.35,0.65), vec2(0.2, 0.5)); // x -> temp, y -> altitude, if changes, need to copy to grid shaders !
+vec2 biome_position[BIOME_COUNT] =
+    vec2[](vec2(0.5, 0.5), vec2(0.65, 0.35), vec2(0.35, 0.65),
+           vec2(0.2, 0.5)); // x -> temp, y -> altitude, if changes, need to copy to grid shaders !
 
-vec3 biome_parameter [BIOME_COUNT] = vec3[](vec3(H, lac, octaves), vec3(H, lac*50, 2), vec3(H, lac, octaves), vec3(H, lac, octaves)); // x -> H, y -> lac, z -> octaves
+vec3 biome_parameter[BIOME_COUNT] = vec3[](vec3(H, lac, octaves), vec3(H, lac * 50, 2), vec3(H, lac, octaves),
+                                           vec3(H, lac, octaves)); // x -> H, y -> lac, z -> octaves
 
-float biome_amplitude [BIOME_COUNT] = float[](1, 0.3, 1.1, 1);
+float biome_amplitude[BIOME_COUNT] = float[](1, 0.3, 1.1, 1);
 
-float biome_offset [BIOME_COUNT] = float[](0, 0.3, 0.3, -0.3);
+float biome_offset[BIOME_COUNT] = float[](0, 0.3, 0.3, -0.3);
 
 float perl_mix(float x, float y, float a) { return (1 - a) * x + a * y; }
 
@@ -88,13 +91,14 @@ float noiseBFM(vec2 point, vec3 param) {
 
 void main() {
     float temperature = noiseBFM(point / 10, vec3(temperature_H, temperature_lac, temperature_octave));
-    float altitude =  noiseBFM((point + vec2(100)) / 10, vec3(altitude_H, altitude_lac, altitude_octave));
+    float altitude = noiseBFM((point + vec2(100)) / 10, vec3(altitude_H, altitude_lac, altitude_octave));
 
     float coeff_biomes[BIOME_COUNT];
     float sum = 0;
     for (int i = 0; i < BIOME_COUNT; i++) {
-        float dist = (temperature - biome_position[i].x)*(temperature - biome_position[i].x) + (altitude - biome_position[i].y)*(altitude - biome_position[i].y);
-        coeff_biomes[i] = 1 / (dist*dist*dist);
+        float dist = (temperature - biome_position[i].x) * (temperature - biome_position[i].x) +
+                     (altitude - biome_position[i].y) * (altitude - biome_position[i].y);
+        coeff_biomes[i] = 1 / (dist * dist * dist);
         sum += coeff_biomes[i];
     }
 

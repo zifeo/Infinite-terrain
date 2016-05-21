@@ -21,49 +21,51 @@ uniform int x_chunk;
 
 #define BIOME_COUNT 4
 
-vec2 biome_position [BIOME_COUNT] = vec2[](vec2(0.5,0.5), vec2(0.65,0.35), vec2(0.35,0.65), vec2(0.2, 0.5)); // x -> temp, y -> altitude, if changes, need to copy to perlin shaders !
+vec2 biome_position[BIOME_COUNT] =
+    vec2[](vec2(0.5, 0.5), vec2(0.65, 0.35), vec2(0.35, 0.65),
+           vec2(0.2, 0.5)); // x -> temp, y -> altitude, if changes, need to copy to perlin shaders !
 
 float coeffSand(float height, float angle, int biome) { // angle => 0 = plat, 1 = falaise
-    switch(biome){
-        default:
-            return clamp((1 - angle) * (1 - 25 * (height - 0.2) * (height - 0.2)), 0, 1);
-        case 1:
-            return 1;
-        case 2:
-            return 0;
+    switch (biome) {
+    default:
+        return clamp((1 - angle) * (1 - 25 * (height - 0.2) * (height - 0.2)), 0, 1);
+    case 1:
+        return 1;
+    case 2:
+        return 0;
     }
 }
 
 float coeffGrass(float height, float angle, int biome) {
-    switch(biome){
-        default:
-            return clamp((1 - angle) * (1 - 25 * (height - 0.5) * (height - 0.5)), 0, 1);
-        case 1:
-            return 0;
-        case 2:
-            return 0;
+    switch (biome) {
+    default:
+        return clamp((1 - angle) * (1 - 25 * (height - 0.5) * (height - 0.5)), 0, 1);
+    case 1:
+        return 0;
+    case 2:
+        return 0;
     }
 }
 
 float coeffRock(float height, float angle, int biome) {
-    switch(biome){
-        default:
-            return clamp(angle + 1 * (1 - 225 * (height - 0.58) * (height - 0.58)), 0, 1);
-        case 1:
-            return 0;
-        case 2:
-            return 0;
+    switch (biome) {
+    default:
+        return clamp(angle + 1 * (1 - 225 * (height - 0.58) * (height - 0.58)), 0, 1);
+    case 1:
+        return 0;
+    case 2:
+        return 0;
     }
 }
 
 float coeffSnow(float height, float angle, int biome) {
-    switch(biome){
-        default:
-            return clamp((1 - angle) * (1 - 25 * (height - 0.75) * (height - 0.75)), 0, 1);
-        case 1:
-            return 0;
-        case 2:
-            return 1;
+    switch (biome) {
+    default:
+        return clamp((1 - angle) * (1 - 25 * (height - 0.75) * (height - 0.75)), 0, 1);
+    case 1:
+        return 0;
+    case 2:
+        return 1;
     }
 }
 
@@ -106,8 +108,9 @@ void main() {
     float coeff_biomes[BIOME_COUNT];
     float sum = 0;
     for (int i = 0; i < BIOME_COUNT; i++) {
-        float dist = (temperature - biome_position[i].x)*(temperature - biome_position[i].x) + (altitude - biome_position[i].y)*(altitude - biome_position[i].y);
-        coeff_biomes[i] = 1 / (dist*dist*dist);
+        float dist = (temperature - biome_position[i].x) * (temperature - biome_position[i].x) +
+                     (altitude - biome_position[i].y) * (altitude - biome_position[i].y);
+        coeff_biomes[i] = 1 / (dist * dist * dist);
         sum += coeff_biomes[i];
     }
 

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../Config.h"
 #include "icg_helper.h"
 #include <glm/gtc/type_ptr.hpp>
-#include "../Config.h"
 
 class Tree {
 
@@ -77,9 +77,9 @@ class Tree {
 
         {
             initTexture("tree_texture.tga", &tree_texture_id_, "tree_tex", GL_TEXTURE0);
-            initTexture("desert_tree_texture.tga", &desert_tree_texture_id_, "desert_tree_tex", GL_TEXTURE0+1);
-            initTexture("cactus_texture.tga", &cactus_texture_id_, "cactus_tex", GL_TEXTURE0+2);
-            initTexture("algae_texture.tga", &algae_texture_id_, "algae_tex", GL_TEXTURE0+3);
+            initTexture("desert_tree_texture.tga", &desert_tree_texture_id_, "desert_tree_tex", GL_TEXTURE0 + 1);
+            initTexture("cactus_texture.tga", &cactus_texture_id_, "cactus_tex", GL_TEXTURE0 + 2);
+            initTexture("algae_texture.tga", &algae_texture_id_, "algae_tex", GL_TEXTURE0 + 3);
         }
 
         // other uniforms
@@ -103,9 +103,8 @@ class Tree {
         glDeleteTextures(1, &tree_texture_id_);
     }
 
-    void Draw(float angle, float time, TreeType type,
-              const glm::mat4 &model = IDENTITY_MATRIX, const glm::mat4 &view = IDENTITY_MATRIX,
-              const glm::mat4 &projection = IDENTITY_MATRIX) {
+    void Draw(float angle, float time, TreeType type, const glm::mat4 &model = IDENTITY_MATRIX,
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
@@ -114,17 +113,13 @@ class Tree {
 
         if (type == NORMAL_TREE) {
             glBindTexture(GL_TEXTURE_2D, tree_texture_id_);
-        }
-        else if (type == DESERT_TREE){
+        } else if (type == DESERT_TREE) {
             glBindTexture(GL_TEXTURE_2D, desert_tree_texture_id_);
-        }
-        else if (type == CACTUS){
+        } else if (type == CACTUS) {
             glBindTexture(GL_TEXTURE_2D, cactus_texture_id_);
-        }
-        else if (type == ALGAE){
+        } else if (type == ALGAE) {
             glBindTexture(GL_TEXTURE_2D, algae_texture_id_);
-        }
-        else {
+        } else {
             cout << "ERROR : UNEXISISTING TREE TYPE" << endl;
         }
 
