@@ -9,6 +9,7 @@
 #include "sky/sky.h"
 #include "tree/tree.h"
 #include "water/water.h"
+#include "Bezier.h"
 
 #include <glm/gtx/transform.hpp>
 
@@ -42,9 +43,7 @@ private:
     mat4 view_matrix;
 
     // view mode
-    enum Mode {
-        DEFAULT = 0, PERLIN, TEXTURE, FLIP
-    };
+    enum Mode { DEFAULT = 0, PERLIN, FLIGHT, RECORD, BEZIER };
     Mode mode = DEFAULT;
 
     // fps
@@ -66,13 +65,21 @@ private:
         vector<vec2> treeList;
     } ChunkTex;
 
-    map<long, ChunkTex> chunk_map;
+    map<uint64_t, ChunkTex> chunk_map;
 
     // objects
     Grid grid;
     Water water;
     Tree tree;
     Sky sky;
+
+    Bezier path;
+    Bezier cam;
+     bool start_path = true;
+    double b_start_time;
+
+    bool start_record = true;
+    bool recording = false;
 
     // TODO : normal tex ?
 
@@ -95,6 +102,36 @@ public:
         water.Init(water_reflection_tex_id);
         sky.Init();
         tree.Init();
+
+        int reverse_arr[9] = {1, 0, 0,
+                              0, 0, -1,
+                              0, 1, 0};
+
+        mat3x3 reverse = glm::make_mat3(reverse_arr);
+        // bezier init; 
+        glm::vec3 vec1 = reverse * glm::vec3(0,0,1);
+         path.addPoint(vec1);
+        vec1 = reverse * glm::vec3(1,1,1.5);
+         path.addPoint(vec1);
+        vec1 = reverse * glm::vec3(2,2,2);
+         path.addPoint(vec1);
+         vec1 = reverse * glm::vec3(3,3,2);
+         path.addPoint(vec1);
+         vec1 = reverse * glm::vec3(4,4,2);
+         path.addPoint(vec1);
+        vec1 = reverse * glm::vec3(5,5,2);
+         path.addPoint(vec1);
+         vec1 = reverse * glm::vec3(6,6,2);
+         path.addPoint(vec1);
+         vec1 = reverse * glm::vec3(7,7,2);
+         path.addPoint(vec1);
+        vec1 = reverse * glm::vec3(8,8,2);
+         path.addPoint(vec1);
+        vec1 = reverse * glm::vec3(9,9,1.5);
+         path.addPoint(vec1);
+        vec1 = reverse * glm::vec3(10,10,1);
+         path.addPoint(vec1);
+
     }
 
     void drawChunk(mat4 model, mat4 view, float clipping_height = 0.0f) {
@@ -111,6 +148,8 @@ public:
     void display() {
 
         double start_time = glfwGetTime();
+
+        // Display
         glViewport(0, 0, window_width, window_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         float water_height_sh = -0.2;
@@ -123,18 +162,16 @@ public:
         switch (mode) {
 
             case DEFAULT:
-
                 break;
-
             case PERLIN:
                 perlinTex.Draw(octave, lacunarity, fractal_increment, 0, 0);
                 break;
-            case FLIP:
-            case TEXTURE:
+            case FLIGHT:
+            case RECORD:
+            case BEZIER:
 
                 vec3 pos = vec3(2 * VIEW_DIST + 1, 1, 2 * VIEW_DIST + 1);
-                if (mode != FLIP)
-                    water_reflection.Bind();
+                water_reflection.Bind();
                 {
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                     glEnable(GL_CLIP_DISTANCE0);
@@ -143,19 +180,17 @@ public:
                     sky.Draw(translate(projection_matrix * model_matrix * view_matrix_reflection, cam_pos2));
 
                 }
-                if (mode != FLIP)
-                    water_reflection.Unbind();
+                water_reflection.Unbind();
 
-                if (mode != FLIP)
-                    drawChunk(model_matrix, view_matrix);
+                drawChunk(model_matrix, view_matrix);
 
                 //for (auto &chunk : chunk_map) {
                 int i = 0;
                 int j = 0;
 
                 mat4 model = scale(model_matrix, vec3(5, 1, 5));
-                if (mode != FLIP)
-                    water.Draw((float) start_time, i, j, model, view_matrix, projection_matrix);
+                model = translate(model, vec3(cam_pos.x/5, 0, cam_pos.z/5));
+                water.Draw((float) start_time, i, j, model, view_matrix, projection_matrix);
 
                 //}
 
@@ -200,23 +235,80 @@ public:
             last_time = start_time;
         }
 
-        // Camera movements
-        if (arrows_down[UP]) {
-            cam_pos += vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
-            //cam_pos.y += CAMERA_SPEED;
+        switch (mode) {
+            case RECORD:
+                if (start_record) {
+                    path.purge();
+                    vec3* new_pos = new vec3(cam_pos);
+                    path.addPoint(*new_pos);
+                    vec3* new_orien = new vec3(camera_phi, camera_theta, 0);
+                    cam.addPoint(*new_orien);
+                    start_record = false;
+                    recording = true;
+                }
+            case FLIGHT:
+                // Camera movements
+                if (arrows_down[UP]) {
+                    cam_pos += vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
+                }
+                if (arrows_down[DOWN]) {
+                    cam_pos -= vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
+                }
+                if (arrows_down[RIGHT]) {
+                    cam_pos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
+                }
+                if (arrows_down[LEFT]) {
+                    cam_pos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
+                }
+                break;
+            case BEZIER:
+                if (start_path) {
+                     path.print_list();
+                    cam.print_list();
+                    b_start_time = start_time;
+                    start_path = false; 
+                } else {
+                     double bezier_time = start_time - b_start_time;
+
+                    cam_pos = path.bezierPoint(bezier_time);  
+                    if (!(bezier_time <= path.get_nbr_elem() - 1)) {
+                        start_path = true;
+                    }
+
+                    vec3 newAngles = cam.bezierPoint(bezier_time);
+                    camera_phi = newAngles.x;
+                    camera_theta = newAngles.y;
+
+                    int chunkCamX = (int)floor((cam_pos.x + 1) / 2);
+                    int chunkCamY = (int)floor((cam_pos.z + 1) / 2);
+
+                    float posInChunkX = ((cam_pos.x + 1) / 2) - chunkCamX;
+                    float posInChunkY = ((cam_pos.z + 1) / 2) - chunkCamY;
+
+                    map<uint64_t, ChunkTex>::iterator it = chunk_map.find(getKey(chunkCamX, chunkCamY));
+
+                    if (it != chunk_map.end()) { // Sometimes, just before the chunk's generation, there is no ground at the
+                        // bottom of the camera
+                        it->second.tex.Bind();
+
+                        GLfloat r[1];
+                        glReadPixels((int) (posInChunkX * TEX_WIDTH), (int) (TEX_HEIGHT - posInChunkY * TEX_HEIGHT), 1,
+                                     1, GL_RED,
+                                     GL_FLOAT, r);
+                        it->second.tex.Unbind();
+
+                        float newHeight = r[0] * 2 - 1 + 0.17;
+
+                        if (newHeight > cam_pos.y){
+                            cam_pos.y = newHeight;
+                        }
+                    }
+                }
+                break;
         }
-        if (arrows_down[DOWN]) {
-            cam_pos -= vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
-            //cam_pos.y -= CAMERA_SPEED;
-        }
-        if (arrows_down[RIGHT]) {
-            cam_pos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
-            //cam_pos.x += CAMERA_SPEED;
-        }
-        if (arrows_down[LEFT]) {
-            cam_pos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
-            //cam_pos.x -= CAMERA_SPEED;
-        }
+
+
+
 
         // + 1 is because we are in the middle of a chunk
         // / 2 because a chunk is of length 2
@@ -228,7 +320,7 @@ public:
                 int i = chunkX + dx;
                 int j = chunkY + dy;
 
-                map<long, ChunkTex>::iterator it = chunk_map.find(getKey(i, j));
+                map<uint64_t, ChunkTex>::iterator it = chunk_map.find(getKey(i, j));
 
                 if (it == chunk_map.end()) {
                     initChunk(i, j);
@@ -251,7 +343,7 @@ public:
         chunk_map.clear();
     }
 
-    /* ********** Helpers ********** */
+/* ********** Helpers ********** */
 
     inline vec3 vecFromRot(float p, float t) { return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t)); }
 
@@ -279,7 +371,7 @@ public:
             chunk.treeList.push_back(posInChunk);
         }
 
-        chunk_map.insert(pair<long, ChunkTex>(getKey(i, j), chunk));
+        chunk_map.insert(pair<uint64_t, ChunkTex>(getKey(i, j), chunk));
     }
 
     void set_noise_params(int doctave, float dlacunarity, float dfractal_increment) {
@@ -296,14 +388,16 @@ public:
         cout << "fractal increment: " << fractal_increment << endl;
     }
 
-    /* ********** Events ********** */
+/* ********** Events ********** */
 
     void onMouseMove(GLFWwindow *window, double x, double y) {
-        camera_theta += (x - cursor_x) * MOUSE_SENSIBILTY;
-        camera_phi += (y - cursor_y) * MOUSE_SENSIBILTY;
-        camera_phi = clamp(camera_phi, (float) (M_PI / 10), (float) (9 * M_PI / 10));
-        cursor_x = x;
-        cursor_y = y;
+        if (mode != BEZIER) {
+            camera_theta += (x - cursor_x) * MOUSE_SENSIBILTY;
+            camera_phi += (y - cursor_y) * MOUSE_SENSIBILTY;
+            camera_phi = clamp(camera_phi, (float) (M_PI / 10), (float) (9 * M_PI / 10));
+            cursor_x = x;
+            cursor_y = y;
+        }
     }
 
     void onResize(GLFWwindow *window) {
@@ -323,8 +417,21 @@ public:
         }
 
         if (GLFW_KEY_1 <= key && key <= GLFW_KEY_9) {
-            mode = static_cast<Mode>(key - GLFW_KEY_1);
-            glfwSetInputMode(window, GLFW_CURSOR, mode == DEFAULT ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+            Mode next_mode = static_cast<Mode>(key - GLFW_KEY_1);
+            glfwSetInputMode(window, GLFW_CURSOR, next_mode == DEFAULT ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+
+            if (next_mode != mode) {
+                switch (next_mode) {
+                    case RECORD:
+                        start_record = true;
+                        break;
+                    case BEZIER:
+                        start_path = true;
+                        break;
+                }
+            }
+
+            mode = next_mode;
         }
 
         if (action == GLFW_PRESS) {
@@ -344,6 +451,14 @@ public:
                     break;
                 case GLFW_KEY_L:
                     set_noise_params(+1, 0, 0);
+                    break;
+                case GLFW_KEY_K:
+                    if (recording) {
+                        vec3* newpos = new vec3(cam_pos);
+                        path.addPoint(*newpos);
+                        vec3* new_orien = new vec3(camera_phi, camera_theta, 0);
+                        cam.addPoint(*new_orien);
+                    }
                     break;
                 case 59 /*É*/:
                     set_noise_params(-1, 0.01, 0);
