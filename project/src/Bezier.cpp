@@ -9,24 +9,39 @@
 glm::vec3 Bezier::bezierPoint(double t) {
     if (nbr_knot < 1) {
         double newT = t / nbr_elem;
-        return calculateBezier(newT, 0, nbr_elem);
+        return calculateBezier(newT, 0, nbr_elem - 1);
     } else {
-        int part_begin = t;
+        int part_begin = floor(t / (per_knot - 1)) * (per_knot - 1);
         int part_end = part_begin + (per_knot - 1);
-        double newT = fmod(t, per_knot - 1)/(per_knot - 1);
 
-        if (part_end > nbr_knot) {
-            newT *= fmod(t, per_knot - 1)/(per_knot - 1 + nbr_elem % per_knot);
+        if (part_end > nbr_knot*per_knot) {
+            part_begin = nbr_knot*(per_knot - 1);
             part_end = nbr_elem - 1;
         }
+
+        int diff = part_end - part_begin;
+        double newT = (t - part_begin) / diff;
 
         return calculateBezier(newT, part_begin, part_end);
     }
 }
 
+void Bezier::print_list() {
+    for (auto &vec : list_points) // access by reference to avoid copying
+    {
+        print_vec3(vec, "vec");
+    }
+}
+
+void Bezier::print_vec3(glm::vec3 vec, string name) {
+    cout << "new " << name << " : "  << vec.x << ", " << vec.y << ", " << vec.z << endl;
+}
+
 void Bezier::addPoint(glm::vec3 &point) {
+
     if (nbr_elem > (per_knot - 1) && nbr_elem % (per_knot - 1) == 0) {
-        list_points.at(nbr_elem - 1) = (list_points.at(nbr_elem - 2) + point) * 0.5f;
+        int knot_point = nbr_elem - (per_knot - 1);
+        list_points.at(knot_point) = (list_points.at(knot_point - 1) + list_points.at(knot_point + 1)) * 0.5f;
         nbr_knot++;
     }
     list_points.push_back(point);
@@ -35,10 +50,8 @@ void Bezier::addPoint(glm::vec3 &point) {
 
 glm::vec3 Bezier::calculateBezier(double t, int part_begin, int part_end) {
     glm::vec3 bn = glm::vec3(0.0f);
-
-    for (int i = 0; i < part_end - part_begin; i++) {
-        glm::vec3 bi = list_points.at(part_begin + i) * bernsteinPolynom(t, part_end - part_begin - 1, i);
-
+    for (int i = 0; i < part_end - part_begin + 1; i++) {
+        glm::vec3 bi = list_points.at(part_begin + i) * bernsteinPolynom(t, part_end - part_begin, i);
         bn = bn + bi;
     }
 

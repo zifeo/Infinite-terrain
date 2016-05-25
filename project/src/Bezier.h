@@ -15,12 +15,25 @@ using namespace std;
 class Bezier {
     public:
         glm::vec3 bezierPoint(double t);
+        static void print_vec3(glm::vec3 vec, string name);
         void addPoint(glm::vec3 &point);
+        void print_list();
+
+        int get_nbr_elem() const {
+            return nbr_elem;
+        }
+
+        void purge(){
+            list_points.clear();
+            nbr_knot = 0;
+            nbr_elem = 0;
+        };
+
     private:
-        int per_knot = 4;
         vector<glm::vec3> list_points;
-        int nbr_knot = 0;
         int nbr_elem = 0;
+        int per_knot = 4;
+        int nbr_knot = 0;
 
         glm::vec3 calculateBezier(double t, int part_begin, int part_end);
 
