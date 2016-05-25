@@ -10,6 +10,8 @@
 #include "tree/tree.h"
 #include "water/water.h"
 
+#include <glm/gtx/transform.hpp>
+
 #include <map>
 #include <stdint.h>
 
@@ -18,7 +20,7 @@ using namespace glm;
 
 class Simulation {
 
-  private:
+private:
     // windows parameters
     int window_width = WINDOW_WIDTH;
     int window_height = WINDOW_HEIGHT;
@@ -26,7 +28,9 @@ class Simulation {
     double cursor_y = 0;
 
     // camera displacement
-    enum { UP = 0, DOWN, RIGHT, LEFT };
+    enum {
+        UP = 0, DOWN, RIGHT, LEFT
+    };
     bool arrows_down[4] = {false, false, false, false};
     float camera_phi = 2.0f;
     float camera_theta = 0.0f;
@@ -38,7 +42,9 @@ class Simulation {
     mat4 view_matrix;
 
     // view mode
-    enum Mode { DEFAULT = 0, PERLIN, TEXTURE };
+    enum Mode {
+        DEFAULT = 0, PERLIN, TEXTURE, FLIP
+    };
     Mode mode = DEFAULT;
 
     // fps
@@ -73,7 +79,7 @@ class Simulation {
     // water reflection
     FrameBuffer water_reflection;
 
-  public:
+public:
     /* ********** States ********** */
 
     void init(GLFWwindow *window) {
@@ -107,77 +113,83 @@ class Simulation {
         double start_time = glfwGetTime();
         glViewport(0, 0, window_width, window_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-float water_height = 0.45;
+        float water_height_sh = -0.2;
+        float water_height = (water_height_sh + 1)/2;
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
-        vec3 cam_pos2 = vec3(cam_pos.x, -cam_pos.y + 2 * water_height, cam_pos.z);
+        vec3 cam_pos2 = vec3(cam_pos.x, -cam_pos.y + 2 * water_height_sh, cam_pos.z);
         mat4 view_matrix_reflection = lookAt(cam_pos2, cam_pos2 + vecFromRot(M_PI - camera_phi, camera_theta), vec3(0.0f, -1.0f, 0.0f));
 
         switch (mode) {
 
-        case DEFAULT:
+            case DEFAULT:
 
-            break;
+                break;
 
-        case PERLIN:
-            perlinTex.Draw(octave, lacunarity, fractal_increment, 0, 0);
-            break;
-        case TEXTURE:
+            case PERLIN:
+                perlinTex.Draw(octave, lacunarity, fractal_increment, 0, 0);
+                break;
+            case FLIP:
+            case TEXTURE:
 
-                vec3 pos = vec3(2*VIEW_DIST + 1, 1, 2*VIEW_DIST + 1);
+                vec3 pos = vec3(2 * VIEW_DIST + 1, 1, 2 * VIEW_DIST + 1);
+                if (mode != FLIP)
+                    water_reflection.Bind();
+                {
+                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                    glEnable(GL_CLIP_DISTANCE0);
+                    drawChunk(model_matrix, view_matrix_reflection, water_height);
+                    glDisable(GL_CLIP_DISTANCE0);
+                    sky.Draw(translate(projection_matrix * model_matrix * view_matrix_reflection, cam_pos2));
 
-            water_reflection.Bind();
-            {
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                glEnable(GL_CLIP_DISTANCE0);
-                drawChunk(model_matrix, view_matrix, water_height);
-                glDisable(GL_CLIP_DISTANCE0);
+                }
+                if (mode != FLIP)
+                    water_reflection.Unbind();
 
-            }
-            water_reflection.Unbind();
-
-                drawChunk(model_matrix, view_matrix);
+                if (mode != FLIP)
+                    drawChunk(model_matrix, view_matrix);
 
                 //for (auto &chunk : chunk_map) {
                 int i = 0;
                 int j = 0;
 
-                mat4 model = scale(model_matrix, pos);
-                water.Draw((float)start_time, i, j, model, view_matrix, projection_matrix);
+                mat4 model = scale(model_matrix, vec3(5, 1, 5));
+                if (mode != FLIP)
+                    water.Draw((float) start_time, i, j, model, view_matrix, projection_matrix);
 
-            //}
+                //}
 
-            /*
-            for (auto &chunk : chunk_map) {
-                int i = chunk.second.x;
-                int j = chunk.second.y;
+                /*
+                for (auto &chunk : chunk_map) {
+                    int i = chunk.second.x;
+                    int j = chunk.second.y;
 
-                for (int k = 0; k < chunk.second.treeList.size(); k++) {
-                    vec2 posInChunk = chunk.second.treeList[k];
-                    mat4 model = translate(model_matrix, vec3((i - CHUNKS / 2) * 2 - DELTA * i + posInChunk.x, 0,
-                                                              -((j - CHUNKS / 2) * 2 - DELTA * j + posInChunk.y)));
+                    for (int k = 0; k < chunk.second.treeList.size(); k++) {
+                        vec2 posInChunk = chunk.second.treeList[k];
+                        mat4 model = translate(model_matrix, vec3((i - CHUNKS / 2) * 2 - DELTA * i + posInChunk.x, 0,
+                                                                  -((j - CHUNKS / 2) * 2 - DELTA * j + posInChunk.y)));
 
-                    if (TURNING_TREES) {
-                        float x = (i - CHUNKS / 2) * 2 - DELTA * i + posInChunk.x - cam_pos.x;
-                        float y = -((j - CHUNKS / 2) * 2 - DELTA * j + posInChunk.y) - cam_pos.z;
-                        float angle = y > 0 ? M_PI / 2 + acos(x / (sqrt(x * x + y * y)))
-                                            : M_PI / 2 - acos(x / (sqrt(x * x + y * y)));
-                        tree.Draw(angle, posInChunk, it->second.perlinBuffer_tex_id, (float)start_time,
-                                  it->second.perlinBuffer_tex_id, 0, model, view_matrix, projection_matrix);
-                    } else {
-                        float angle = 0.0f;
-                        for (int l = 0; l < TREE_PLANE_COUNT; l++) {
+                        if (TURNING_TREES) {
+                            float x = (i - CHUNKS / 2) * 2 - DELTA * i + posInChunk.x - cam_pos.x;
+                            float y = -((j - CHUNKS / 2) * 2 - DELTA * j + posInChunk.y) - cam_pos.z;
+                            float angle = y > 0 ? M_PI / 2 + acos(x / (sqrt(x * x + y * y)))
+                                                : M_PI / 2 - acos(x / (sqrt(x * x + y * y)));
                             tree.Draw(angle, posInChunk, it->second.perlinBuffer_tex_id, (float)start_time,
                                       it->second.perlinBuffer_tex_id, 0, model, view_matrix, projection_matrix);
-                            angle += M_PI / TREE_PLANE_COUNT;
+                        } else {
+                            float angle = 0.0f;
+                            for (int l = 0; l < TREE_PLANE_COUNT; l++) {
+                                tree.Draw(angle, posInChunk, it->second.perlinBuffer_tex_id, (float)start_time,
+                                          it->second.perlinBuffer_tex_id, 0, model, view_matrix, projection_matrix);
+                                angle += M_PI / TREE_PLANE_COUNT;
+                            }
                         }
                     }
                 }
-            }
-             */
+                 */
 
-            sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
-            break;
+                sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
+                break;
         }
 
         // Measure speed
@@ -191,15 +203,19 @@ float water_height = 0.45;
         // Camera movements
         if (arrows_down[UP]) {
             cam_pos += vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
+            //cam_pos.y += CAMERA_SPEED;
         }
         if (arrows_down[DOWN]) {
             cam_pos -= vecFromRot(camera_phi, camera_theta) * vec3(CAMERA_SPEED);
+            //cam_pos.y -= CAMERA_SPEED;
         }
         if (arrows_down[RIGHT]) {
             cam_pos -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
+            //cam_pos.x += CAMERA_SPEED;
         }
         if (arrows_down[LEFT]) {
             cam_pos += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(camera_phi, camera_theta)) * vec3(CAMERA_SPEED);
+            //cam_pos.x -= CAMERA_SPEED;
         }
 
         // + 1 is because we are in the middle of a chunk
@@ -285,14 +301,14 @@ float water_height = 0.45;
     void onMouseMove(GLFWwindow *window, double x, double y) {
         camera_theta += (x - cursor_x) * MOUSE_SENSIBILTY;
         camera_phi += (y - cursor_y) * MOUSE_SENSIBILTY;
-        camera_phi = clamp(camera_phi, (float)(M_PI / 10), (float)(9 * M_PI / 10));
+        camera_phi = clamp(camera_phi, (float) (M_PI / 10), (float) (9 * M_PI / 10));
         cursor_x = x;
         cursor_y = y;
     }
 
     void onResize(GLFWwindow *window) {
         glfwGetFramebufferSize(window, &window_width, &window_height);
-        float ratio = window_width / (float)window_height;
+        float ratio = window_width / (float) window_height;
         projection_matrix = perspective(45.0f, ratio, 0.1f, 100.0f);
         glViewport(0, 0, window_width, window_height);
         //water_reflection.Cleanup();
@@ -314,44 +330,44 @@ float water_height = 0.45;
         if (action == GLFW_PRESS) {
 
             switch (key) {
-            case GLFW_KEY_O:
-                set_noise_params(0, 0, +0.01f);
-                break;
-            case GLFW_KEY_P:
-                set_noise_params(0, 0, -0.01f);
-                break;
-            case GLFW_KEY_F:
-                set_noise_params(0, +0.01f, 0);
-                break;
-            case GLFW_KEY_G:
-                set_noise_params(0, -0.01f, 0);
-                break;
-            case GLFW_KEY_L:
-                set_noise_params(+1, 0, 0);
-                break;
-            case 59 /*É*/:
-                set_noise_params(-1, 0.01, 0);
-                break;
-            default:
-                break;
+                case GLFW_KEY_O:
+                    set_noise_params(0, 0, +0.01f);
+                    break;
+                case GLFW_KEY_P:
+                    set_noise_params(0, 0, -0.01f);
+                    break;
+                case GLFW_KEY_F:
+                    set_noise_params(0, +0.01f, 0);
+                    break;
+                case GLFW_KEY_G:
+                    set_noise_params(0, -0.01f, 0);
+                    break;
+                case GLFW_KEY_L:
+                    set_noise_params(+1, 0, 0);
+                    break;
+                case 59 /*É*/:
+                    set_noise_params(-1, 0.01, 0);
+                    break;
+                default:
+                    break;
             }
         }
 
         switch (key) {
-        case GLFW_KEY_W:
-            arrows_down[UP] = (action != GLFW_RELEASE);
-            break;
-        case GLFW_KEY_S:
-            arrows_down[DOWN] = (action != GLFW_RELEASE);
-            break;
-        case GLFW_KEY_D:
-            arrows_down[RIGHT] = (action != GLFW_RELEASE);
-            break;
-        case GLFW_KEY_A:
-            arrows_down[LEFT] = (action != GLFW_RELEASE);
-            break;
-        default:
-            break;
+            case GLFW_KEY_W:
+                arrows_down[UP] = (action != GLFW_RELEASE);
+                break;
+            case GLFW_KEY_S:
+                arrows_down[DOWN] = (action != GLFW_RELEASE);
+                break;
+            case GLFW_KEY_D:
+                arrows_down[RIGHT] = (action != GLFW_RELEASE);
+                break;
+            case GLFW_KEY_A:
+                arrows_down[LEFT] = (action != GLFW_RELEASE);
+                break;
+            default:
+                break;
         }
     }
 };
