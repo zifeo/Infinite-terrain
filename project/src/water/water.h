@@ -38,7 +38,7 @@ class Water {
         {
             std::vector<GLfloat> vertices;
             std::vector<GLuint> indices;
-            int grid_dim = 128;
+            int grid_dim = 1;
 
             float half = grid_dim / 2.0;
 
