@@ -1,8 +1,8 @@
 //
 // Created by Nicolas Casademont on 22/05/16.
 //
-#include <tgmath.h>
 #include <iostream>
+#include <tgmath.h>
 
 #include "Bezier.h"
 
@@ -14,8 +14,8 @@ glm::vec3 Bezier::bezierPoint(double t) {
         int part_begin = floor(t / (per_knot - 1)) * (per_knot - 1);
         int part_end = part_begin + (per_knot - 1);
 
-        if (part_end > nbr_knot*per_knot) {
-            part_begin = nbr_knot*(per_knot - 1);
+        if (part_end > nbr_knot * per_knot) {
+            part_begin = nbr_knot * (per_knot - 1);
             part_end = nbr_elem - 1;
         }
 
@@ -34,7 +34,7 @@ void Bezier::print_list() {
 }
 
 void Bezier::print_vec3(glm::vec3 vec, string name) {
-    cout << "new " << name << " : "  << vec.x << ", " << vec.y << ", " << vec.z << endl;
+    cout << "new " << name << " : " << vec.x << ", " << vec.y << ", " << vec.z << endl;
 }
 
 void Bezier::addPoint(glm::vec3 &point) {
@@ -58,15 +58,10 @@ glm::vec3 Bezier::calculateBezier(double t, int part_begin, int part_end) {
     return bn;
 }
 
-
 float Bezier::bernsteinPolynom(double t, int n, int i) {
-    return Bezier::binomial(n, i) * pow(t, i) * pow(1-t, n - i);
+    return Bezier::binomial(n, i) * pow(t, i) * pow(1 - t, n - i);
 }
 
-float Bezier::binomial(int n, int k) {
-    return fact(n)/(fact(n - k)*fact(k));
-}
+float Bezier::binomial(int n, int k) { return fact(n) / (fact(n - k) * fact(k)); }
 
-float Bezier::fact(int n) {
-    return (n == 1 || n == 0) ? 1 : fact(n - 1) * n;
-}
+float Bezier::fact(int n) { return (n == 1 || n == 0) ? 1 : fact(n - 1) * n; }
