@@ -239,6 +239,7 @@ public:
             case RECORD:
                 if (start_record) {
                     path.purge();
+                    cam.purge();
                     vec3* new_pos = new vec3(cam_pos);
                     path.addPoint(*new_pos);
                     vec3* new_orien = new vec3(camera_phi, camera_theta, 0);
@@ -270,37 +271,38 @@ public:
                 } else {
                      double bezier_time = start_time - b_start_time;
 
-                    cam_pos = path.bezierPoint(bezier_time);  
-                    if (!(bezier_time <= path.get_nbr_elem() - 1)) {
+                    if (!(bezier_time <= path.get_nbr_elem())) {
                         start_path = true;
-                    }
+                    } else {
+                        cam_pos = path.bezierPoint(bezier_time);  
 
-                    vec3 newAngles = cam.bezierPoint(bezier_time);
-                    camera_phi = newAngles.x;
-                    camera_theta = newAngles.y;
+                        vec3 newAngles = cam.bezierPoint(bezier_time);
+                        camera_phi = newAngles.x;
+                        camera_theta = newAngles.y;
 
-                    int chunkCamX = (int)floor((cam_pos.x + 1) / 2);
-                    int chunkCamY = (int)floor((cam_pos.z + 1) / 2);
+                        int chunkCamX = (int)floor((cam_pos.x + 1) / 2);
+                        int chunkCamY = (int)floor((cam_pos.z + 1) / 2);
 
-                    float posInChunkX = ((cam_pos.x + 1) / 2) - chunkCamX;
-                    float posInChunkY = ((cam_pos.z + 1) / 2) - chunkCamY;
+                        float posInChunkX = ((cam_pos.x + 1) / 2) - chunkCamX;
+                        float posInChunkY = ((cam_pos.z + 1) / 2) - chunkCamY;
 
-                    map<uint64_t, ChunkTex>::iterator it = chunk_map.find(getKey(chunkCamX, chunkCamY));
+                        map<uint64_t, ChunkTex>::iterator it = chunk_map.find(getKey(chunkCamX, chunkCamY));
 
-                    if (it != chunk_map.end()) { // Sometimes, just before the chunk's generation, there is no ground at the
-                        // bottom of the camera
-                        it->second.tex.Bind();
+                        if (it != chunk_map.end()) { // Sometimes, just before the chunk's generation, there is no ground at the
+                            // bottom of the camera
+                            it->second.tex.Bind();
 
-                        GLfloat r[1];
-                        glReadPixels((int) (posInChunkX * TEX_WIDTH), (int) (TEX_HEIGHT - posInChunkY * TEX_HEIGHT), 1,
-                                     1, GL_RED,
-                                     GL_FLOAT, r);
-                        it->second.tex.Unbind();
+                            GLfloat r[1];
+                            glReadPixels((int) (posInChunkX * TEX_WIDTH), (int) (TEX_HEIGHT - posInChunkY * TEX_HEIGHT), 1,
+                                         1, GL_RED,
+                                         GL_FLOAT, r);
+                            it->second.tex.Unbind();
 
-                        float newHeight = r[0] * 2 - 1 + 0.17;
+                            float newHeight = r[0] * 2 - 1 + 0.17;
 
-                        if (newHeight > cam_pos.y){
-                            cam_pos.y = newHeight;
+                            if (newHeight > cam_pos.y){
+                                cam_pos.y = newHeight;
+                            }
                         }
                     }
                 }

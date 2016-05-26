@@ -15,7 +15,7 @@ using namespace std;
 class Bezier {
     public:
         glm::vec3 bezierPoint(double t);
-        static void print_vec3(glm::vec3 vec, string name);
+        static void print_vec3(glm::vec3 vec);
         void addPoint(glm::vec3 &point);
         void print_list();
 
