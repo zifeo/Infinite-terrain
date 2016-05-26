@@ -10,7 +10,7 @@
 #define DELTA 0.02
 #define VIEW_DIST 2 // in chunk
 
-#define CAMERA_SPEED 0.9
+#define CAMERA_SPEED 0.9f
 #define CAMERA_ACCELERATION 3
 #define CAMERA_DECELERATION 0.01
 #define MOUSE_SENSIBILTY 0.002
