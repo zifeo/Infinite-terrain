@@ -11,15 +11,12 @@ class Tree {
     GLuint vertex_buffer_object_position_; // memory buffer for positions
     GLuint vertex_buffer_object_index_;    // memory buffer for indices
     GLuint program_id_;                    // GLSL shader program ID
-    GLuint perlin_texture_id_;             // perlin texture ID
     GLuint tree_texture_id_;               // tree texture ID
     GLuint desert_tree_texture_id_;        // desert tree texture ID
     GLuint cactus_texture_id_;             // cactus texture ID
     GLuint algae_texture_id_;              // algae texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
-    GLuint x_chunk_id_;                    // x value of the chunk
-    GLuint y_chunk_id_;                    // y value of the chunk
 
   public:
     void Init() {
@@ -84,9 +81,6 @@ class Tree {
 
         // other uniforms
         MVP_id_ = glGetUniformLocation(program_id_, "MVP");
-
-        x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
-        y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
 
         // to avoid the current object being polluted
         glBindVertexArray(0);
