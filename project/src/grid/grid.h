@@ -67,8 +67,8 @@ class Grid : public Material, public Light {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
-    GLuint x_chunk_id_; // x value of the chunk
-    GLuint y_chunk_id_; // y value of the chunk
+    GLuint x_chunk_id_;  // x value of the chunk
+    GLuint y_chunk_id_;  // y value of the chunk
     GLuint clipping_id_; // clipping value
 
   public:
