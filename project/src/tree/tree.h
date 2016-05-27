@@ -15,6 +15,7 @@ class Tree {
     GLuint desert_tree_texture_id_;        // desert tree texture ID
     GLuint cactus_texture_id_;             // cactus texture ID
     GLuint algae_texture_id_;              // algae texture ID
+    GLuint snowy_texture_id_;              // snowy texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
 
@@ -77,6 +78,7 @@ class Tree {
             initTexture("desert_tree_texture.tga", &desert_tree_texture_id_, "desert_tree_tex", GL_TEXTURE0 + 1);
             initTexture("cactus_texture.tga", &cactus_texture_id_, "cactus_tex", GL_TEXTURE0 + 2);
             initTexture("algae_texture.tga", &algae_texture_id_, "algae_tex", GL_TEXTURE0 + 3);
+            initTexture("snowy_tree_texture.tga", &snowy_texture_id_, "snowy_tex", GL_TEXTURE0 + 4);
         }
 
         // other uniforms
@@ -113,7 +115,9 @@ class Tree {
             glBindTexture(GL_TEXTURE_2D, cactus_texture_id_);
         } else if (type == ALGAE) {
             glBindTexture(GL_TEXTURE_2D, algae_texture_id_);
-        } else {
+        } else if (type == SNOWY_TREE) {
+            glBindTexture(GL_TEXTURE_2D, snowy_texture_id_);
+        }else {
             cout << "ERROR : UNEXISISTING TREE TYPE" << endl;
         }
 
@@ -125,9 +129,6 @@ class Tree {
         glUniform1f(glGetUniformLocation(program_id_, "time"), time);
 
         glUniform1f(glGetUniformLocation(program_id_, "angle"), angle);
-
-        glUniform1f(glGetUniformLocation(program_id_, "max_tree_alt"), MAX_TREE_ALT);
-        glUniform1f(glGetUniformLocation(program_id_, "min_tree_alt"), MIN_TREE_ALT);
 
         glUniform1f(glGetUniformLocation(program_id_, "tree_height"), (float)TREE_HEIGHT);
 

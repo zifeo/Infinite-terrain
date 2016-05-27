@@ -11,9 +11,6 @@ uniform mat4 MV;
 uniform float time;
 uniform float angle;
 
-uniform float max_tree_alt;
-uniform float min_tree_alt;
-
 uniform float tree_height;
 
 void main() {
