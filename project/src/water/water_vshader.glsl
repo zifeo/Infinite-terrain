@@ -5,25 +5,21 @@
 in vec2 position;
 
 out vec2 uv;
+out vec3 view_dir;
+out vec3 light_dir;
 
 uniform mat4 MVP;
 uniform mat4 MV;
 uniform float time;
 
-uniform int x_chunk;
-uniform int y_chunk;
-
-uniform sampler2D tex;
-
 void main() {
-    uv = (position + vec2(1.0)) * 0.5;
-    float x = uv.x + x_chunk;
-    float y = uv.y + y_chunk;
-
-    float height =
-        -0.1 + 0.006 * sin(40 * sin(x * y) + time) +
-        0.006 * sin(40 * cos(y) + time); // + 0.006 * sin(40 * x * y + time) + 0.006 * sin(40 * (-x) * y + time)
+    uv = (position+1)/6;
 
     vec3 pos_3d = vec3(position.x, -0.2, -position.y);
     gl_Position = MVP * vec4(pos_3d, 1.0);
+
+    vec4 vpoint_mv = MV * vec4(position.x, -0.2, -position.y, 1.0);
+    view_dir = normalize(-vpoint_mv.xyz);
+    vec4 light_pos = vec4(0, 1, 0, 1);
+    light_dir = normalize(light_pos.xyz-vpoint_mv.xyz);
 }
