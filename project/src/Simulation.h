@@ -129,7 +129,8 @@ public:
         biome_trees[NORMAL_BIOME].push_back(NORMAL_TREE);
         biome_trees[DESERT_TREE].push_back(DESERT_TREE);
         biome_trees[DESERT_TREE].push_back(CACTUS);
-        biome_trees[SEA].push_back(ALGAE);
+        biome_trees[HIGH_MOUNTAIN].push_back(NORMAL_TREE);
+        biome_trees[SEA].push_back(NORMAL_TREE);
 
         int reverse_arr[9] = {1, 0, 0, 0, 0, -1, 0, 1, 0};
 
@@ -175,7 +176,7 @@ path.addPoint(vec1);
 path.addPoint(vec1);
     }
 
-    void drawChunk(mat4 model, mat4 view, float clipping_height = 0.0f) {
+    void drawChunks(mat4 model, mat4 view, float clipping_height = 0.0f) {
         for (auto &chunk : chunk_map) {
             int i = chunk.second.x;
             int j = chunk.second.y;
@@ -316,7 +317,7 @@ double bezier_time = curr_time - b_start_time;
         // Display
         glViewport(0, 0, window_width, window_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        float water_height_sh = -0.2;
+        float water_height_sh = WATER_HEIGHT;
         float water_height = (water_height_sh + 1) / 2;
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
@@ -338,17 +339,13 @@ double bezier_time = curr_time - b_start_time;
                 {
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                     glEnable(GL_CLIP_DISTANCE0);
-                    drawChunk(model_matrix, view_matrix_reflection, water_height);
+                    drawChunks(model_matrix, view_matrix_reflection, water_height);
                     glDisable(GL_CLIP_DISTANCE0);
                     sky.Draw(translate(projection_matrix * model_matrix * view_matrix_reflection, cam_pos2));
                 }
                 water_reflection.Unbind();
 
-                drawChunk(model_matrix, view_matrix);
-
-                mat4 model = scale(model_matrix, vec3(5, 1, 5));
-                model = translate(model, vec3(cam_pos.x / 5, 0, cam_pos.z / 5));
-                water.Draw((float)curr_time, 0, 0, model, view_matrix, projection_matrix, cam_pos);
+                drawChunks(model_matrix, view_matrix);
 
                 for (auto &chunk : chunk_map) {
                     int i = chunk.second.x;
@@ -377,6 +374,10 @@ double bezier_time = curr_time - b_start_time;
 #endif
                     }
                 }
+
+                mat4 model = scale(model_matrix, vec3(WATER_SIZE, 1, WATER_SIZE));
+                model = translate(model, vec3(cam_pos.x / 5, WATER_HEIGHT, cam_pos.z / 5));
+                water.Draw((float)curr_time, 0, 0, model, view_matrix, projection_matrix, cam_pos);
 
                 sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
                 break;
@@ -521,9 +522,16 @@ double bezier_time = curr_time - b_start_time;
             if (biome_trees[best_biome].size() > 0) {
 
                 float tree_chance = (rand() % 1000) / 1000.f;
+                tree_struct.type = biome_trees[best_biome][rand() % biome_trees[best_biome].size()];
+
+                if (tree_struct.pos.y < WATER_HEIGHT) {
+                    tree_struct.type = ALGAE;
+                }
+                else if (tree_struct.pos.y > 0.4) {
+                    tree_struct.type = SNOWY_TREE;
+                }
 
                 if (tree_chance < biome_tree_count[best_biome]) {
-                    tree_struct.type = biome_trees[best_biome][rand() % biome_trees[best_biome].size()];
                     chunk.treeList.push_back(tree_struct);
                 }
             }
