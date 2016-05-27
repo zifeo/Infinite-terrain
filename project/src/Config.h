@@ -29,8 +29,6 @@
 #define MAX_TREES_PER_CHUNK                                                                                            \
     40 // the number of trees will be from MAX_TREES_PER_CHUNK/2 to MAX_TREES_PER_CHUNK (counting the trees that will be
        // discarded later)
-#define MAX_TREE_ALT 0.3 // trees that spawn outside of this range will be discarded
-#define MIN_TREE_ALT 0
 
 // Physic defines
 #define G 0.01
@@ -45,10 +43,11 @@
 #define ALTITUDE_LAC 2
 #define ALTITUDE_H 1.25
 
-enum TreeType { NORMAL_TREE = 0, DESERT_TREE, CACTUS, ALGAE };
+enum TreeType { NORMAL_TREE = 0, DESERT_TREE, CACTUS, ALGAE, SNOWY_TREE };
 
 #define BIOME_COUNT 4
 
 enum BiomeType { NORMAL_BIOME = 0, DESERT, HIGH_MOUNTAIN, SEA };
 
-#define WATER_SIZE 6
+#define WATER_SIZE 5
+#define WATER_HEIGHT -0.2f
