@@ -41,7 +41,7 @@ private:
 
     // camera mode
     enum CameraMode { DEFAULT_CAMERA = 0, GROUND, FLIGHT, RECORD, B_PATH };
-    CameraMode cameraMode = DEFAULT_CAMERA;
+    CameraMode cameraMode = FLIGHT;
 
     // MVP
     mat4 projection_matrix;
@@ -90,7 +90,8 @@ private:
 
     Bezier path;
     Bezier cam;
-     bool start_path = true;
+
+    bool start_path = true;
     double b_start_time;
 
     bool start_record = true;
@@ -133,29 +134,45 @@ public:
         int reverse_arr[9] = {1, 0, 0, 0, 0, -1, 0, 1, 0};
 
         mat3x3 reverse = glm::make_mat3(reverse_arr);
-        // bezier init; 
+        // bezier init;
+
         glm::vec3 vec1 = reverse * glm::vec3(0, 0, 1);
-         path.addPoint(vec1);
+        
+path.addPoint(vec1);
         vec1 = reverse * glm::vec3(1, 1, 1.5);
-         path.addPoint(vec1);
+        
+path.addPoint(vec1);
         vec1 = reverse * glm::vec3(2, 2, 2);
-         path.addPoint(vec1);
-         vec1 = reverse * glm::vec3(3, 3, 2);
-         path.addPoint(vec1);
-         vec1 = reverse * glm::vec3(4, 4, 2);
-         path.addPoint(vec1);
+        
+path.addPoint(vec1);
+        
+vec1 = reverse * glm::vec3(3, 3, 2);
+        
+path.addPoint(vec1);
+        
+vec1 = reverse * glm::vec3(4, 4, 2);
+        
+path.addPoint(vec1);
         vec1 = reverse * glm::vec3(5, 5, 2);
-         path.addPoint(vec1);
-         vec1 = reverse * glm::vec3(6, 6, 2);
-         path.addPoint(vec1);
-         vec1 = reverse * glm::vec3(7, 7, 2);
-         path.addPoint(vec1);
+        
+path.addPoint(vec1);
+        
+vec1 = reverse * glm::vec3(6, 6, 2);
+        
+path.addPoint(vec1);
+        
+vec1 = reverse * glm::vec3(7, 7, 2);
+        
+path.addPoint(vec1);
         vec1 = reverse * glm::vec3(8, 8, 2);
-         path.addPoint(vec1);
+        
+path.addPoint(vec1);
         vec1 = reverse * glm::vec3(9, 9, 1.5);
-         path.addPoint(vec1);
+        
+path.addPoint(vec1);
         vec1 = reverse * glm::vec3(10, 10, 1);
-         path.addPoint(vec1);
+        
+path.addPoint(vec1);
     }
 
     void drawChunk(mat4 model, mat4 view, float clipping_height = 0.0f) {
@@ -202,15 +219,19 @@ public:
                 break;
             case B_PATH:
                 if (start_path) {
-                     path.print_list();
+                    
+path.print_list();
                     cam.print_list();
                     b_start_time = curr_time;
                     start_path = false;
                 } else {
-                     double bezier_time = curr_time - b_start_time;
+                    
+double bezier_time = curr_time - b_start_time;
 
                     cam_pos = path.bezierPoint(bezier_time);
-                       if (!(bezier_time <= path.get_nbr_elem() - 1)) { start_path = true; }
+                    
+
+ if (!(bezier_time <= path.get_nbr_elem() - 1)) { start_path = true; }
 
                     vec3 newAngles = cam.bezierPoint(bezier_time);
                     camera_phi = newAngles.x;
@@ -327,7 +348,7 @@ public:
 
                 mat4 model = scale(model_matrix, vec3(5, 1, 5));
                 model = translate(model, vec3(cam_pos.x / 5, 0, cam_pos.z / 5));
-                water.Draw((float)curr_time, 0, 0, model, view_matrix, projection_matrix);
+                water.Draw((float)curr_time, 0, 0, model, view_matrix, projection_matrix, cam_pos);
 
                 for (auto &chunk : chunk_map) {
                     int i = chunk.second.x;
@@ -454,7 +475,7 @@ public:
         chunk.x = i * 2;
         chunk.y = j * 2;
         chunk.tmpFlag = true;
-        chunk.perlinBuffer_tex_id = chunk.tex.Init(TEX_WIDTH, TEX_HEIGHT, true, GL_R32F, GL_RED);
+        chunk.perlinBuffer_tex_id = chunk.tex.Init(TEX_WIDTH, TEX_HEIGHT, true, GL_RGB32F, GL_RGB);
         chunk.tex.Bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // (-j) because of inversion of y axis from 2D to 3D.
@@ -543,8 +564,8 @@ public:
         float ratio = window_width / (float)window_height;
         projection_matrix = perspective(45.0f, ratio, 0.1f, 100.0f);
         glViewport(0, 0, window_width, window_height);
-        // water_reflection.Cleanup();
-        // water_reflection.Init(window_width, window_height, false);
+        water_reflection.Cleanup();
+        water_reflection.Init(window_width, window_height, false, GL_RGB8, GL_RGB);
     }
 
     void onKey(GLFWwindow *window, int key, int scancode, int action, int mods) {

@@ -10,7 +10,8 @@ class Water {
     GLuint vertex_buffer_object_position_; // memory buffer for positions
     GLuint vertex_buffer_object_index_;    // memory buffer for indices
     GLuint program_id_;                    // GLSL shader program ID
-    GLuint water_texture_id_;              // water texture ID
+    GLuint normal_texture_id_;             // normal texture ID
+    GLuint normal_texture2_id_;             // normal texture2 ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
     GLuint MV_id_;
@@ -38,7 +39,7 @@ class Water {
         {
             std::vector<GLfloat> vertices;
             std::vector<GLuint> indices;
-            int grid_dim = 1;
+            int grid_dim = 256;
 
             float half = grid_dim / 2.0;
 
@@ -84,7 +85,10 @@ class Water {
             glVertexAttribPointer(loc_position, 2, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
 
-        { initTexture("water_texture.tga", &water_texture_id_, "water_tex", GL_TEXTURE0); }
+        {
+            initTexture("normal_texture_water.tga", &normal_texture_id_, "normal_tex", GL_TEXTURE0);
+            initTexture("normal_texture_water2.tga", &normal_texture2_id_, "normal_tex2", GL_TEXTURE0 + 1);
+        }
 
         // other uniforms
         MVP_id_ = glGetUniformLocation(program_id_, "MVP");
@@ -97,7 +101,7 @@ class Water {
 
         tex_reflection_id_ = tex_reflection_id;
         GLuint tex_reflect_id = glGetUniformLocation(program_id_, "tex_reflect");
-        glUniform1i(tex_reflect_id, 1 /*GL_TEXTURE1*/);
+        glUniform1i(tex_reflect_id, 2);
 
         // to avoid the current object being polluted
         glBindVertexArray(0);
@@ -111,20 +115,23 @@ class Water {
         glDeleteBuffers(1, &vertex_buffer_object_index_);
         glDeleteVertexArrays(1, &vertex_array_id_);
         glDeleteProgram(program_id_);
-        glDeleteTextures(1, &water_texture_id_);
+        glDeleteTextures(1, &normal_texture_id_);
+        glDeleteTextures(1, &normal_texture2_id_);
         glDeleteTextures(1, &tex_reflection_id_);
     }
 
     void Draw(float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX, glm::vec3 cam_pos = vec3(0,0,0)) {
 
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
         // bind textures
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, water_texture_id_);
-        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, normal_texture_id_);
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, normal_texture2_id_);
+        glActiveTexture(GL_TEXTURE0 + 2);
         glBindTexture(GL_TEXTURE_2D, tex_reflection_id_);
 
         // setup MVP
@@ -134,11 +141,11 @@ class Water {
         glm::mat4 MV = view * model;
         glUniformMatrix4fv(MV_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(MV));
 
+        glUniform1f(glGetUniformLocation(program_id_, "cam_posX"), cam_pos.x);
+        glUniform1f(glGetUniformLocation(program_id_, "cam_posY"), -cam_pos.z);
+
         // pass the current time stamp to the shader.
         glUniform1f(glGetUniformLocation(program_id_, "time"), time);
-
-        glUniform1i(x_chunk_id_, x);
-        glUniform1i(y_chunk_id_, y);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
