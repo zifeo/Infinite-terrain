@@ -19,11 +19,11 @@ uniform sampler2D rock_tex;
 uniform sampler2D snow_tex;
 uniform int x_chunk;
 
-#define BIOME_COUNT 4
+#define BIOME_COUNT 5
 
 vec2 biome_position[BIOME_COUNT] =
-    vec2[](vec2(0.5, 0.5), vec2(0.65, 0.35), vec2(0.35, 0.65),
-           vec2(0.2, 0.5)); // x -> temp, y -> altitude, if changes, need to copy to perlin shaders !
+    vec2[](vec2(0.5, 0.5), vec2(0.75, 0.35), vec2(0.35, 0.65),
+vec2(0.3, 0.2), vec2(0.5, 0.2)); // x -> temp, y -> altitude, if changes, need to copy to perlin shaders !
 
 float coeffSand(float height, float angle, int biome) { // angle => 0 = plat, 1 = falaise
     switch (biome) {
@@ -33,6 +33,8 @@ float coeffSand(float height, float angle, int biome) { // angle => 0 = plat, 1 
         return 1;
     case 2:
         return 0;
+    case 4:
+        return 1;
     }
 }
 
@@ -110,7 +112,14 @@ void main() {
     for (int i = 0; i < BIOME_COUNT; i++) {
         float dist = (temperature - biome_position[i].x) * (temperature - biome_position[i].x) +
                      (altitude - biome_position[i].y) * (altitude - biome_position[i].y);
-        coeff_biomes[i] = 1 / (dist * dist * dist);
+
+        if (dist != 0) {
+           coeff_biomes[i] = 1 / (dist * dist * dist);
+        }
+        else {
+            coeff_biomes[i] = 9999;
+        }
+
         sum += coeff_biomes[i];
     }
 
@@ -137,5 +146,10 @@ void main() {
                      cRock * texture(rock_tex, uv * 30).rgb + cSnow * texture(snow_tex, uv * 30).rgb) /
                     sum;
 
-    color = colorTex * (nl * Ld + La);
+    vec3 color_temp = colorTex * (nl * Ld + La);
+    if(height < 0.4) {
+        color = mix(color_temp,  vec3(0.2, 0.8, 1), 0.4);
+    } else {
+        color = color_temp;
+    }
 }

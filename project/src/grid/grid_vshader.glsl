@@ -16,6 +16,7 @@ uniform float clipping;
 
 uniform int x_chunk;
 uniform int y_chunk;
+uniform float time;
 
 uniform sampler2D tex;
 
@@ -24,13 +25,12 @@ void main() {
     uv = (position + vec2(1.0)) * 0.5;
     height = texture(tex, uv).x;
 
-    vec4 v = vec4(position.x, height, position.y, 1);
     vec3 pos_3d = vec3(position.x, height * 2 - 1, -position.y);
 
     vec4 vpoint_mv = MV * vec4(pos_3d, 1.0);
     gl_Position = MVP * vec4(pos_3d, 1.0);
 
-    gl_ClipDistance[0] = height - clipping;
+    gl_ClipDistance[0] = height + 0.01*sin(time) - clipping;
 
     light_dir = normalize(light_pos.xyz - vpoint_mv.xyz);
     height = clamp(height, 0, 1);

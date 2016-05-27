@@ -230,9 +230,14 @@ class Grid : public Material, public Light {
         glUniform1i(y_chunk_id_, y);
         glUniform1f(clipping_id_, clipping_height);
 
-        // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+
+         //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
-        // glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+         //glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+        glDisable(GL_CULL_FACE);
 
         glBindVertexArray(0);
         glUseProgram(0);

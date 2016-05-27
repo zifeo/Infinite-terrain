@@ -102,8 +102,8 @@ private:
     // water reflection
     FrameBuffer water_reflection;
 
-    vec2 biome_position[BIOME_COUNT] = {vec2(0.5, 0.5), vec2(0.65, 0.35), vec2(0.35, 0.65),
-                                        vec2(0.2, 0.5)}; // if changes, need to copy to shaders !
+    vec2 biome_position[BIOME_COUNT] = {vec2(0.5, 0.5), vec2(0.75, 0.35), vec2(0.35, 0.65),
+                                        vec2(0.3, 0.2), vec2(0.5, 0.2)}; // if changes, need to copy to shaders !
 
     vector<TreeType> biome_trees[BIOME_COUNT];
 
@@ -317,7 +317,7 @@ double bezier_time = curr_time - b_start_time;
         // Display
         glViewport(0, 0, window_width, window_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        float water_height_sh = WATER_HEIGHT;
+        float water_height_sh = WATER_HEIGHT + 0.01*sin(curr_time);
         float water_height = (water_height_sh + 1) / 2;
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
@@ -524,8 +524,11 @@ double bezier_time = curr_time - b_start_time;
                 float tree_chance = (rand() % 1000) / 1000.f;
                 tree_struct.type = biome_trees[best_biome][rand() % biome_trees[best_biome].size()];
 
-                if (tree_struct.pos.y < WATER_HEIGHT) {
+                if (tree_struct.pos.y < WATER_HEIGHT - 0.1) {
                     tree_struct.type = ALGAE;
+                }
+                else if (tree_struct.pos.y < WATER_HEIGHT) {
+                    tree_struct.type = REED;
                 }
                 else if (tree_struct.pos.y > 0.4) {
                     tree_struct.type = SNOWY_TREE;
