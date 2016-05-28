@@ -98,7 +98,14 @@ void main() {
     for (int i = 0; i < BIOME_COUNT; i++) {
         float dist = (temperature - biome_position[i].x) * (temperature - biome_position[i].x) +
                      (altitude - biome_position[i].y) * (altitude - biome_position[i].y);
-        coeff_biomes[i] = 1 / (dist * dist * dist);
+
+        if (dist * dist * dist != 0) {
+            coeff_biomes[i] = 1 / (dist * dist * dist);
+        }
+        else {
+            coeff_biomes[i] = 10000;
+        }
+
         sum += coeff_biomes[i];
     }
 
