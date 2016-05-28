@@ -14,8 +14,8 @@ glm::vec3 Bezier::bezierPoint(double t) {
         int part_begin = floor(t / (per_knot - 1)) * (per_knot - 1);
         int part_end = part_begin + (per_knot - 1);
 
-        if (part_end > nbr_knot * per_knot) {
-            part_begin = nbr_knot * (per_knot - 1);
+        if (part_end > nbr_knot*(per_knot - 1)) {
+            part_begin = nbr_knot*(per_knot - 1);
             part_end = nbr_elem - 1;
         }
 
@@ -29,12 +29,14 @@ glm::vec3 Bezier::bezierPoint(double t) {
 void Bezier::print_list() {
     for (auto &vec : list_points) // access by reference to avoid copying
     {
-        print_vec3(vec, "vec");
+        cout << "vec ";
+        print_vec3(vec);
+        cout << endl;
     }
 }
 
-void Bezier::print_vec3(glm::vec3 vec, string name) {
-    cout << "new " << name << " : " << vec.x << ", " << vec.y << ", " << vec.z << endl;
+void Bezier::print_vec3(glm::vec3 vec) {
+    cout << ": "  << vec.x << ", " << vec.y << ", " << vec.z;
 }
 
 void Bezier::addPoint(glm::vec3 &point) {
@@ -42,6 +44,15 @@ void Bezier::addPoint(glm::vec3 &point) {
     if (nbr_elem > (per_knot - 1) && nbr_elem % (per_knot - 1) == 0) {
         int knot_point = nbr_elem - (per_knot - 1);
         list_points.at(knot_point) = (list_points.at(knot_point - 1) + list_points.at(knot_point + 1)) * 0.5f;
+        cout << "before ";
+        print_vec3(list_points.at(knot_point - 1));
+        cout << endl;
+        cout << "change point " << knot_point <<  " to ";
+        print_vec3(list_points.at(knot_point));
+        cout << endl;
+        cout << "after ";
+        print_vec3(list_points.at(knot_point - 1));
+        cout << endl;
         nbr_knot++;
     }
     list_points.push_back(point);
