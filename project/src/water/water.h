@@ -37,8 +37,8 @@ class Water {
 
         // vertex coordinates and indices
         {
-            std::vector<GLfloat> vertices;
-            std::vector<GLuint> indices;
+            vector<GLfloat> vertices;
+            vector<GLuint> indices;
             int grid_dim = 256;
 
             float half = grid_dim / 2.0;
@@ -120,7 +120,7 @@ class Water {
         glDeleteTextures(1, &tex_reflection_id_);
     }
 
-    void Draw(float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
+    void Draw(float time, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
               glm::vec3 cam_pos = vec3(0, 0, 0)) {
 

@@ -133,18 +133,18 @@ class Simulation {
         biome_trees[SEA].push_back(NORMAL_TREE);
     }
 
-    void drawChunks(mat4 model, mat4 view, mat4 proj, float clipping_height = 0.0f) {
+    void drawChunks(mat4& model, mat4& view, mat4& proj, float clipping_height = 0.0f) {
         for (auto &chunk : chunk_map) {
             int i = chunk.second.x;
             int j = chunk.second.y;
 
             vec3 pos = vec3(chunk.second.x, 0, chunk.second.y);
-            mat4 model_trans = translate(model_matrix, pos);
+            mat4 model_trans = translate(model, pos);
             grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model_trans, view, proj, clipping_height);
         }
     }
 
-    void drawTrees(mat4 model, mat4 view, mat4 proj, float time, float clipping_height = 0.0f) {
+    void drawTrees(mat4& model, mat4& view, mat4& proj, float time, float clipping_height = 0.0f) {
         for (auto &chunk : chunk_map) {
             int i = chunk.second.x;
             int j = chunk.second.y;
@@ -154,7 +154,7 @@ class Simulation {
 
             for (unsigned int k = 0; k < chunk.second.treeList.size(); k++) {
                 vec3 posInChunk = chunk.second.treeList[k].pos;
-                mat4 modelForChunk = PV * translate(model_matrix, pos + posInChunk);
+                mat4 modelForChunk = PV * translate(model, pos + posInChunk);
                 float angle = 0.0f;
 
                 for (int l = 0; l < TREE_PLANE_COUNT; l++) {
@@ -167,36 +167,38 @@ class Simulation {
     }
 
     void display() {
+
         if (last_frame_time == 0 || last_frame_cnt_time == 0) {
             last_frame_time = (float)glfwGetTime();
             last_frame_cnt_time = glfwGetTime();
         }
 
         float curr_time = (float)glfwGetTime();
-
         float frame_time = curr_time - last_frame_time;
-
         float coef = frame_time / (1 / 60.0f);
 
         // Camera movements
         switch (cameraMode) {
+
         case DEFAULT_CAMERA:
             cameraMovements(camera_phi, coef);
             break;
         case RECORD:
+
             if (start_record) {
                 path.purge();
-                vec3 *new_pos = new vec3(cam_pos);
                 cam.purge();
                 vec3 *new_orien = new vec3(camera_phi, camera_theta, 0);
                 cam.addPoint(*new_orien);
                 start_record = false;
                 recording = true;
             }
+
         case FLIGHT:
             // Camera movements
             cameraMovements(camera_phi, coef);
             break;
+
         case B_PATH:
             if (start_path) {
 
@@ -207,7 +209,7 @@ class Simulation {
             } else {
                 double bezier_time = curr_time - b_start_time;
 
-                if (!(bezier_time <= path.get_nbr_elem())) {
+                if (bezier_time > path.get_nbr_elem()) {
                     start_path = true;
 
                 } else {
@@ -237,7 +239,7 @@ class Simulation {
                         glReadPixels((int)(posInChunkX * TEX_WIDTH), (int)(TEX_HEIGHT - posInChunkY * TEX_HEIGHT), 1, 1,
                                      GL_RED, GL_FLOAT, r);
                         it->second.tex.Unbind();
-                        float newHeight = r[0] * 2 - 1 + 0.17;
+                        float newHeight = r[0] * 2 - 1 + 0.17f;
 
                         if (newHeight > cam_pos.y) {
                             cam_pos.y = newHeight;
@@ -246,6 +248,7 @@ class Simulation {
                 }
             }
             break;
+
         case GROUND:
             if (is_jumping) {
                 y_speed -= (float)G;
@@ -272,7 +275,7 @@ class Simulation {
                              GL_FLOAT, r);
                 it->second.tex.Unbind();
 
-                float newHeight = r[0] * 2 - 1 + 0.17;
+                float newHeight = r[0] * 2 - 1 + 0.17f;
 
                 if (is_jumping) {
                     cam_pos.y = old_cam_posY + y_speed;
@@ -316,7 +319,6 @@ class Simulation {
             break;
         case TERRAIN:
 
-            vec3 pos = vec3(2 * VIEW_DIST + 1, 1, 2 * VIEW_DIST + 1);
             water_reflection.Bind();
             {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -335,7 +337,7 @@ class Simulation {
 
             mat4 model = scale(model_matrix, vec3(WATER_SIZE, 1, WATER_SIZE));
             model = translate(model, vec3(cam_pos.x / 5, WATER_HEIGHT, cam_pos.z / 5));
-            water.Draw((float)curr_time, 0, 0, model, view_matrix, projection_matrix, cam_pos);
+            water.Draw(curr_time, model, view_matrix, projection_matrix, cam_pos);
 
             sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
             break;
@@ -601,6 +603,8 @@ class Simulation {
     /* ********** Events ********** */
 
     void onMouseMove(GLFWwindow *window, double x, double y) {
+        (void) window;
+
         if (cameraMode != B_PATH) {
             camera_theta += (x - cursor_x) * MOUSE_SENSIBILTY;
             camera_phi += (y - cursor_y) * MOUSE_SENSIBILTY;
@@ -620,6 +624,7 @@ class Simulation {
     }
 
     void onKey(GLFWwindow *window, int key, int scancode, int action, int mods) {
+        (void) scancode, mods;
 
         if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GL_TRUE);

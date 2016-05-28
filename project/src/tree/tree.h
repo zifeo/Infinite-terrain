@@ -38,8 +38,8 @@ class Tree {
 
         // vertex coordinates and indices
         {
-            std::vector<GLfloat> vertices;
-            std::vector<GLuint> indices;
+            vector<GLfloat> vertices;
+            vector<GLuint> indices;
 
             vertices.push_back(-TREE_HEIGHT);
             vertices.push_back(-TREE_HEIGHT);

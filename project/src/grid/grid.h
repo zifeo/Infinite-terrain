@@ -87,8 +87,8 @@ class Grid : public Material, public Light {
 
         // vertex coordinates and indices
         {
-            std::vector<GLfloat> vertices;
-            std::vector<GLuint> indices;
+            vector<GLfloat> vertices;
+            vector<GLuint> indices;
             int grid_dim = 64;
 
             float half = grid_dim / 2.f;
