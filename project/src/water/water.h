@@ -15,10 +15,9 @@ class Water {
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
     GLuint MV_id_;
-    GLuint M_id_;
-    GLuint P_id_;
-    GLuint x_chunk_id_; // x value of the chunk
-    GLuint y_chunk_id_; // y value of the chunk
+    GLuint time_id_;
+    GLuint cam_pos_x_id_; // x value of the chunk
+    GLuint cam_pos_y_id_; // y value of the chunk
     GLuint tex_reflection_id_;
 
   public:
@@ -93,15 +92,14 @@ class Water {
         // other uniforms
         MVP_id_ = glGetUniformLocation(program_id_, "MVP");
         MV_id_ = glGetUniformLocation(program_id_, "MV");
-        M_id_ = glGetUniformLocation(program_id_, "M");
-        P_id_ = glGetUniformLocation(program_id_, "P");
-
-        x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
-        y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
 
         tex_reflection_id_ = tex_reflection_id;
         GLuint tex_reflect_id = glGetUniformLocation(program_id_, "tex_reflect");
         glUniform1i(tex_reflect_id, 2);
+
+        cam_pos_x_id_ = glGetUniformLocation(program_id_, "cam_posX");
+        cam_pos_y_id_ = glGetUniformLocation(program_id_, "cam_posY");
+        time_id_ = glGetUniformLocation(program_id_, "time");
 
         // to avoid the current object being polluted
         glBindVertexArray(0);
@@ -142,11 +140,11 @@ class Water {
         glm::mat4 MV = view * model;
         glUniformMatrix4fv(MV_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(MV));
 
-        glUniform1f(glGetUniformLocation(program_id_, "cam_posX"), cam_pos.x);
-        glUniform1f(glGetUniformLocation(program_id_, "cam_posY"), -cam_pos.z);
+        glUniform1f(cam_pos_x_id_, cam_pos.x);
+        glUniform1f(cam_pos_y_id_, -cam_pos.z);
 
         // pass the current time stamp to the shader.
-        glUniform1f(glGetUniformLocation(program_id_, "time"), time);
+        glUniform1f(time_id_, time);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -39,6 +39,7 @@ class Sky {
     GLuint vertex_buffer_object_; // memory buffer
     GLuint texture_id_;           // texture ID
     mat4 model_matrix_;           // model matrix
+    GLuint mvp_id_;
 
   public:
     void Init() {
@@ -117,6 +118,8 @@ class Sky {
             stbi_image_free(image);
         }
 
+        mvp_id_ = glGetUniformLocation(program_id_, "MVP");
+
         model_matrix_ = scale(model_matrix_, vec3(100.0f));
     }
 
@@ -141,8 +144,7 @@ class Sky {
 
         // setup MVP
         mat4 MVP = view_projection * model_matrix_;
-        GLuint MVP_id = (GLuint)glGetUniformLocation(program_id_, "MVP");
-        glUniformMatrix4fv(MVP_id, 1, GL_FALSE, value_ptr(MVP));
+        glUniformMatrix4fv(mvp_id_, 1, GL_FALSE, value_ptr(MVP));
 
         // draw
         glDrawArrays(GL_TRIANGLES, 0, NbCubeVertices);
