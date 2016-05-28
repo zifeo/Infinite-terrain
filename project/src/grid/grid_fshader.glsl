@@ -147,7 +147,7 @@ void main() {
                     sum;
 
     vec3 color_temp = colorTex * (nl * Ld + La);
-    if(height < 0.4 + 0.005 * sin(time)) {
+    if(height < 0.4 + 0.05 * sin(time)) {
         color = mix(color_temp,  vec3(0.2, 0.8, 1), 0.4);
     } else {
         color = color_temp;

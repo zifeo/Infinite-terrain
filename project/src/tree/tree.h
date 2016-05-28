@@ -19,6 +19,8 @@ class Tree {
     GLuint reed_texture_id_;               // reed texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
+    GLuint clipping_id_; // clipping value
+    GLuint height_id_;
 
   public:
     void Init() {
@@ -85,6 +87,10 @@ class Tree {
 
         // other uniforms
         MVP_id_ = glGetUniformLocation(program_id_, "MVP");
+        clipping_id_ = glGetUniformLocation(program_id_, "clipping");
+        height_id_ = glGetUniformLocation(program_id_, "height");
+
+        glUniform1f(glGetUniformLocation(program_id_, "tree_height"), (float)TREE_HEIGHT);
 
         // to avoid the current object being polluted
         glBindVertexArray(0);
@@ -101,8 +107,9 @@ class Tree {
         glDeleteTextures(1, &tree_texture_id_);
     }
 
-    void Draw(float angle, float time, TreeType type, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
+    void Draw(float angle, float time, TreeType type, float height, const glm::mat4 &model = IDENTITY_MATRIX,
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
+    float clipping_height = 0.0f) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
@@ -134,7 +141,8 @@ class Tree {
 
         glUniform1f(glGetUniformLocation(program_id_, "angle"), angle);
 
-        glUniform1f(glGetUniformLocation(program_id_, "tree_height"), (float)TREE_HEIGHT);
+        glUniform1f(clipping_id_, clipping_height);
+        glUniform1f(height_id_, height);
 
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
 
