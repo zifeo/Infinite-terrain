@@ -11,5 +11,5 @@ mat4 S(float s) { return mat4(mat3(s)); }
 
 void main() {
     gl_Position = S(1) * vec4(vpoint, 1.0);
-    point = (vpoint.xy)*1025./1024. - 1./1025 + vec2(X,Y)*2;
+    point = (vpoint.xy) * 1025. / 1024. - 1. / 1025 + vec2(X, Y) * 2;
 }

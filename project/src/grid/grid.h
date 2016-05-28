@@ -67,8 +67,9 @@ class Grid : public Material, public Light {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
-    GLuint x_chunk_id_; // x value of the chunk
-    GLuint y_chunk_id_; // y value of the chunk
+    GLuint x_chunk_id_;  // x value of the chunk
+    GLuint y_chunk_id_;  // y value of the chunk
+    GLuint clipping_id_; // clipping value
 
   public:
     void Init() {
@@ -90,7 +91,7 @@ class Grid : public Material, public Light {
             std::vector<GLuint> indices;
             int grid_dim = 256;
 
-            float half = grid_dim / 2.;
+            float half = grid_dim / 2.f;
             int ind = 0;
             for (int i = 0; i < grid_dim; i++) {
                 float posy0 = (i - half) / half;
@@ -119,7 +120,6 @@ class Grid : public Material, public Light {
                     vertices.push_back(posy1);
                     indices.push_back(ind++);
                 }
-
             }
 
             num_indices_ = indices.size();
@@ -155,6 +155,7 @@ class Grid : public Material, public Light {
 
         x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
         y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
+        clipping_id_ = glGetUniformLocation(program_id_, "clipping");
 
         GLuint light_pos_id = glGetUniformLocation(program_id_, "light_pos");
 
@@ -187,7 +188,8 @@ class Grid : public Material, public Light {
     }
 
     void Draw(GLint texture_id, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX) {
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
+              float clipping_height = 0.0f) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
@@ -226,10 +228,18 @@ class Grid : public Material, public Light {
 
         glUniform1i(x_chunk_id_, x);
         glUniform1i(y_chunk_id_, y);
+        glUniform1f(clipping_id_, clipping_height);
 
-        // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        glUniform1f(glGetUniformLocation(program_id_, "time"), glfwGetTime());
+
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+
+         //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
-        // glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+         //glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+        glDisable(GL_CULL_FACE);
 
         glBindVertexArray(0);
         glUseProgram(0);
@@ -252,19 +262,17 @@ class Grid : public Material, public Light {
         glGenTextures(1, texture_id);
         glBindTexture(GL_TEXTURE_2D, *texture_id);
 
-
         if (nb_component == 3) {
             glTexStorage2D(GL_TEXTURE_2D, 8, GL_RGB, width, height);
-            //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, image);
+            // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, image);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
         } else if (nb_component == 4) {
             glTexStorage2D(GL_TEXTURE_2D, 8, GL_RGBA, width, height);
-            //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, image);
+            // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, image);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         }
 
-
-        glGenerateMipmap(GL_TEXTURE_2D);  //Generate num_mipmaps number of mipmaps here.
+        glGenerateMipmap(GL_TEXTURE_2D); // Generate num_mipmaps number of mipmaps here.
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

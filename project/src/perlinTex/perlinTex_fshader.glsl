@@ -12,6 +12,27 @@ uniform float H;
 uniform int X;
 uniform int Y;
 
+uniform int temperature_octave;
+uniform float temperature_lac;
+uniform float temperature_H;
+
+uniform int altitude_octave;
+uniform float altitude_lac;
+uniform float altitude_H;
+
+#define BIOME_COUNT 5
+
+vec2 biome_position[BIOME_COUNT] =
+    vec2[](vec2(0.5, 0.5), vec2(0.75, 0.35), vec2(0.35, 0.65),
+            vec2(0.3, 0.2), vec2(0.5, 0.2)); // x -> temp, y -> altitude, if changes, need to copy to grid shaders !
+
+vec3 biome_parameter[BIOME_COUNT] = vec3[](vec3(H, lac, octaves), vec3(H, lac * 50, 2), vec3(H, lac, octaves),
+                                           vec3(H, lac, octaves), vec3(H, lac, 1)); // x -> H, y -> lac, z -> octaves
+
+float biome_amplitude[BIOME_COUNT] = float[](1, 0.3, 1.1, 1, 0.7);
+
+float biome_offset[BIOME_COUNT] = float[](0, 0.3, 0.3, -0.3, -0.5);
+
 float perl_mix(float x, float y, float a) { return (1 - a) * x + a * y; }
 
 float gradAndDot(float rand, vec2 p) { return dot(texture(gradientMap, rand).xy, p); }
@@ -48,10 +69,14 @@ float perlin(vec2 point) {
     return perl_mix(st, uv, smoothInt(tpoint_cell.y));
 }
 
-float noiseBFM(vec2 point, float H, float lacunarity, int octave) {
+float noiseBFM(vec2 point, vec3 param) {
     float value = 0.0;
     float max = 0.0;
     float freq = 1.0;
+
+    float H = param.x;
+    float lacunarity = param.y;
+    float octave = param.z;
 
     /* inner loop of fractal construction */
     for (int i = 0; i < octave; i++) {
@@ -65,7 +90,33 @@ float noiseBFM(vec2 point, float H, float lacunarity, int octave) {
 }
 
 void main() {
-    float noise = noiseBFM(point/1.4, H, lac, octaves);
+    float temperature = noiseBFM(point / 10, vec3(temperature_H, temperature_lac, temperature_octave));
+    float altitude = noiseBFM((point + vec2(100)) / 10, vec3(altitude_H, altitude_lac, altitude_octave));
 
-    color = vec3(noise);
+    float coeff_biomes[BIOME_COUNT];
+    float sum = 0;
+    for (int i = 0; i < BIOME_COUNT; i++) {
+        float dist = (temperature - biome_position[i].x) * (temperature - biome_position[i].x) +
+                     (altitude - biome_position[i].y) * (altitude - biome_position[i].y);
+
+        if (dist * dist * dist != 0) {
+            coeff_biomes[i] = 1 / (dist * dist * dist);
+        }
+        else {
+            coeff_biomes[i] = 10000;
+        }
+
+        sum += coeff_biomes[i];
+    }
+
+    for (int i = 0; i < BIOME_COUNT; i++) {
+        coeff_biomes[i] /= sum;
+    }
+
+    float noise = 0.0;
+    for (int i = 0; i < BIOME_COUNT; i++) {
+        noise += coeff_biomes[i] * (biome_amplitude[i] * noiseBFM(point / 1.4, biome_parameter[i]) + biome_offset[i]);
+    }
+
+    color = vec3(noise, temperature, altitude);
 }
