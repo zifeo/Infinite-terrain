@@ -17,7 +17,7 @@ uniform sampler2D sand_tex;
 uniform sampler2D grass_tex;
 uniform sampler2D rock_tex;
 uniform sampler2D snow_tex;
-uniform int x_chunk;
+uniform float time;
 
 #define BIOME_COUNT 5
 
@@ -147,7 +147,7 @@ void main() {
                     sum;
 
     vec3 color_temp = colorTex * (nl * Ld + La);
-    if(height < 0.4) {
+    if(height < 0.4 + 0.005 * sin(time)) {
         color = mix(color_temp,  vec3(0.2, 0.8, 1), 0.4);
     } else {
         color = color_temp;

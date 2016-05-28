@@ -230,6 +230,8 @@ class Grid : public Material, public Light {
         glUniform1i(y_chunk_id_, y);
         glUniform1f(clipping_id_, clipping_height);
 
+        glUniform1f(glGetUniformLocation(program_id_, "time"), glfwGetTime());
+
         glEnable(GL_CULL_FACE);
         glCullFace(GL_FRONT);
 
