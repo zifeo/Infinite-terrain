@@ -16,7 +16,6 @@ uniform float clipping;
 
 uniform int x_chunk;
 uniform int y_chunk;
-uniform float time;
 
 uniform sampler2D tex;
 
@@ -30,7 +29,7 @@ void main() {
     vec4 vpoint_mv = MV * vec4(pos_3d, 1.0);
     gl_Position = MVP * vec4(pos_3d, 1.0);
 
-    gl_ClipDistance[0] = height + 0.01*sin(time) - clipping;
+    gl_ClipDistance[0] = height - clipping;
 
     light_dir = normalize(light_pos.xyz - vpoint_mv.xyz);
     height = clamp(height, 0, 1);
