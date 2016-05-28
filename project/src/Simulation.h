@@ -379,7 +379,6 @@ public:
         void cameraMovements(float phi, float coef) {
             if (!is_jumping && !arrows_down[UP] && !arrows_down[DOWN] && !arrows_down[RIGHT] && !arrows_down[LEFT]) {
                 cam_speed *= (float)CAMERA_DECELERATION;
-                cout << cam_speed.x << endl;
             }
 
             if (!is_jumping) {
