@@ -4,7 +4,7 @@
 #include "icg_helper.h"
 
 // Perlin utilities
-static const GLint permutaionArray[256] = {
+static const GLuint permutaionArray[256] = {
     254, 183, 91,  193, 118, 36,  210, 124, 154, 94,  4,   51,  218, 157, 55,  155, 81,  241, 251, 172, 9,   44,
     71,  188, 132, 108, 106, 63,  148, 96,  120, 131, 57,  237, 252, 6,   162, 191, 90,  250, 66,  228, 213, 86,
     29,  230, 75,  198, 128, 236, 196, 3,   159, 211, 166, 206, 197, 160, 23,  142, 207, 169, 58,  113, 7,   127,
@@ -57,7 +57,7 @@ class PerlinTex {
             glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_point), vertex_point, GL_STATIC_DRAW);
 
             // attribute
-            GLint vertex_point_id = glGetAttribLocation(program_id_, "vpoint");
+            GLuint vertex_point_id = glGetAttribLocation(program_id_, "vpoint");
             glEnableVertexAttribArray(vertex_point_id);
             glVertexAttribPointer(vertex_point_id, 3, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
@@ -76,7 +76,7 @@ class PerlinTex {
                          GL_STATIC_DRAW);
 
             // attribute
-            GLint vertex_texture_coord_id = glGetAttribLocation(program_id_, "vtexcoord");
+            GLuint vertex_texture_coord_id = glGetAttribLocation(program_id_, "vtexcoord");
             glEnableVertexAttribArray(vertex_texture_coord_id);
             glVertexAttribPointer(vertex_texture_coord_id, 2, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE,
                                   ZERO_BUFFER_OFFSET);
@@ -91,7 +91,7 @@ class PerlinTex {
             glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            GLint tex_id = glGetUniformLocation(program_id_, "gradientMap");
+            GLuint tex_id = glGetUniformLocation(program_id_, "gradientMap");
             glUniform1i(tex_id, 0 /*GL_TEXTURE0*/);
 
             glBindTexture(GL_TEXTURE_1D, 0);

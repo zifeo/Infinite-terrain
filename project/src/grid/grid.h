@@ -67,6 +67,7 @@ class Grid : public Material, public Light {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
+    GLuint time_id_;
     GLuint x_chunk_id_;  // x value of the chunk
     GLuint y_chunk_id_;  // y value of the chunk
     GLuint clipping_id_; // clipping value
@@ -152,6 +153,7 @@ class Grid : public Material, public Light {
         MV_id_ = glGetUniformLocation(program_id_, "MV");
         M_id_ = glGetUniformLocation(program_id_, "M");
         P_id_ = glGetUniformLocation(program_id_, "P");
+        time_id_ = glGetUniformLocation(program_id_, "time");
 
         x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
         y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
@@ -187,7 +189,7 @@ class Grid : public Material, public Light {
         glDeleteTextures(1, &snow_texture_id_);
     }
 
-    void Draw(GLint texture_id, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
+    void Draw(GLuint texture_id, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
               float clipping_height = 0.0f) {
         glUseProgram(program_id_);
@@ -230,7 +232,7 @@ class Grid : public Material, public Light {
         glUniform1i(y_chunk_id_, y);
         glUniform1f(clipping_id_, clipping_height);
 
-        glUniform1f(glGetUniformLocation(program_id_, "time"), glfwGetTime());
+        glUniform1f(time_id_, (GLfloat) glfwGetTime());
 
         glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND);
@@ -259,7 +261,7 @@ class Grid : public Material, public Light {
         unsigned char *image = stbi_load(filename.c_str(), &width, &height, &nb_component, 0);
 
         if (image == nullptr) {
-            throw(string("Failed to load texture"));
+            throw string("Failed to load texture");
         }
 
         glGenTextures(1, texture_id);

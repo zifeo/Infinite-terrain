@@ -97,8 +97,6 @@ class Simulation {
     bool start_record = true;
     bool recording = false;
 
-    // TODO : normal tex ?
-
     // water reflection
     FrameBuffer water_reflection;
 
@@ -106,7 +104,6 @@ class Simulation {
                                         vec2(0.5, 0.2)}; // if changes, need to copy to shaders !
 
     vector<TreeType> biome_trees[BIOME_COUNT];
-
     float biome_tree_count[BIOME_COUNT] = {1.f, 0.3f, 0.4f, 0.5f};
 
   public:
@@ -168,14 +165,18 @@ class Simulation {
 
     void display() {
 
-        if (last_frame_time == 0 || last_frame_cnt_time == 0) {
-            last_frame_time = (float)glfwGetTime();
-            last_frame_cnt_time = glfwGetTime();
-        }
-
         float curr_time = (float)glfwGetTime();
         float frame_time = curr_time - last_frame_time;
         float coef = frame_time / (1 / 60.0f);
+
+        // Measure speed
+        ++nb_frames;
+        if (curr_time - last_frame_cnt_time >= 1.0) { // over 1 second
+            cout << nb_frames << " frames" << endl;
+            nb_frames = 0;
+            last_frame_cnt_time = curr_time;
+        }
+        last_frame_time = curr_time;
 
         // Camera movements
         switch (cameraMode) {
@@ -290,25 +291,16 @@ class Simulation {
             break;
         }
 
-        // Measure speed
-        ++nb_frames;
-        if (curr_time - last_frame_cnt_time >= 1.0) { // over 1 second
-            cout << nb_frames << " frames" << endl;
-            nb_frames = 0;
-            last_frame_cnt_time = curr_time;
-        }
-        last_frame_time = curr_time;
-
         // Display
         glViewport(0, 0, window_width, window_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        float water_height_sh = WATER_HEIGHT + 0.1 * sin(curr_time);
+        float water_height_sh = WATER_HEIGHT + 0.1f * sin(curr_time);
         float water_height = (water_height_sh + 1) / 2;
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
         vec3 cam_pos2 = vec3(cam_pos.x, -cam_pos.y + 2 * water_height_sh, cam_pos.z);
         mat4 view_matrix_reflection =
-            lookAt(cam_pos2, cam_pos2 + vecFromRot(M_PI - camera_phi, camera_theta), vec3(0.0f, -1.0f, 0.0f));
+            lookAt(cam_pos2, cam_pos2 + vecFromRot((float)M_PI - camera_phi, camera_theta), vec3(0.0f, -1.0f, 0.0f));
 
         switch (mode) {
 
@@ -349,18 +341,14 @@ class Simulation {
         int chunkX = (int)floor((cam_pos.x + 1) / 2);
         int chunkY = (int)floor((cam_pos.z + 1) / 2);
 
-        // cout << chunkX << " " << chunkY << endl;
-
         for (auto &chunk : chunk_map) {
             chunk.second.tmpFlag = false;
         }
 
         queue<uint64_t> toBeUpdated;
-        int i = chunkX;
-        int j = chunkY;
         for (auto &chunk : chunk_map) {
-            if ((chunk.second.x / 2 < i - VIEW_DIST || chunk.second.x / 2 > i + VIEW_DIST) ||
-                (chunk.second.y / 2 < j - VIEW_DIST || chunk.second.y / 2 > j + VIEW_DIST)) {
+            if ((chunk.second.x / 2 < chunkX - VIEW_DIST || chunk.second.x / 2 > chunkX + VIEW_DIST) ||
+                (chunk.second.y / 2 < chunkY - VIEW_DIST || chunk.second.y / 2 > chunkY + VIEW_DIST)) {
                 toBeUpdated.push(chunk.first);
             }
         }
@@ -390,7 +378,7 @@ class Simulation {
 
         vector<uint64_t> toBeRemoved;
         for (auto &chunk : chunk_map) {
-            if (chunk.second.tmpFlag == false) {
+            if (!chunk.second.tmpFlag) {
                 chunk.second.tex.Cleanup();
                 toBeRemoved.push_back(chunk.first);
             }
@@ -402,6 +390,7 @@ class Simulation {
     }
 
     void cameraMovements(float phi, float coef) {
+
         if (!is_jumping && !arrows_down[UP] && !arrows_down[DOWN] && !arrows_down[RIGHT] && !arrows_down[LEFT]) {
             cam_speed *= (float)CAMERA_DECELERATION;
         }
@@ -484,12 +473,12 @@ class Simulation {
 
             int best_biome = -1;
             float min_dist = 9999;
-            for (int i = 0; i < BIOME_COUNT; i++) {
-                float dist = (temperature - biome_position[i].x) * (temperature - biome_position[i].x) +
-                             (altitude - biome_position[i].y) * (altitude - biome_position[i].y);
+            for (int l = 0; l < BIOME_COUNT; l++) {
+                float dist = (temperature - biome_position[l].x) * (temperature - biome_position[l].x) +
+                             (altitude - biome_position[l].y) * (altitude - biome_position[l].y);
                 if (dist < min_dist) {
                     min_dist = dist;
-                    best_biome = i;
+                    best_biome = l;
                 }
             }
 
