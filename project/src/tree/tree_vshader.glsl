@@ -5,6 +5,7 @@
 in vec2 position;
 
 out vec2 uv;
+out float dist;
 
 uniform mat4 MVP;
 uniform mat4 MV;
@@ -24,4 +25,6 @@ void main() {
 
     vec3 pos_3d = vec3(position.x * cos(angle), position.y + tree_height, position.x * sin(angle));
     gl_Position = MVP * vec4(pos_3d, 1.0);
+
+    dist = length(gl_Position.xyz);
 }

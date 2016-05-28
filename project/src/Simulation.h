@@ -54,7 +54,6 @@ private:
 
     // fps
     int nb_frames = 0;
-    float one_over_pre_nb_frames = 1;
     float last_frame_time = 0;
     double last_frame_cnt_time = 0;
 
@@ -169,11 +168,11 @@ public:
             last_frame_cnt_time = glfwGetTime();
         }
 
-        float curr_time = (float)glfwGetTime();
+        float curr_time = (float) glfwGetTime();
 
         float frame_time = curr_time - last_frame_time;
 
-        float coef = frame_time / (1/60.0f);
+        float coef = frame_time / (1 / 60.0f);
 
         // Camera movements
         switch (cameraMode) {
@@ -215,7 +214,6 @@ public:
                         cam_pos = path.bezierPoint(bezier_time);
 
 
-
                         vec3 newAngles = cam.bezierPoint(bezier_time);
                         camera_phi = newAngles.x;
                         camera_theta = newAngles.y;
@@ -249,15 +247,15 @@ public:
                 break;
             case GROUND:
                 if (is_jumping) {
-                    y_speed -= (float)G * one_over_pre_nb_frames;
+                    y_speed -= (float) G;
                 }
 
                 float old_cam_posY = cam_pos.y;
 
-                cameraMovements((float)M_PI / 2, coef);
+                cameraMovements((float) M_PI / 2, coef);
 
-                int chunkCamX = (int)floor((cam_pos.x + 1) / 2);
-                int chunkCamY = (int)floor((cam_pos.z + 1) / 2);
+                int chunkCamX = (int) floor((cam_pos.x + 1) / 2);
+                int chunkCamY = (int) floor((cam_pos.z + 1) / 2);
 
                 float posInChunkX = ((cam_pos.x + 1) / 2) - chunkCamX;
                 float posInChunkY = ((cam_pos.z + 1) / 2) - chunkCamY;
@@ -269,7 +267,8 @@ public:
                     it->second.tex.Bind();
 
                     GLfloat r[1];
-                    glReadPixels((int)(posInChunkX * TEX_WIDTH), (int)(TEX_HEIGHT - posInChunkY * TEX_HEIGHT), 1, 1, GL_RED,
+                    glReadPixels((int) (posInChunkX * TEX_WIDTH), (int) (TEX_HEIGHT - posInChunkY * TEX_HEIGHT), 1, 1,
+                                 GL_RED,
                                  GL_FLOAT, r);
                     it->second.tex.Unbind();
 
@@ -292,16 +291,16 @@ public:
         ++nb_frames;
         if (curr_time - last_frame_cnt_time >= 1.0) { // over 1 second
             cout << nb_frames << " frames" << endl;
-            one_over_pre_nb_frames = nb_frames > 0 ? 1.f / nb_frames : 1;
             nb_frames = 0;
             last_frame_cnt_time = curr_time;
         }
         last_frame_time = curr_time;
 
+
         // Display
         glViewport(0, 0, window_width, window_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        float water_height_sh = WATER_HEIGHT + 0.1*sin(curr_time);
+        float water_height_sh = WATER_HEIGHT + 0.1 * sin(curr_time);
         float water_height = (water_height_sh + 1) / 2;
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
@@ -337,7 +336,7 @@ public:
 
                 mat4 model = scale(model_matrix, vec3(WATER_SIZE, 1, WATER_SIZE));
                 model = translate(model, vec3(cam_pos.x / 5, WATER_HEIGHT, cam_pos.z / 5));
-                water.Draw((float)curr_time, 0, 0, model, view_matrix, projection_matrix, cam_pos);
+                water.Draw((float) curr_time, 0, 0, model, view_matrix, projection_matrix, cam_pos);
 
                 sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
                 break;
@@ -346,8 +345,8 @@ public:
         //cleanup
         // + 1 is because we are in the middle of a chunk
         // / 2 because a chunk is of length 2
-        int chunkX = (int)floor((cam_pos.x + 1) / 2);
-        int chunkY = (int)floor((cam_pos.z + 1) / 2);
+        int chunkX = (int) floor((cam_pos.x + 1) / 2);
+        int chunkY = (int) floor((cam_pos.z + 1) / 2);
 
         // cout << chunkX << " " << chunkY << endl;
 
@@ -381,28 +380,25 @@ public:
         for (unsigned int i = 0; i < toBeRemoved.size(); i++) {
             chunk_map.erase(toBeRemoved[i]);
         }
-
     }
 
     void cameraMovements(float phi, float coef) {
         if (!is_jumping && !arrows_down[UP] && !arrows_down[DOWN] && !arrows_down[RIGHT] && !arrows_down[LEFT]) {
-            cam_speed *= pow((float)CAMERA_DECELERATION * coef, one_over_pre_nb_frames);
+            cam_speed *= (float)CAMERA_DECELERATION;
         }
 
         if (!is_jumping) {
             if (arrows_down[UP]) {
-                cam_speed += vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION * one_over_pre_nb_frames*coef;
+                cam_speed += vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION;
             }
             if (arrows_down[DOWN]) {
-                cam_speed -= vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION * one_over_pre_nb_frames*coef;
+                cam_speed -= vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION;
             }
             if (arrows_down[RIGHT]) {
-                cam_speed -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION *
-                             one_over_pre_nb_frames*coef;
+                cam_speed -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION;
             }
             if (arrows_down[LEFT]) {
-                cam_speed += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION *
-                             one_over_pre_nb_frames * coef;
+                cam_speed += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION;
             }
         }
 
@@ -410,7 +406,7 @@ public:
             cam_speed = normalize(cam_speed) * (float)CAMERA_SPEED;
         }
 
-        cam_pos += cam_speed * one_over_pre_nb_frames;
+        cam_pos += cam_speed*coef;
     }
 
     void cleanUp() {
