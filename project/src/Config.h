@@ -10,9 +10,9 @@
 #define DELTA 0.02
 #define VIEW_DIST 2 // in chunk
 
-#define CAMERA_SPEED (1.0/40 * 1.5)
-#define CAMERA_ACCELERATION (1.0/40 * 2)
-#define CAMERA_DECELERATION (1.0/40 * 0.01)
+#define CAMERA_SPEED (1.0/40 * 1)
+#define CAMERA_ACCELERATION (CAMERA_SPEED / 15)
+#define CAMERA_DECELERATION (0.8)
 #define MOUSE_SENSIBILTY 0.002
 
 #ifndef M_PI
