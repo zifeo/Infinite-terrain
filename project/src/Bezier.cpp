@@ -1,8 +1,8 @@
 //
 // Created by Nicolas Casademont on 22/05/16.
 //
-#include <iostream>
 #include <ctgmath>
+#include <iostream>
 
 #include "Bezier.h"
 
@@ -14,8 +14,8 @@ glm::vec3 Bezier::bezierPoint(double t) {
         int part_begin = floor(t / (per_knot - 1)) * (per_knot - 1);
         int part_end = part_begin + (per_knot - 1);
 
-        if (part_end > nbr_knot*(per_knot - 1)) {
-            part_begin = nbr_knot*(per_knot - 1);
+        if (part_end > nbr_knot * (per_knot - 1)) {
+            part_begin = nbr_knot * (per_knot - 1);
             part_end = nbr_elem - 1;
         }
 
@@ -35,9 +35,7 @@ void Bezier::print_list() {
     }
 }
 
-void Bezier::print_vec3(glm::vec3 vec) {
-    cout << ": "  << vec.x << ", " << vec.y << ", " << vec.z;
-}
+void Bezier::print_vec3(glm::vec3 vec) { cout << ": " << vec.x << ", " << vec.y << ", " << vec.z; }
 
 void Bezier::addPoint(glm::vec3 &point) {
 
@@ -47,7 +45,7 @@ void Bezier::addPoint(glm::vec3 &point) {
         cout << "before ";
         print_vec3(list_points.at(knot_point - 1));
         cout << endl;
-        cout << "change point " << knot_point <<  " to ";
+        cout << "change point " << knot_point << " to ";
         print_vec3(list_points.at(knot_point));
         cout << endl;
         cout << "after ";

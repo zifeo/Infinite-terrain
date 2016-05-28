@@ -4,13 +4,11 @@ in vec2 uv;
 in vec3 view_dir;
 in vec3 light_dir;
 
-
 out vec4 color;
 
 uniform sampler2D normal_tex;
 uniform sampler2D normal_tex2;
 uniform sampler2D tex_reflect;
-
 
 uniform float cam_posX;
 uniform float cam_posY;
@@ -29,11 +27,12 @@ void main() {
     float Ls = 0.5;
 
     vec2 texSize = textureSize(normal_tex, 0);
-    vec2 new_uv = uv*4;
-    new_uv.x += cam_posX/7.5 + 0.1 * sin(time/5);
-    new_uv.y += cam_posY/7.5 + 0.1 * cos(time/5);
+    vec2 new_uv = uv * 4;
+    new_uv.x += cam_posX / 7.5 + 0.1 * sin(time / 5);
+    new_uv.y += cam_posY / 7.5 + 0.1 * cos(time / 5);
 
-    vec3 normal_mv = normalize(mix(texture(normal_tex, new_uv).xyz, texture(normal_tex2, new_uv).xyz, (1 + sin(time/10)/2)));
+    vec3 normal_mv =
+        normalize(mix(texture(normal_tex, new_uv).xyz, texture(normal_tex2, new_uv).xyz, (1 + sin(time / 10) / 2)));
     normal_mv.x = (normal_mv.x * 2 - 1);
     normal_mv.y = -(normal_mv.y * 2 - 1);
     normal_mv.x *= 2;
@@ -53,6 +52,8 @@ void main() {
 
     //;
 
-    color = vec4(mix(texture(tex_reflect, uv2).rgb, vec3(0.2, 0.8, 1), 0.5) * (La + nl * Ld) + vec3(1) * (pow(rv, 200) * Ls), 0.85);
-    //color = vec4(vec3(pow(rv, 50)), 1);
+    color = vec4(mix(texture(tex_reflect, uv2).rgb, vec3(0.2, 0.8, 1), 0.5) * (La + nl * Ld) +
+                     vec3(1) * (pow(rv, 200) * Ls),
+                 0.85);
+    // color = vec4(vec3(pow(rv, 50)), 1);
 }

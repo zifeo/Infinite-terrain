@@ -11,7 +11,7 @@ class Water {
     GLuint vertex_buffer_object_index_;    // memory buffer for indices
     GLuint program_id_;                    // GLSL shader program ID
     GLuint normal_texture_id_;             // normal texture ID
-    GLuint normal_texture2_id_;             // normal texture2 ID
+    GLuint normal_texture2_id_;            // normal texture2 ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
     GLuint MV_id_;
@@ -121,7 +121,8 @@ class Water {
     }
 
     void Draw(float time, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX, glm::vec3 cam_pos = vec3(0,0,0)) {
+              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
+              glm::vec3 cam_pos = vec3(0, 0, 0)) {
 
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);

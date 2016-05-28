@@ -23,8 +23,8 @@ uniform float altitude_H;
 #define BIOME_COUNT 5
 
 vec2 biome_position[BIOME_COUNT] =
-    vec2[](vec2(0.5, 0.5), vec2(0.75, 0.35), vec2(0.35, 0.65),
-            vec2(0.3, 0.2), vec2(0.5, 0.2)); // x -> temp, y -> altitude, if changes, need to copy to grid shaders !
+    vec2[](vec2(0.5, 0.5), vec2(0.75, 0.35), vec2(0.35, 0.65), vec2(0.3, 0.2),
+           vec2(0.5, 0.2)); // x -> temp, y -> altitude, if changes, need to copy to grid shaders !
 
 vec3 biome_parameter[BIOME_COUNT] = vec3[](vec3(H, lac, octaves), vec3(H, lac * 50, 2), vec3(H, lac, octaves),
                                            vec3(H, lac, octaves), vec3(H, lac, 1)); // x -> H, y -> lac, z -> octaves
@@ -101,8 +101,7 @@ void main() {
 
         if (dist * dist * dist != 0) {
             coeff_biomes[i] = 1 / (dist * dist * dist);
-        }
-        else {
+        } else {
             coeff_biomes[i] = 10000;
         }
 

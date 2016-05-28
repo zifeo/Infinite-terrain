@@ -19,7 +19,7 @@ class Tree {
     GLuint reed_texture_id_;               // reed texture ID
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
-    GLuint clipping_id_; // clipping value
+    GLuint clipping_id_;                   // clipping value
     GLuint height_id_;
 
   public:
@@ -109,7 +109,7 @@ class Tree {
 
     void Draw(float angle, float time, TreeType type, float height, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
-    float clipping_height = 0.0f) {
+              float clipping_height = 0.0f) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
 
@@ -126,9 +126,9 @@ class Tree {
             glBindTexture(GL_TEXTURE_2D, algae_texture_id_);
         } else if (type == SNOWY_TREE) {
             glBindTexture(GL_TEXTURE_2D, snowy_texture_id_);
-        }else if (type == REED) {
+        } else if (type == REED) {
             glBindTexture(GL_TEXTURE_2D, reed_texture_id_);
-        }else {
+        } else {
             cout << "ERROR : UNEXISISTING TREE TYPE" << endl;
         }
 

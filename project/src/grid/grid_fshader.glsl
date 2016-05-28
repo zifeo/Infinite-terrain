@@ -23,8 +23,8 @@ uniform float time;
 #define BIOME_COUNT 5
 
 vec2 biome_position[BIOME_COUNT] =
-    vec2[](vec2(0.5, 0.5), vec2(0.75, 0.35), vec2(0.35, 0.65),
-vec2(0.3, 0.2), vec2(0.5, 0.2)); // x -> temp, y -> altitude, if changes, need to copy to perlin shaders !
+    vec2[](vec2(0.5, 0.5), vec2(0.75, 0.35), vec2(0.35, 0.65), vec2(0.3, 0.2),
+           vec2(0.5, 0.2)); // x -> temp, y -> altitude, if changes, need to copy to perlin shaders !
 
 float coeffSand(float height, float angle, int biome) { // angle => 0 = plat, 1 = falaise
     switch (biome) {
@@ -115,9 +115,8 @@ void main() {
                      (altitude - biome_position[i].y) * (altitude - biome_position[i].y);
 
         if (dist != 0) {
-           coeff_biomes[i] = 1 / (dist * dist * dist);
-        }
-        else {
+            coeff_biomes[i] = 1 / (dist * dist * dist);
+        } else {
             coeff_biomes[i] = 9999;
         }
 
@@ -148,12 +147,12 @@ void main() {
                     sum;
 
     vec3 color_temp3 = colorTex * (nl * Ld + La);
-    if(height < 0.4 + 0.05 * sin(time)) {
-        color_temp3 = mix(color_temp3,  vec3(0.2, 0.8, 1), 0.4);
+    if (height < 0.4 + 0.05 * sin(time)) {
+        color_temp3 = mix(color_temp3, vec3(0.2, 0.8, 1), 0.4);
     } else {
         color_temp3 = color_temp3;
     }
 
-    vec4 brouillard = vec4(0.8,0.8,0.8, 0);
-    color = mix(vec4(color_temp3,1), brouillard, clamp(dist * dist * dist/(8*8*8), 0, 1));
+    vec4 brouillard = vec4(0.8, 0.8, 0.8, 0);
+    color = mix(vec4(color_temp3, 1), brouillard, clamp(dist * dist * dist / (8 * 8 * 8), 0, 1));
 }
