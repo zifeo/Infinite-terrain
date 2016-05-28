@@ -14,8 +14,8 @@
 #include <glm/gtx/transform.hpp>
 
 #include <map>
-#include <stdint.h>
 #include <queue>
+#include <stdint.h>
 
 using namespace std;
 using namespace glm;
