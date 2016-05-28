@@ -5,8 +5,9 @@
 in vec2 uv;
 in vec3 light_dir;
 in float height;
+in float dist;
 
-out vec3 color;
+out vec4 color;
 
 uniform vec3 La, Ld, Ls;
 uniform vec3 ka, kd, ks;
@@ -146,10 +147,13 @@ void main() {
                      cRock * texture(rock_tex, uv * 30).rgb + cSnow * texture(snow_tex, uv * 30).rgb) /
                     sum;
 
-    vec3 color_temp = colorTex * (nl * Ld + La);
+    vec3 color_temp3 = colorTex * (nl * Ld + La);
     if(height < 0.4 + 0.005 * sin(time)) {
-        color = mix(color_temp,  vec3(0.2, 0.8, 1), 0.4);
+        color_temp3 = mix(color_temp3,  vec3(0.2, 0.8, 1), 0.4);
     } else {
-        color = color_temp;
+        color_temp3 = color_temp3;
     }
+
+    vec4 brouillard = vec4(0.8,0.8,0.8, 0);
+    color = mix(vec4(color_temp3,1), brouillard, clamp(dist * dist * dist/(8*8*8), 0, 1));
 }

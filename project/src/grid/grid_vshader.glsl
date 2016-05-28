@@ -7,6 +7,7 @@ in vec2 position;
 out vec2 uv;
 out vec3 light_dir;
 out float height;
+out float dist;
 
 uniform mat4 MVP;
 uniform mat4 MV;
@@ -27,7 +28,10 @@ void main() {
     vec3 pos_3d = vec3(position.x, height * 2 - 1, -position.y);
 
     vec4 vpoint_mv = MV * vec4(pos_3d, 1.0);
+
     gl_Position = MVP * vec4(pos_3d, 1.0);
+
+    dist = length(gl_Position.xyz);
 
     gl_ClipDistance[0] = height - clipping;
 

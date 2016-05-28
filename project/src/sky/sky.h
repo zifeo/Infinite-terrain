@@ -117,7 +117,7 @@ class Sky {
             stbi_image_free(image);
         }
 
-        model_matrix_ = scale(model_matrix_, vec3(10.0f));
+        model_matrix_ = scale(model_matrix_, vec3(100.0f));
     }
 
     void Cleanup() {

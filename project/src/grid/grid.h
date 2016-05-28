@@ -89,7 +89,7 @@ class Grid : public Material, public Light {
         {
             std::vector<GLfloat> vertices;
             std::vector<GLuint> indices;
-            int grid_dim = 256;
+            int grid_dim = 64;
 
             float half = grid_dim / 2.f;
             int ind = 0;
@@ -233,12 +233,15 @@ class Grid : public Material, public Light {
         glUniform1f(glGetUniformLocation(program_id_, "time"), glfwGetTime());
 
         glEnable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
         glCullFace(GL_FRONT);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
          //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         glDrawElements(GL_TRIANGLE_STRIP, num_indices_, GL_UNSIGNED_INT, 0);
          //glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
+        glDisable(GL_BLEND);
         glDisable(GL_CULL_FACE);
 
         glBindVertexArray(0);

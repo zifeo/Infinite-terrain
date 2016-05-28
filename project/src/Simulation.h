@@ -54,7 +54,6 @@ private:
 
     // fps
     int nb_frames = 0;
-    float one_over_pre_nb_frames = 1;
     double last_frame_time = 0;
     double last_frame_cnt_time = 0;
 
@@ -230,7 +229,7 @@ public:
                 break;
             case GROUND:
                 if (is_jumping) {
-                    y_speed -= (float)G * one_over_pre_nb_frames;
+                    y_speed -= (float)G;
                 }
 
                     float old_cam_posY = cam_pos.y;
@@ -273,7 +272,6 @@ public:
                 ++nb_frames;
                 if (curr_time - last_frame_cnt_time >= 1.0) { // over 1 second
                     cout << nb_frames << " frames" << endl;
-                    one_over_pre_nb_frames = nb_frames > 0 ? 1.f / nb_frames : 1;
                     nb_frames = 0;
                     last_frame_cnt_time = curr_time;
                 }
@@ -380,23 +378,21 @@ public:
 
         void cameraMovements(float phi, float coef) {
             if (!is_jumping && !arrows_down[UP] && !arrows_down[DOWN] && !arrows_down[RIGHT] && !arrows_down[LEFT]) {
-                cam_speed *= pow((float)CAMERA_DECELERATION * coef, one_over_pre_nb_frames);
+                cam_speed *= (float)CAMERA_DECELERATION * coef;
             }
 
             if (!is_jumping) {
                 if (arrows_down[UP]) {
-                    cam_speed += vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION * one_over_pre_nb_frames*coef;
+                    cam_speed += vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION;
                 }
                 if (arrows_down[DOWN]) {
-                    cam_speed -= vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION * one_over_pre_nb_frames*coef;
+                    cam_speed -= vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION;
                 }
                 if (arrows_down[RIGHT]) {
-                    cam_speed -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION *
-                                 one_over_pre_nb_frames*coef;
+                    cam_speed -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION;
                 }
                 if (arrows_down[LEFT]) {
-                    cam_speed += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION *
-                                 one_over_pre_nb_frames * coef;
+                    cam_speed += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION;
                 }
             }
 
@@ -404,7 +400,7 @@ public:
                 cam_speed = normalize(cam_speed) * (float)CAMERA_SPEED;
             }
 
-            cam_pos += cam_speed * one_over_pre_nb_frames;
+            cam_pos += cam_speed*coef;
         }
 
         void cleanUp() {
