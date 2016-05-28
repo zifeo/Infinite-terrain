@@ -15,6 +15,7 @@
 
 #include <map>
 #include <stdint.h>
+#include <queue>
 
 using namespace std;
 using namespace glm;
@@ -149,14 +150,16 @@ class Simulation {
             int j = chunk.second.y;
             vec3 pos = vec3(i, 0, j);
 
+            mat4 PV = proj * view;
+
             for (unsigned int k = 0; k < chunk.second.treeList.size(); k++) {
                 vec3 posInChunk = chunk.second.treeList[k].pos;
-                mat4 modelForChunk = translate(model_matrix, pos + posInChunk);
+                mat4 modelForChunk = PV * translate(model_matrix, pos + posInChunk);
                 float angle = 0.0f;
 
                 for (int l = 0; l < TREE_PLANE_COUNT; l++) {
                     tree.Draw(angle, time, chunk.second.treeList[k].type, chunk.second.treeList[k].pos.y, modelForChunk,
-                              view, proj, clipping_height);
+                              clipping_height);
                     angle += (float)M_PI / TREE_PLANE_COUNT;
                 }
             }
@@ -350,6 +353,16 @@ class Simulation {
             chunk.second.tmpFlag = false;
         }
 
+        queue<uint64_t> toBeUpdated;
+        int i = chunkX;
+        int j = chunkY;
+        for (auto &chunk : chunk_map) {
+            if ((chunk.second.x / 2 < i - VIEW_DIST || chunk.second.x / 2 > i + VIEW_DIST) ||
+                (chunk.second.y / 2 < j - VIEW_DIST || chunk.second.y / 2 > j + VIEW_DIST)) {
+                toBeUpdated.push(chunk.first);
+            }
+        }
+
         for (int dx = -VIEW_DIST; dx <= VIEW_DIST; ++dx) {
             for (int dy = -VIEW_DIST; dy <= VIEW_DIST; ++dy) {
                 int i = chunkX + dx;
@@ -358,7 +371,15 @@ class Simulation {
                 map<uint64_t, ChunkTex>::iterator it = chunk_map.find(getKey(i, j));
 
                 if (it == chunk_map.end()) {
-                    initChunk(i, j);
+
+                    if (toBeUpdated.empty())
+                        initChunk(i, j);
+                    else {
+                        ChunkTex ch = chunk_map.at(toBeUpdated.front());
+                        chunk_map.erase(toBeUpdated.front());
+                        toBeUpdated.pop();
+                        updateChunk(i, j, ch);
+                    }
                 } else {
                     it->second.tmpFlag = true;
                 }
@@ -438,6 +459,75 @@ class Simulation {
         GLfloat *perlin_tex = new GLfloat[TEX_WIDTH * TEX_HEIGHT * 3];
         glReadPixels(0, 0, TEX_WIDTH, TEX_HEIGHT, GL_RGB, GL_FLOAT,
                      perlin_tex); // One fat read is much faster than small reads for all trees
+        chunk.tex.Unbind();
+
+        int count = rand() % (MAX_TREES_PER_CHUNK / 2) + (MAX_TREES_PER_CHUNK / 2);
+        for (int k = 0; k < count; k++) {
+
+            vec3 posInChunk;
+            posInChunk.x = (rand() % 1999 + 1) / 1000.0f - 1;
+            posInChunk.z = (rand() % 1999 + 1) / 1000.0f - 1;
+
+            int x = (int)((posInChunk.x + 1) * TEX_WIDTH / 2);
+            int y = (int)((-posInChunk.z + 1) * TEX_HEIGHT / 2);
+
+            posInChunk.y = perlin_tex[(x + y * TEX_HEIGHT) * 3] * 2 - 1;
+
+            float temperature = perlin_tex[(x + y * TEX_HEIGHT) * 3 + 1];
+            float altitude = perlin_tex[(x + y * TEX_HEIGHT) * 3 + 2];
+
+            TreeStruct tree_struct;
+            tree_struct.pos = posInChunk;
+            tree_struct.type = NORMAL_TREE;
+
+            int best_biome = -1;
+            float min_dist = 9999;
+            for (int i = 0; i < BIOME_COUNT; i++) {
+                float dist = (temperature - biome_position[i].x) * (temperature - biome_position[i].x) +
+                             (altitude - biome_position[i].y) * (altitude - biome_position[i].y);
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    best_biome = i;
+                }
+            }
+
+            if (biome_trees[best_biome].size() > 0) {
+
+                float tree_chance = (rand() % 1000) / 1000.f;
+                tree_struct.type = biome_trees[best_biome][rand() % biome_trees[best_biome].size()];
+
+                if (tree_struct.pos.y < WATER_HEIGHT - 0.1) {
+                    tree_struct.type = ALGAE;
+                } else if (tree_struct.pos.y < WATER_HEIGHT) {
+                    tree_struct.type = REED;
+                } else if (tree_struct.pos.y > 0.4) {
+                    tree_struct.type = SNOWY_TREE;
+                }
+
+                if (tree_chance < biome_tree_count[best_biome]) {
+                    chunk.treeList.push_back(tree_struct);
+                }
+            }
+        }
+
+        delete[] perlin_tex;
+        chunk_map.insert(pair<uint64_t, ChunkTex>(getKey(i, j), chunk));
+    }
+
+    void updateChunk(int i, int j, ChunkTex chunk) {
+        chunk.x = i * 2;
+        chunk.y = j * 2;
+        chunk.tmpFlag = true;
+        chunk.treeList.clear();
+        chunk.tex.Bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // (-j) because of inversion of y axis from 2D to 3D.
+        perlinTex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
+
+        // tree init
+        GLfloat *perlin_tex = new GLfloat[TEX_WIDTH * TEX_HEIGHT * 3];
+        glReadPixels(0, 0, TEX_WIDTH, TEX_HEIGHT, GL_RGB, GL_FLOAT,
+                     perlin_tex); // One fat read is much faster than small reads for all trees*/
 
         chunk.tex.Unbind();
 

@@ -107,8 +107,7 @@ class Tree {
         glDeleteTextures(1, &tree_texture_id_);
     }
 
-    void Draw(float angle, float time, TreeType type, float height, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
+    void Draw(float angle, float time, TreeType type, float height, const glm::mat4 &mvp = IDENTITY_MATRIX,
               float clipping_height = 0.0f) {
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);
@@ -133,8 +132,7 @@ class Tree {
         }
 
         // setup MVP
-        glm::mat4 MVP = projection * view * model;
-        glUniformMatrix4fv(MVP_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(MVP));
+        glUniformMatrix4fv(MVP_id_, ONE, DONT_TRANSPOSE, glm::value_ptr(mvp));
 
         // pass the current time stamp to the shader.
         glUniform1f(glGetUniformLocation(program_id_, "time"), time);
