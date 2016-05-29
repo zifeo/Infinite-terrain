@@ -15,6 +15,12 @@
 #define CAMERA_DECELERATION (0.8)
 #define MOUSE_SENSIBILTY 0.002
 
+#define CAM_PHI_MAX ((float)(9 * M_PI / 10))
+#define CAM_PHI_MIN ((float)(M_PI / 10))
+#define CAM_PHI_MIN_PAD 0.5
+#define CAM_PHI_DT 0.5
+#define CAM_THETA_DT 1
+
 #ifndef M_PI
 #define M_PI 3.14159265
 #endif

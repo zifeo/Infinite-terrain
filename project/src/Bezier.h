@@ -1,14 +1,13 @@
 #pragma once
 
-#include "icg_helper.h"
 #include "glm/vec3.hpp"
+#include "icg_helper.h"
 
 #include <vector>
 
 class Bezier {
 
   public:
-
     glm::vec3 bezierPoint(double t) {
         if (nbr_knot < 1) {
             double newT = t / nbr_elem;
@@ -69,7 +68,6 @@ class Bezier {
     int get_nbr_elem() const { return nbr_elem; }
 
   private:
-
     vector<glm::vec3> list_points;
     int nbr_elem = 0;
     int per_knot = 4;
@@ -85,12 +83,10 @@ class Bezier {
     }
 
     static float bernsteinPolynom(double t, int n, int i) {
-        return (float) (Bezier::binomial(n, i) * pow(t, i) * pow(1 - t, n - i));
+        return (float)(Bezier::binomial(n, i) * pow(t, i) * pow(1 - t, n - i));
     }
 
     static float binomial(int n, int k) { return fact(n) / (fact(n - k) * fact(k)); }
 
     static float fact(int n) { return (n == 1 || n == 0) ? 1 : fact(n - 1) * n; }
-
 };
-

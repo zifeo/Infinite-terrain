@@ -119,9 +119,8 @@ class Water {
         glDeleteTextures(1, &tex_reflection_id_);
     }
 
-    void Draw(float time, const glm::mat4 &model = IDENTITY_MATRIX,
-              const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
-              glm::vec3 cam_pos = vec3(0, 0, 0)) {
+    void Draw(float time, const glm::mat4 &model = IDENTITY_MATRIX, const glm::mat4 &view = IDENTITY_MATRIX,
+              const glm::mat4 &projection = IDENTITY_MATRIX, glm::vec3 cam_pos = vec3(0, 0, 0)) {
 
         glUseProgram(program_id_);
         glBindVertexArray(vertex_array_id_);

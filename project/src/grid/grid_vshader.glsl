@@ -37,5 +37,4 @@ void main() {
 
     light_dir = normalize(light_pos.xyz - vpoint_mv.xyz);
     height = clamp(height, 0, 1);
-
 }

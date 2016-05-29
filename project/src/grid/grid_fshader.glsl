@@ -148,7 +148,7 @@ void main() {
                     sum;
 
     vec3 color_temp3 = colorTex * (nl * Ld + La);
-    if (height < 0.35 + water_ampl * sin(time)/2) {
+    if (height < 0.35 + water_ampl * sin(time) / 2) {
         color_temp3 = mix(color_temp3, vec3(0.2, 0.6, 1), 0.4);
     } else {
         color_temp3 = color_temp3;
