@@ -90,7 +90,7 @@ float noiseBFM(vec2 point, vec3 param) {
 }
 
 void main() {
-    float temperature = noiseBFM(point / 10, vec3(temperature_H, temperature_lac, temperature_octave));
+    float temperature = 1.2*noiseBFM(point / 10, vec3(temperature_H, temperature_lac, temperature_octave));
     float altitude = noiseBFM((point + vec2(100)) / 10, vec3(altitude_H, altitude_lac, altitude_octave));
 
     float coeff_biomes[BIOME_COUNT];

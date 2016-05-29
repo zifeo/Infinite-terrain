@@ -8,7 +8,7 @@
 
 #define CHUNKS 2
 #define DELTA 0.02
-#define VIEW_DIST 2 // in chunk
+#define VIEW_DIST 3 // in chunk
 
 #define CAMERA_SPEED (1.0 / 40 * 1)
 #define CAMERA_ACCELERATION (CAMERA_SPEED / 15)
@@ -37,7 +37,7 @@
        // discarded later)
 
 // Physic defines
-#define G 0.01
+#define G 0.001
 #define JUMP_SPEED 0.015
 
 // Biome defines
@@ -55,6 +55,6 @@ enum TreeType { NORMAL_TREE = 0, DESERT_TREE, CACTUS, ALGAE, SNOWY_TREE, REED };
 
 enum BiomeType { NORMAL_BIOME = 0, DESERT, HIGH_MOUNTAIN, SEA, OCEAN };
 
-#define WATER_SIZE 5
+#define WATER_SIZE 8
 #define WATER_HEIGHT -0.3f
 #define WATER_AMPL 0.01f

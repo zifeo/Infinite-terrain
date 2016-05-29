@@ -296,7 +296,7 @@ class Simulation {
             drawTrees(model_matrix, view_matrix, projection_matrix, curr_time);
 
             mat4 model = scale(model_matrix, vec3(WATER_SIZE, 1, WATER_SIZE));
-            model = translate(model, vec3(cam_pos.x / 5, WATER_HEIGHT, cam_pos.z / 5));
+            model = translate(model, vec3(cam_pos.x / WATER_SIZE, WATER_HEIGHT, cam_pos.z / WATER_SIZE));
             water.Draw(curr_time, model, view_matrix, projection_matrix, cam_pos);
 
             sky.Draw(translate(projection_matrix * model_matrix * view_matrix, cam_pos));
@@ -438,12 +438,12 @@ class Simulation {
     }
 
     void drawTrees(mat4 &model, mat4 &view, mat4 &proj, float time, float clipping_height = 0.0f) {
+
+        mat4 PV = proj * view;
         for (auto &chunk : chunk_map) {
             int i = chunk.second.x;
             int j = chunk.second.y;
             vec3 pos = vec3(i, 0, j);
-
-            mat4 PV = proj * view;
 
             for (unsigned int k = 0; k < chunk.second.treeList.size(); k++) {
                 vec3 posInChunk = chunk.second.treeList[k].pos;
