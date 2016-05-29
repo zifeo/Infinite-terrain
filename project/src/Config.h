@@ -3,8 +3,8 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
-#define TEX_WIDTH 1024
-#define TEX_HEIGHT 1024
+#define TEX_WIDTH 512
+#define TEX_HEIGHT 512
 
 #define CHUNKS 2
 #define DELTA 0.02
