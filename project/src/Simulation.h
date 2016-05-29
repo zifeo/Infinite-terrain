@@ -59,7 +59,7 @@ class Simulation {
     double last_frame_cnt_time = 0;
 
     // Perlin parameters
-    PerlinTex perlinTex;
+    PerlinTex perlin_tex;
     int octave = 9;
     float lacunarity = 2;
     float fractal_increment = 1.25;
@@ -116,7 +116,7 @@ class Simulation {
         glEnable(GL_MULTISAMPLE);
         onResize(window);
 
-        perlinTex.Init();
+        perlin_tex.Init();
         grid.Init();
         GLuint water_reflection_tex_id = water_reflection.Init(window_width, window_height, false, GL_RGB8, GL_RGB);
         water.Init(water_reflection_tex_id);
@@ -128,39 +128,6 @@ class Simulation {
         biome_trees[DESERT_TREE].push_back(CACTUS);
         biome_trees[HIGH_MOUNTAIN].push_back(NORMAL_TREE);
         biome_trees[SEA].push_back(NORMAL_TREE);
-    }
-
-    void drawChunks(mat4& model, mat4& view, mat4& proj, float clipping_height = 0.0f) {
-        for (auto &chunk : chunk_map) {
-            int i = chunk.second.x;
-            int j = chunk.second.y;
-
-            vec3 pos = vec3(chunk.second.x, 0, chunk.second.y);
-            mat4 model_trans = translate(model, pos);
-            grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model_trans, view, proj, clipping_height);
-        }
-    }
-
-    void drawTrees(mat4& model, mat4& view, mat4& proj, float time, float clipping_height = 0.0f) {
-        for (auto &chunk : chunk_map) {
-            int i = chunk.second.x;
-            int j = chunk.second.y;
-            vec3 pos = vec3(i, 0, j);
-
-            mat4 PV = proj * view;
-
-            for (unsigned int k = 0; k < chunk.second.treeList.size(); k++) {
-                vec3 posInChunk = chunk.second.treeList[k].pos;
-                mat4 modelForChunk = PV * translate(model, pos + posInChunk);
-                float angle = 0.0f;
-
-                for (int l = 0; l < TREE_PLANE_COUNT; l++) {
-                    tree.Draw(angle, time, chunk.second.treeList[k].type, chunk.second.treeList[k].pos.y, modelForChunk,
-                              clipping_height);
-                    angle += (float)M_PI / TREE_PLANE_COUNT;
-                }
-            }
-        }
     }
 
     void display() {
@@ -231,9 +198,8 @@ class Simulation {
 
                     map<uint64_t, ChunkTex>::iterator it = chunk_map.find(getKey(chunkCamX, chunkCamY));
 
-                    if (it !=
-                        chunk_map.end()) { // Sometimes, just before the chunk's generation, there is no ground at the
-                        // bottom of the camera
+                    if (it != chunk_map.end()) {
+                        // Sometimes, just before the chunk's generation, there is no ground at the bottom of the camera
                         it->second.tex.Bind();
 
                         GLfloat r[1];
@@ -307,7 +273,7 @@ class Simulation {
         case DEFAULT:
             break;
         case PERLIN:
-            perlinTex.Draw(octave, lacunarity, fractal_increment, 0, 0);
+            perlin_tex.Draw(octave, lacunarity, fractal_increment, 0, 0);
             break;
         case TERRAIN:
 
@@ -389,6 +355,22 @@ class Simulation {
         }
     }
 
+    void cleanUp() {
+        grid.Cleanup();
+        water_reflection.Cleanup();
+        water.Cleanup();
+        perlin_tex.Cleanup();
+        sky.Cleanup();
+        for (auto &chunk : chunk_map) {
+            chunk.second.tex.Cleanup();
+        }
+        chunk_map.clear();
+    }
+
+    /* ********** Helpers ********** */
+
+private:
+
     void cameraMovements(float phi, float coef) {
 
         if (!is_jumping && !arrows_down[UP] && !arrows_down[DOWN] && !arrows_down[RIGHT] && !arrows_down[LEFT]) {
@@ -417,19 +399,38 @@ class Simulation {
         cam_pos += cam_speed * coef;
     }
 
-    void cleanUp() {
-        grid.Cleanup();
-        water_reflection.Cleanup();
-        water.Cleanup();
-        perlinTex.Cleanup();
-        sky.Cleanup();
+    void drawChunks(mat4& model, mat4& view, mat4& proj, float clipping_height = 0.0f) {
         for (auto &chunk : chunk_map) {
-            chunk.second.tex.Cleanup();
+            int i = chunk.second.x;
+            int j = chunk.second.y;
+
+            vec3 pos = vec3(chunk.second.x, 0, chunk.second.y);
+            mat4 model_trans = translate(model, pos);
+            grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model_trans, view, proj, clipping_height);
         }
-        chunk_map.clear();
     }
 
-    /* ********** Helpers ********** */
+    void drawTrees(mat4& model, mat4& view, mat4& proj, float time, float clipping_height = 0.0f) {
+        for (auto &chunk : chunk_map) {
+            int i = chunk.second.x;
+            int j = chunk.second.y;
+            vec3 pos = vec3(i, 0, j);
+
+            mat4 PV = proj * view;
+
+            for (unsigned int k = 0; k < chunk.second.treeList.size(); k++) {
+                vec3 posInChunk = chunk.second.treeList[k].pos;
+                mat4 modelForChunk = PV * translate(model, pos + posInChunk);
+                float angle = 0.0f;
+
+                for (int l = 0; l < TREE_PLANE_COUNT; l++) {
+                    tree.Draw(angle, time, chunk.second.treeList[k].type, chunk.second.treeList[k].pos.y, modelForChunk,
+                              clipping_height);
+                    angle += (float)M_PI / TREE_PLANE_COUNT;
+                }
+            }
+        }
+    }
 
     inline vec3 vecFromRot(float p, float t) { return vec3(sin(p) * cos(t), cos(p), sin(p) * sin(t)); }
 
@@ -444,7 +445,7 @@ class Simulation {
         chunk.tex.Bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // (-j) because of inversion of y axis from 2D to 3D.
-        perlinTex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
+        perlin_tex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
 
         // tree init
         GLfloat *perlin_tex = new GLfloat[TEX_WIDTH * TEX_HEIGHT * 3];
@@ -513,7 +514,7 @@ class Simulation {
         chunk.tex.Bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // (-j) because of inversion of y axis from 2D to 3D.
-        perlinTex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
+        perlin_tex.Draw(octave, lacunarity, fractal_increment, i - CHUNKS / 2, (-j) - CHUNKS / 2);
 
         // tree init
         GLfloat *perlin_tex = new GLfloat[TEX_WIDTH * TEX_HEIGHT * 3];
@@ -591,6 +592,8 @@ class Simulation {
 
     /* ********** Events ********** */
 
+public:
+
     void onMouseMove(GLFWwindow *window, double x, double y) {
         (void) window;
 
@@ -613,7 +616,7 @@ class Simulation {
     }
 
     void onKey(GLFWwindow *window, int key, int scancode, int action, int mods) {
-        (void) scancode, mods;
+        (void) scancode, (void) mods;
 
         if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GL_TRUE);

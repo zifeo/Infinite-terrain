@@ -59,8 +59,8 @@ int main(int argc, char *argv[]) {
     glfwSetWindowSizeCallback(window, bind_resize);
     glfwSetCursorPosCallback(window, bind_mouse);
 
-    std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
-    std::cout << "Glfw " << glfwGetVersionString() << std::endl;
+    cout << "OpenGL " << glGetString(GL_VERSION) << endl;
+    cout << "Glfw " << glfwGetVersionString() << endl;
 
     simulation.init(window);
 
