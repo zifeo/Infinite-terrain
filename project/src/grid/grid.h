@@ -56,7 +56,7 @@ class Grid : public Material, public Light {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
-    GLuint water_ampl_id_;
+    GLuint time_id_;
     GLuint x_chunk_id_;  // x value of the chunk
     GLuint y_chunk_id_;  // y value of the chunk
     GLuint clipping_id_; // clipping value
@@ -142,7 +142,8 @@ class Grid : public Material, public Light {
         MV_id_ = glGetUniformLocation(program_id_, "MV");
         M_id_ = glGetUniformLocation(program_id_, "M");
         P_id_ = glGetUniformLocation(program_id_, "P");
-        water_ampl_id_ = glGetUniformLocation(program_id_, "water_ampl");
+        glUniform1f(glGetUniformLocation(program_id_, "water_ampl"), WATER_AMPL);
+        time_id_ = glGetUniformLocation(program_id_, "time");
 
         x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
         y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
@@ -215,7 +216,7 @@ class Grid : public Material, public Light {
         glUniform1i(y_chunk_id_, y);
         glUniform1f(clipping_id_, clipping_height);
 
-        glUniform1f(water_ampl_id_, WATER_AMPL * sin(time));
+        glUniform1f(time_id_, time);
 
         glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND);

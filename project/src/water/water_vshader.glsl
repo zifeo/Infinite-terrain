@@ -9,11 +9,12 @@ out vec3 light_dir;
 uniform mat4 MVP;
 uniform mat4 MV;
 uniform float water_ampl;
+uniform float time;
 
 void main() {
     uv = (position + 1) / 6;
 
-    vec3 pos_3d = vec3(position.x, 0 + water_ampl, -position.y);
+    vec3 pos_3d = vec3(position.x, 0 + water_ampl * sin(time), -position.y);
     gl_Position = MVP * vec4(pos_3d, 1.0);
 
     vec4 vpoint_mv = MV * vec4(pos_3d, 1.0);
