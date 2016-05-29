@@ -30,19 +30,21 @@ class Simulation {
     double cursor_y = 0;
 
     // camera displacement
-    enum { UP = 0, DOWN, RIGHT, LEFT };
-    bool arrows_down[4] = {false, false, false, false};
-    float camera_phi = 2.0f;
-    float camera_theta = 0.0f;
+    enum { UP = 0, DOWN, RIGHT, LEFT, LEFT_UP, RIGHT_UP };
+    bool arrows_down[6] = {false, false, false, false, false, false};
+    float cam_phi = 2.0f;
+    float cam_theta = 0.0f;
     vec3 cam_pos = vec3(0, 1, 0);
     vec3 cam_speed = vec3(0, 0, 0);
+    float cam_speed_phi = 0.0f;
+    float cam_speed_theta = 0.0f;
 
     bool is_jumping = false;
     float y_speed = 0.0;
 
     // camera mode
     enum CameraMode { DEFAULT_CAMERA = 0, GROUND, FLIGHT, RECORD, B_PATH };
-    CameraMode cameraMode = FLIGHT;
+    CameraMode camera_mode = FLIGHT;
 
     // MVP
     mat4 projection_matrix;
@@ -146,17 +148,17 @@ class Simulation {
         last_frame_time = curr_time;
 
         // Camera movements
-        switch (cameraMode) {
+        switch (camera_mode) {
 
         case DEFAULT_CAMERA:
-            cameraMovements(camera_phi, coef);
+            cameraMovements(cam_phi, coef);
             break;
         case RECORD:
 
             if (start_record) {
                 path.purge();
                 cam.purge();
-                vec3 *new_orien = new vec3(camera_phi, camera_theta, 0);
+                vec3 *new_orien = new vec3(cam_phi, cam_theta, 0);
                 cam.addPoint(*new_orien);
                 start_record = false;
                 recording = true;
@@ -164,7 +166,7 @@ class Simulation {
 
         case FLIGHT:
             // Camera movements
-            cameraMovements(camera_phi, coef);
+            cameraMovements(cam_phi, coef);
             break;
 
         case B_PATH:
@@ -187,8 +189,8 @@ class Simulation {
                     cam_pos = path.bezierPoint(bezier_time);
 
                     vec3 newAngles = cam.bezierPoint(bezier_time);
-                    camera_phi = newAngles.x;
-                    camera_theta = newAngles.y;
+                    cam_phi = newAngles.x;
+                    cam_theta = newAngles.y;
 
                     int chunkCamX = (int)floor((cam_pos.x + 1) / 2);
                     int chunkCamY = (int)floor((cam_pos.z + 1) / 2);
@@ -263,10 +265,10 @@ class Simulation {
         float water_height_sh = WATER_HEIGHT + WATER_AMPL * sin(curr_time);
         float water_height = (water_height_sh + 1) / 2;
 
-        view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
+        view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(cam_phi, cam_theta), vec3(0.0f, 1.0f, 0.0f));
         vec3 cam_pos2 = vec3(cam_pos.x, -cam_pos.y + 2 * water_height_sh, cam_pos.z);
         mat4 view_matrix_reflection =
-            lookAt(cam_pos2, cam_pos2 + vecFromRot((float)M_PI - camera_phi, camera_theta), vec3(0.0f, -1.0f, 0.0f));
+            lookAt(cam_pos2, cam_pos2 + vecFromRot((float)M_PI - cam_phi, cam_theta), vec3(0.0f, -1.0f, 0.0f));
 
         switch (mode) {
 
@@ -369,26 +371,49 @@ class Simulation {
 
     /* ********** Helpers ********** */
 
-private:
-
+  private:
     void cameraMovements(float phi, float coef) {
 
         if (!is_jumping && !arrows_down[UP] && !arrows_down[DOWN] && !arrows_down[RIGHT] && !arrows_down[LEFT]) {
             cam_speed *= (float)CAMERA_DECELERATION;
         }
 
+        if (!is_jumping && !arrows_down[LEFT_UP] && !arrows_down[RIGHT_UP]) {
+            cam_speed_theta *= (float)CAMERA_DECELERATION;
+        }
+
+        if ((!is_jumping && !arrows_down[LEFT_UP] && !arrows_down[RIGHT_UP])
+            || cam_phi > CAM_PHI_MIN_PAD + CAM_PHI_MAX || cam_phi < CAM_PHI_MIN_PAD + CAM_PHI_MIN) {
+            cam_speed_phi *= (float)CAMERA_DECELERATION;
+        }
+
         if (!is_jumping) {
             if (arrows_down[UP]) {
-                cam_speed += vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION;
+                cam_speed += vecFromRot(phi, cam_theta) * (float)CAMERA_ACCELERATION;
             }
             if (arrows_down[DOWN]) {
-                cam_speed -= vecFromRot(phi, camera_theta) * (float)CAMERA_ACCELERATION;
+                cam_speed -= vecFromRot(phi, cam_theta) * (float)CAMERA_ACCELERATION;
             }
-            if (arrows_down[RIGHT]) {
-                cam_speed -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION;
-            }
-            if (arrows_down[LEFT]) {
-                cam_speed += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, camera_theta)) * (float)CAMERA_ACCELERATION;
+            if (camera_mode == DEFAULT_CAMERA) {
+                if (arrows_down[RIGHT]) {
+                    cam_speed_theta += CAM_THETA_DT * (float)CAMERA_ACCELERATION;
+                }
+                if (arrows_down[LEFT]) {
+                    cam_speed_theta -= CAM_THETA_DT * (float)CAMERA_ACCELERATION;
+                }
+                if (arrows_down[RIGHT_UP] && cam_phi < CAM_PHI_MIN_PAD + CAM_PHI_MAX) {
+                    cam_speed_phi += CAM_PHI_DT * (float)CAMERA_ACCELERATION;
+                }
+                if (arrows_down[LEFT_UP] && cam_phi > CAM_PHI_MIN_PAD + CAM_PHI_MIN) {
+                    cam_speed_phi -= CAM_PHI_DT * (float)CAMERA_ACCELERATION;
+                }
+            } else {
+                if (arrows_down[RIGHT]) {
+                    cam_speed -= cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, cam_theta)) * (float)CAMERA_ACCELERATION;
+                }
+                if (arrows_down[LEFT]) {
+                    cam_speed += cross(vec3(0.0f, 1.0f, 0.0f), vecFromRot(phi, cam_theta)) * (float)CAMERA_ACCELERATION;
+                }
             }
         }
 
@@ -397,9 +422,11 @@ private:
         }
 
         cam_pos += cam_speed * coef;
+        cam_theta += cam_speed_theta * coef;
+        cam_phi = clamp(cam_phi + cam_speed_phi * coef, CAM_PHI_MIN, CAM_PHI_MAX);
     }
 
-    void drawChunks(mat4& model, mat4& view, mat4& proj, float time, float clipping_height = 0.0f) {
+    void drawChunks(mat4 &model, mat4 &view, mat4 &proj, float time, float clipping_height = 0.0f) {
         for (auto &chunk : chunk_map) {
             int i = chunk.second.x;
             int j = chunk.second.y;
@@ -410,7 +437,7 @@ private:
         }
     }
 
-    void drawTrees(mat4& model, mat4& view, mat4& proj, float time, float clipping_height = 0.0f) {
+    void drawTrees(mat4 &model, mat4 &view, mat4 &proj, float time, float clipping_height = 0.0f) {
         for (auto &chunk : chunk_map) {
             int i = chunk.second.x;
             int j = chunk.second.y;
@@ -592,15 +619,14 @@ private:
 
     /* ********** Events ********** */
 
-public:
-
+  public:
     void onMouseMove(GLFWwindow *window, double x, double y) {
-        (void) window;
+        (void)window;
 
-        if (cameraMode != B_PATH) {
-            camera_theta += (x - cursor_x) * MOUSE_SENSIBILTY;
-            camera_phi += (y - cursor_y) * MOUSE_SENSIBILTY;
-            camera_phi = clamp(camera_phi, (float)(M_PI / 10), (float)(9 * M_PI / 10));
+        if (camera_mode != B_PATH) {
+            cam_theta += (x - cursor_x) * MOUSE_SENSIBILTY;
+            cam_phi += (y - cursor_y) * MOUSE_SENSIBILTY;
+            cam_phi = clamp(cam_phi, CAM_PHI_MIN, CAM_PHI_MAX);
             cursor_x = x;
             cursor_y = y;
         }
@@ -616,7 +642,7 @@ public:
     }
 
     void onKey(GLFWwindow *window, int key, int scancode, int action, int mods) {
-        (void) scancode, (void) mods;
+        (void)scancode, (void)mods;
 
         if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GL_TRUE);
@@ -653,7 +679,7 @@ public:
                 if (recording) {
                     vec3 *newpos = new vec3(cam_pos);
                     path.addPoint(*newpos);
-                    vec3 *new_orien = new vec3(camera_phi, camera_theta, 0);
+                    vec3 *new_orien = new vec3(cam_phi, cam_theta, 0);
                     cam.addPoint(*new_orien);
                 }
                 break;
@@ -661,24 +687,27 @@ public:
                 set_noise_params(-1, 0.01, 0);
                 break;
             case GLFW_KEY_SPACE:
-                if (cameraMode == GROUND && !is_jumping) {
+                if (camera_mode == GROUND && !is_jumping) {
                     is_jumping = true;
                     y_speed = (float)JUMP_SPEED;
                 }
                 break;
             case GLFW_KEY_R:
-                cameraMode = RECORD;
+                camera_mode = RECORD;
                 start_record = true;
                 break;
             case GLFW_KEY_F:
-                cameraMode = FLIGHT;
+                camera_mode = FLIGHT;
                 break;
             case GLFW_KEY_P:
-                cameraMode = B_PATH;
+                camera_mode = B_PATH;
                 start_path = true;
                 break;
             case GLFW_KEY_G:
-                cameraMode = GROUND;
+                camera_mode = GROUND;
+                break;
+            case GLFW_KEY_B:
+                camera_mode = DEFAULT_CAMERA;
                 break;
             default:
                 break;
@@ -697,6 +726,12 @@ public:
             break;
         case GLFW_KEY_A:
             arrows_down[LEFT] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_Q:
+            arrows_down[LEFT_UP] = (action != GLFW_RELEASE);
+            break;
+        case GLFW_KEY_E:
+            arrows_down[RIGHT_UP] = (action != GLFW_RELEASE);
             break;
         default:
             break;
