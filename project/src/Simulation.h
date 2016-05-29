@@ -92,12 +92,20 @@ class Simulation {
 
     Bezier path;
     Bezier cam;
+    Bezier speed;
 
     bool start_path = true;
-    double b_start_time;
+    double bezier_time;
 
     bool start_record = true;
     bool recording = false;
+
+    vec3* cam_pos_first;
+    vec3* cam_rot_first;
+
+    double next_speed = 1;
+    double speed_changed = -1;
+    double curr_speed = 1;
 
     // water reflection
     FrameBuffer water_reflection;
@@ -158,8 +166,12 @@ class Simulation {
             if (start_record) {
                 path.purge();
                 cam.purge();
+                vec3 *newpos = new vec3(cam_pos);
+                path.addPoint(*newpos);
                 vec3 *new_orien = new vec3(cam_phi, cam_theta, 0);
                 cam.addPoint(*new_orien);
+                cam_pos_first = newpos;
+                cam_rot_first = new_orien;
                 start_record = false;
                 recording = true;
             }
@@ -171,20 +183,28 @@ class Simulation {
 
         case B_PATH:
             if (start_path) {
-
                 // path.print_list();
                 // cam.print_list();
-                b_start_time = curr_time;
+                bezier_time = 0;
                 start_path = false;
             } else {
-                double bezier_time = curr_time - b_start_time;
 
-                if (bezier_time > path.get_nbr_elem()) {
+                if (speed_changed < 0) {
+                    if (curr_time - speed_changed < 2) {
+                        double acc_time =  curr_time - speed_changed;
+                        curr_speed = speed.bezierPoint(acc_time).x;
+                    } else {
+                        speed_changed = -1;
+                        curr_speed = next_speed;
+                    }
+                }
+
+                bezier_time += frame_time*curr_speed;
+
+                if (bezier_time > path.get_nbr_elem() - 1) {
                     start_path = true;
 
                 } else {
-
-                    cam_pos = path.bezierPoint(bezier_time);
 
                     cam_pos = path.bezierPoint(bezier_time);
 
@@ -701,6 +721,8 @@ class Simulation {
                 break;
             case GLFW_KEY_P:
                 camera_mode = B_PATH;
+                path.addPoint(*cam_pos_first);
+                cam.addPoint(*cam_rot_first);
                 start_path = true;
                 break;
             case GLFW_KEY_G:
@@ -716,9 +738,27 @@ class Simulation {
 
         switch (key) {
         case GLFW_KEY_W:
+            if (camera_mode == B_PATH) {
+                speed.purge();
+                vec3* speedvec = new vec3(curr_speed, 0, 0);
+                speed.addPoint(*speedvec);
+                next_speed += 0.1;
+                speedvec = new vec3(next_speed, 0, 0);
+                speed.addPoint(*speedvec);
+                speed_changed = glfwGetTime();
+            }
             arrows_down[UP] = (action != GLFW_RELEASE);
             break;
         case GLFW_KEY_S:
+            if (camera_mode == B_PATH) {
+                speed.purge();
+                vec3* speedvec = new vec3(curr_speed, 0, 0);
+                speed.addPoint(*speedvec);
+                next_speed -= 0.1;
+                speedvec = new vec3(next_speed, 0, 0);
+                speed.addPoint(*speedvec);
+                speed_changed = glfwGetTime();
+            }
             arrows_down[DOWN] = (action != GLFW_RELEASE);
             break;
         case GLFW_KEY_D:

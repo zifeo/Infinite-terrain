@@ -154,6 +154,6 @@ void main() {
         color_temp3 = color_temp3;
     }
 
-    vec4 brouillard = vec4(0.8, 0.8, 0.8, 0);
-    color = mix(vec4(color_temp3, 1), brouillard, clamp(dist * dist * dist / (8 * 8 * 8), 0, 1));
+    vec4 brouillard = vec4(0.8, 0.8, 0.8, 1);
+    color = mix(vec4(color_temp3, 1), brouillard, clamp(dist * dist / (9 * 9), 0, 1));
 }
