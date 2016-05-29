@@ -260,7 +260,7 @@ class Simulation {
         // Display
         glViewport(0, 0, window_width, window_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        float water_height_sh = WATER_HEIGHT + 0.1f * sin(curr_time);
+        float water_height_sh = WATER_HEIGHT + WATER_AMPL * sin(curr_time);
         float water_height = (water_height_sh + 1) / 2;
 
         view_matrix = lookAt(cam_pos, cam_pos + vecFromRot(camera_phi, camera_theta), vec3(0.0f, 1.0f, 0.0f));
@@ -282,7 +282,7 @@ class Simulation {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glEnable(GL_CLIP_DISTANCE0);
 
-                drawChunks(model_matrix, view_matrix_reflection, projection_matrix, water_height);
+                drawChunks(model_matrix, view_matrix_reflection, projection_matrix, curr_time, water_height);
                 sky.Draw(translate(projection_matrix * model_matrix * view_matrix_reflection, cam_pos2));
                 drawTrees(model_matrix, view_matrix_reflection, projection_matrix, curr_time, water_height_sh);
 
@@ -290,7 +290,7 @@ class Simulation {
             }
             water_reflection.Unbind();
 
-            drawChunks(model_matrix, view_matrix, projection_matrix);
+            drawChunks(model_matrix, view_matrix, projection_matrix, curr_time);
             drawTrees(model_matrix, view_matrix, projection_matrix, curr_time);
 
             mat4 model = scale(model_matrix, vec3(WATER_SIZE, 1, WATER_SIZE));
@@ -399,14 +399,14 @@ private:
         cam_pos += cam_speed * coef;
     }
 
-    void drawChunks(mat4& model, mat4& view, mat4& proj, float clipping_height = 0.0f) {
+    void drawChunks(mat4& model, mat4& view, mat4& proj, float time, float clipping_height = 0.0f) {
         for (auto &chunk : chunk_map) {
             int i = chunk.second.x;
             int j = chunk.second.y;
 
             vec3 pos = vec3(chunk.second.x, 0, chunk.second.y);
             mat4 model_trans = translate(model, pos);
-            grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, model_trans, view, proj, clipping_height);
+            grid.Draw(chunk.second.perlinBuffer_tex_id, i, j, time, model_trans, view, proj, clipping_height);
         }
     }
 

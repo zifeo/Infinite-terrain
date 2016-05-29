@@ -15,7 +15,7 @@ class Water {
     GLuint num_indices_;                   // number of vertices to render
     GLuint MVP_id_;                        // model, view, proj matrix ID
     GLuint MV_id_;
-    GLuint time_id_;
+    GLuint water_ampl_id_;
     GLuint cam_pos_x_id_; // x value of the chunk
     GLuint cam_pos_y_id_; // y value of the chunk
     GLuint tex_reflection_id_;
@@ -99,7 +99,7 @@ class Water {
 
         cam_pos_x_id_ = glGetUniformLocation(program_id_, "cam_posX");
         cam_pos_y_id_ = glGetUniformLocation(program_id_, "cam_posY");
-        time_id_ = glGetUniformLocation(program_id_, "time");
+        water_ampl_id_ = glGetUniformLocation(program_id_, "water_ampl");
 
         // to avoid the current object being polluted
         glBindVertexArray(0);
@@ -144,7 +144,7 @@ class Water {
         glUniform1f(cam_pos_y_id_, -cam_pos.z);
 
         // pass the current time stamp to the shader.
-        glUniform1f(time_id_, time);
+        glUniform1f(water_ampl_id_, WATER_AMPL * sin(time));
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -15,16 +15,10 @@ struct Light {
         glUseProgram(program_id);
 
         // given in camera space
-        GLuint light_pos_id = glGetUniformLocation(program_id, "light_pos");
-
-        GLuint La_id = glGetUniformLocation(program_id, "La");
-        GLuint Ld_id = glGetUniformLocation(program_id, "Ld");
-        GLuint Ls_id = glGetUniformLocation(program_id, "Ls");
-
-        glUniform3fv(light_pos_id, ONE, glm::value_ptr(light_pos));
-        glUniform3fv(La_id, ONE, glm::value_ptr(La));
-        glUniform3fv(Ld_id, ONE, glm::value_ptr(Ld));
-        glUniform3fv(Ls_id, ONE, glm::value_ptr(Ls));
+        glUniform3fv(glGetUniformLocation(program_id, "light_pos"), ONE, glm::value_ptr(light_pos));
+        glUniform3fv(glGetUniformLocation(program_id, "La"), ONE, glm::value_ptr(La));
+        glUniform3fv(glGetUniformLocation(program_id, "Ld"), ONE, glm::value_ptr(Ld));
+        glUniform3fv(glGetUniformLocation(program_id, "Ls"), ONE, glm::value_ptr(Ls));
     }
 };
 
@@ -38,15 +32,10 @@ struct Material {
     void Setup(GLuint program_id) {
         glUseProgram(program_id);
 
-        GLuint ka_id = glGetUniformLocation(program_id, "ka");
-        GLuint kd_id = glGetUniformLocation(program_id, "kd");
-        GLuint ks_id = glGetUniformLocation(program_id, "ks");
-        GLuint alpha_id = glGetUniformLocation(program_id, "alpha");
-
-        glUniform3fv(ka_id, ONE, glm::value_ptr(ka));
-        glUniform3fv(kd_id, ONE, glm::value_ptr(kd));
-        glUniform3fv(ks_id, ONE, glm::value_ptr(ks));
-        glUniform1f(alpha_id, alpha);
+        glUniform3fv(glGetUniformLocation(program_id, "ka"), ONE, glm::value_ptr(ka));
+        glUniform3fv(glGetUniformLocation(program_id, "kd"), ONE, glm::value_ptr(kd));
+        glUniform3fv(glGetUniformLocation(program_id, "ks"), ONE, glm::value_ptr(ks));
+        glUniform1f(glGetUniformLocation(program_id, "alpha"), alpha);
     }
 };
 
@@ -67,7 +56,7 @@ class Grid : public Material, public Light {
     GLuint MV_id_;
     GLuint M_id_;
     GLuint P_id_;
-    GLuint time_id_;
+    GLuint water_ampl_id_;
     GLuint x_chunk_id_;  // x value of the chunk
     GLuint y_chunk_id_;  // y value of the chunk
     GLuint clipping_id_; // clipping value
@@ -153,22 +142,16 @@ class Grid : public Material, public Light {
         MV_id_ = glGetUniformLocation(program_id_, "MV");
         M_id_ = glGetUniformLocation(program_id_, "M");
         P_id_ = glGetUniformLocation(program_id_, "P");
-        time_id_ = glGetUniformLocation(program_id_, "time");
+        water_ampl_id_ = glGetUniformLocation(program_id_, "water_ampl");
 
         x_chunk_id_ = glGetUniformLocation(program_id_, "x_chunk");
         y_chunk_id_ = glGetUniformLocation(program_id_, "y_chunk");
         clipping_id_ = glGetUniformLocation(program_id_, "clipping");
 
-        GLuint light_pos_id = glGetUniformLocation(program_id_, "light_pos");
-
-        GLuint La_id = glGetUniformLocation(program_id_, "La");
-        GLuint Ld_id = glGetUniformLocation(program_id_, "Ld");
-        GLuint Ls_id = glGetUniformLocation(program_id_, "Ls");
-
-        glUniform3fv(light_pos_id, ONE, glm::value_ptr(light_pos));
-        glUniform3fv(La_id, ONE, glm::value_ptr(La));
-        glUniform3fv(Ld_id, ONE, glm::value_ptr(Ld));
-        glUniform3fv(Ls_id, ONE, glm::value_ptr(Ls));
+        glUniform3fv(glGetUniformLocation(program_id_, "light_pos"), ONE, glm::value_ptr(light_pos));
+        glUniform3fv(glGetUniformLocation(program_id_, "La"), ONE, glm::value_ptr(La));
+        glUniform3fv(glGetUniformLocation(program_id_, "Ld"), ONE, glm::value_ptr(Ld));
+        glUniform3fv(glGetUniformLocation(program_id_, "Ls"), ONE, glm::value_ptr(Ls));
 
         // to avoid the current object being polluted
         glBindVertexArray(0);
@@ -189,7 +172,7 @@ class Grid : public Material, public Light {
         glDeleteTextures(1, &snow_texture_id_);
     }
 
-    void Draw(GLuint texture_id, int x, int y, const glm::mat4 &model = IDENTITY_MATRIX,
+    void Draw(GLuint texture_id, int x, int y, float time, const glm::mat4 &model = IDENTITY_MATRIX,
               const glm::mat4 &view = IDENTITY_MATRIX, const glm::mat4 &projection = IDENTITY_MATRIX,
               float clipping_height = 0.0f) {
         glUseProgram(program_id_);
@@ -232,7 +215,7 @@ class Grid : public Material, public Light {
         glUniform1i(y_chunk_id_, y);
         glUniform1f(clipping_id_, clipping_height);
 
-        glUniform1f(time_id_, (GLfloat) glfwGetTime());
+        glUniform1f(water_ampl_id_, WATER_AMPL * sin(time));
 
         glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND);

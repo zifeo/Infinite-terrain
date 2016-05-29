@@ -1,7 +1,5 @@
 #version 330
 
-#define SKIRT 0.001
-
 in vec2 position;
 
 out vec2 uv;
@@ -10,12 +8,12 @@ out vec3 light_dir;
 
 uniform mat4 MVP;
 uniform mat4 MV;
-uniform float time;
+uniform float water_ampl;
 
 void main() {
     uv = (position + 1) / 6;
 
-    vec3 pos_3d = vec3(position.x, 0 + 0.1 * sin(time), -position.y);
+    vec3 pos_3d = vec3(position.x, 0 + water_ampl, -position.y);
     gl_Position = MVP * vec4(pos_3d, 1.0);
 
     vec4 vpoint_mv = MV * vec4(pos_3d, 1.0);
