@@ -91,7 +91,8 @@ Optional features were done depending on the will and then improved by the team 
 
 ### Resources
 
-- textures are taken from [textures.com](https://www.textures.com)
+- textures from [textures.com](https://www.textures.com)
+- skybox from [braynzarsoft](http://braynzarsoft.net)
 
 ### License
 
