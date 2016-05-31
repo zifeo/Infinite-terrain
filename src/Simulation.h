@@ -703,9 +703,6 @@ class Simulation {
                     cam.addPoint(*new_orien);
                 }
                 break;
-            case 59 /*É*/:
-                set_noise_params(-1, 0.01, 0);
-                break;
             case GLFW_KEY_SPACE:
                 if (camera_mode == GROUND && !is_jumping) {
                     is_jumping = true;
