@@ -500,6 +500,8 @@ class Simulation {
                      perlin_tex); // One fat read is much faster than small reads for all trees
         chunk.tex.Unbind();
 
+        srand(getKey(i, j));
+
         int count = rand() % (MAX_TREES_PER_CHUNK / 2) + (MAX_TREES_PER_CHUNK / 2);
         for (int k = 0; k < count; k++) {
 
@@ -569,6 +571,8 @@ class Simulation {
                      perlin_tex); // One fat read is much faster than small reads for all trees*/
 
         chunk.tex.Unbind();
+
+        srand(getKey(i, j));
 
         int count = rand() % (MAX_TREES_PER_CHUNK / 2) + (MAX_TREES_PER_CHUNK / 2);
         for (int k = 0; k < count; k++) {

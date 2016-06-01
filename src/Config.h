@@ -26,9 +26,7 @@
 #endif
 
 // Tree defines
-#define TURNING_TREES                                                                                                  \
-    0 // 0 if you want TREE_PLANE_COUNT planes trees, 1 if you want 1 plane which rotates towards the camera
-#define TREE_PLANE_COUNT 2 // not used if TURNING_TREES is 1
+#define TREE_PLANE_COUNT 2
 
 #define TREE_HEIGHT 1 / 16.0
 
