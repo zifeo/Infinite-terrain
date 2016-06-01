@@ -78,18 +78,19 @@ make -j4
 
 - infinite terrain: using a seed and interpolation between each piece of terrain, we could create glued chunk each having its own noise characteristics
 - mipmap textures: for breaking predefined pattern and make the view more pleasant to see we used mipmap on each textures blend
-- biomes: based on chunk we implemented 4 biomes (mountains, oceans, deserts and basics) using the concept of temperature to modify amplitude, colors and others attributes
-- trees population: to occupied the free spaces, we introduced textured trees adapted to their locales biomes (snowned pins, reeds, bruches, cacti and pins) and placed them in a procedural manner 
-- water reflection with trees and sky: challenged to overcome chunk reflection limitation, we used one big clipped framebuffer to draw from downside all the elements we wanted to reflect
-- physically realistic movements: camera jumping has been integrated with realistic physics principles but we kept a low gravity to allow big jumps to be made
+- biomes: based on chunk we implemented 4 biomes (mountains, oceans, deserts and basics) using the concept of temperature and altitude to modify amplitude, colors and others attributes
+- trees population: to occupied the free spaces, we introduced textured trees adapted to their locales biomes (snowy pines, reeds, dead-trees, cactii and normal pines) and placed them in a procedural manner 
+- water reflection with trees and sky: challenged by chunked reflection limitations, we used one big clipped framebuffer to draw from downside all the elements to reflect and mix them with texture
+- physically realistic movements: camera jumping has been integrated with realistic physics principles but we kept a low gravity to allow big jumps
 - realistic fog: as a starting point for future particles effects, we used fog that increases with the distance to mimic real world effects
-- recordable bezier path: as none of us shared the same most loved bezier path, we made it parametrable on the user will
+- recordable bezier path: we found hard to agree on the bezier path to include, thus we made it parametrable so the user can record the one he loves the most 
 
 ### Team work
 
 We started splitting the work such as each team member had in charge 2/3 of the required features.
 However we ended up working in pair on each feature so that all members could better collaborate.
-Optional features were done depending on the will and then improved by the team as a whole.
+Optional features were done depending on personal initiative and then improved by the team as a whole.
+Namely, Arnaud initiated trees, biomes, water movements, jumps, terrain, camera, Nicolas initiated water reflection, mipmap, perlin, bezier, fog and Teo initiated skybox, controls, water, optimization, clippings.
 
 ### Resources
 
