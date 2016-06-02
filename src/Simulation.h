@@ -44,7 +44,7 @@ class Simulation {
 
     // camera mode
     enum CameraMode { DEFAULT_CAMERA = 0, GROUND, FLIGHT, RECORD, B_PATH };
-    CameraMode camera_mode = FLIGHT;
+    CameraMode camera_mode = DEFAULT_CAMERA;
 
     // MVP
     mat4 projection_matrix;
@@ -189,7 +189,7 @@ class Simulation {
                 start_path = false;
             } else {
 
-                if (speed_changed < 0) {
+                if (speed_changed >= 0) {
                     if (curr_time - speed_changed < 2) {
                         double acc_time =  curr_time - speed_changed;
                         curr_speed = speed.bezierPoint(acc_time).x;
